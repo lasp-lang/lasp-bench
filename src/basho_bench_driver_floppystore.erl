@@ -29,11 +29,6 @@
 
 -define(TIMEOUT, 1000).
 -record(state, {node}).
-%-record(state, { file,
-%                 filename,
-%                 flags,
-%                 sync_interval,
-%                 last_sync }).
 
 %% ====================================================================
 %% API
@@ -114,15 +109,6 @@ floppy_valgen(Id) ->
     fun() ->
         {increment, Id}
     end.
-    %Save = list_to_atom("mapred_ordered_valgen"++integer_to_list(Id)),
-    %fun() ->
-    %        Next = case get(Save) of
-    %                   undefined -> 0;
-    %                   Value     -> Value
-    %               end,
-    %        put(Save, Next+1),
-    %        list_to_binary(integer_to_list(Next))
-    %end.
 
 ping_each([]) ->
     ok;
