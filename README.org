@@ -13,7 +13,7 @@
    - src/basho_bench_driver_floppystore.erl: defines the initialization of a benchmarking thread and how it executes put/get operations.
    - examples/floppstore.config: contains benchmark parameters.
 
- ** Run a benchmark 
+** Run a benchmark 
 #+BEGIN_SRC shell
 $ ./basho_bench examples/floppystore.config
 #+END_SRC
