@@ -28,7 +28,9 @@
 -include("basho_bench.hrl").
 
 -define(TIMEOUT, 1000).
--record(state, {node}).
+-record(state, {node,
+                type_dict,
+                key_dict}).
 
 %% ====================================================================
 %% API
@@ -47,6 +49,7 @@ new(Id) ->
     Nodes   = basho_bench_config:get(floppystore_nodes),
     Cookie  = basho_bench_config:get(floppystore_cookie),
     MyNode  = basho_bench_config:get(floppystore_mynode, [basho_bench, longnames]),
+    Types  = basho_bench_config:get(floppystore_types),
 
     %% Try to spin up net_kernel
     case net_kernel:start(MyNode) of
@@ -68,16 +71,19 @@ new(Id) ->
     %% Choose the node using our ID as a modulus
     TargetNode = lists:nth((Id rem length(Nodes)+1), Nodes),
     ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
+    KeyDict= dict:new(),
+    TypeDict = dict:from_list(Types),
+    {ok, #state{node=TargetNode, type_dict=TypeDict, key_dict=KeyDict}}.
 
-    {ok, #state{node=TargetNode}}.
 
-
-
-
-run(read, KeyGen, _ValueGen, State=#state{node=Node}) ->
+run(read, KeyGen, _ValueGen, State=#state{node=Node, key_dict=KeyDict}) ->
     %State1 = maybe_sync(State),
     Key = KeyGen(),
-    Res = rpc:call(Node, floppy, read, [Key, riak_dt_gcounter], ?TIMEOUT),
+    KeyType = case dict:find(Key, KeyDict) of
+                {ok, Type} -> io:format("ReadType:~w~n", [Type]), hd(Type);
+                 _ ->  riak_dt_gcounter 
+              end,
+    Res = rpc:call(Node, floppy, read, [Key, KeyType], ?TIMEOUT),
     case Res of
         {ok, _Value} ->
             {ok, State};
@@ -88,28 +94,36 @@ run(read, KeyGen, _ValueGen, State=#state{node=Node}) ->
         _Reason ->
             {ok, State}
     end;
-run(append, KeyGen, ValueGen, State=#state{node=Node}) ->
+run(append, KeyGen, ValueGen, State=#state{node=Node, key_dict=KeyDict, type_dict=TypeDict}) ->
     Key = KeyGen(),
-    Param = ValueGen(),
-    Res = rpc:call(Node, floppy, append, [Key, Param], ?TIMEOUT),
-    %State1 = maybe_sync(State),
+    {NewKeyDict, KeyParam} = case dict:find(Key, KeyDict) of
+                            {ok, Type} -> 
+                                Param = get_random_param(TypeDict, hd(Type), ValueGen),
+                                {KeyDict, Param};
+                            error ->   
+                                Types = dict:fetch_keys(TypeDict), 
+                                Type = get_random_elem(Types),
+                                Dict2 = dict:append(Key, Type, KeyDict),
+                                Param = get_random_param(TypeDict, Type, ValueGen),
+                                {Dict2, Param}
+              end,
+    Res = rpc:call(Node, floppy, append, [Key, KeyParam], ?TIMEOUT),
     case Res of
         {ok, _Result} ->
-            {ok, State};
+            {ok, State#state{key_dict=NewKeyDict}};
         {error, Reason} ->
             {error, Reason};
         {badrpc, Reason} ->
             {badrpc, Reason};
-        _Reason ->
+        _ ->
             {ok, State}
     end.
 
 
 floppy_valgen(Id) ->
-    fun() ->
-        {increment, Id}
-    end.
+    Id.
 
+%% Private
 ping_each([]) ->
     ok;
 ping_each([Node | Rest]) ->
@@ -120,3 +134,20 @@ ping_each([Node | Rest]) ->
         pang ->
             ?FAIL_MSG("Failed to ping node ~p\n", [Node])
     end.
+
+get_random_elem(List) ->
+    random:seed(now()),
+    Num = random:uniform(length(List)),
+    lists:nth(Num, List).
+
+get_random_param(Dict, Type, Actor) -> 
+    Params = dict:fetch(Type, Dict),
+    random:seed(now()),
+    Num = random:uniform(length(Params)),
+    case Type of 
+        riak_dt_gcounter ->
+            {lists:nth(Num, Params), Actor};
+        riak_dt_gset ->
+            {{lists:nth(Num, Params), random:uniform(10000)}, Actor}
+    end.
+
