@@ -22,15 +22,16 @@
 -module(basho_bench_driver_floppystore).
 
 -export([new/1,
-         floppy_valgen/1,
          run/4]).
 
 -include("basho_bench.hrl").
 
 -define(TIMEOUT, 1000).
 -record(state, {node,
-                type_dict,
-                key_dict}).
+                worker_id,
+                time,
+                type_dict}).
+                %key_dict}).
 
 %% ====================================================================
 %% API
@@ -71,19 +72,16 @@ new(Id) ->
     %% Choose the node using our ID as a modulus
     TargetNode = lists:nth((Id rem length(Nodes)+1), Nodes),
     ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
-    KeyDict= dict:new(),
+    %KeyDict= dict:new(),
     TypeDict = dict:from_list(Types),
-    {ok, #state{node=TargetNode, type_dict=TypeDict, key_dict=KeyDict}}.
+    {ok, #state{node=TargetNode, time=1, worker_id=Id, type_dict=TypeDict}}.
 
-
-run(read, KeyGen, _ValueGen, State=#state{node=Node, key_dict=KeyDict}) ->
-    %State1 = maybe_sync(State),
+%% @doc Read a key
+run(read, KeyGen, _ValueGen, State=#state{node=Node}) ->
     Key = KeyGen(),
-    KeyType = case dict:find(Key, KeyDict) of
-                {ok, Type} -> io:format("ReadType:~w~n", [Type]), hd(Type);
-                 _ ->  riak_dt_gcounter 
-              end,
-    Res = rpc:call(Node, floppy, read, [Key, KeyType], ?TIMEOUT),
+    KeyType = get_key_type(Key), 
+    BinaryKey = Key,%<<(Key):32/big>>,
+    Res = rpc:call(Node, floppy, read, [BinaryKey, KeyType], ?TIMEOUT),
     case Res of
         {ok, _Value} ->
             {ok, State};
@@ -94,34 +92,62 @@ run(read, KeyGen, _ValueGen, State=#state{node=Node, key_dict=KeyDict}) ->
         _Reason ->
             {ok, State}
     end;
-run(append, KeyGen, ValueGen, State=#state{node=Node, key_dict=KeyDict, type_dict=TypeDict}) ->
+%% @doc Write to a key
+run(append, KeyGen, ValueGen, State=#state{node=Node, worker_id=Id, type_dict=TypeDict}) ->
     Key = KeyGen(),
-    {NewKeyDict, KeyParam} = case dict:find(Key, KeyDict) of
-                            {ok, Type} -> 
-                                Param = get_random_param(TypeDict, hd(Type), ValueGen),
-                                {KeyDict, Param};
-                            error ->   
-                                Types = dict:fetch_keys(TypeDict), 
-                                Type = get_random_elem(Types),
-                                Dict2 = dict:append(Key, Type, KeyDict),
-                                Param = get_random_param(TypeDict, Type, ValueGen),
-                                {Dict2, Param}
-              end,
-    Res = rpc:call(Node, floppy, append, [Key, KeyParam], ?TIMEOUT),
+    Type = get_key_type(Key),
+    BinaryKey = Key,%<<(Key):32/big>>,
+    KeyParam = get_random_param(TypeDict, Type, Id, ValueGen()),
+    Res = rpc:call(Node, floppy, append, [BinaryKey, KeyParam], ?TIMEOUT),
     case Res of
         {ok, _Result} ->
-            {ok, State#state{key_dict=NewKeyDict}};
+            {ok, State};
         {error, Reason} ->
             {error, Reason};
         {badrpc, Reason} ->
             {badrpc, Reason};
         _ ->
             {ok, State}
+    end;
+%% @doc Start a static transaction
+run(static_tx, KeyGen, ValueGen, State=#state{node=Node, worker_id=Id, type_dict=Dict}) ->
+    random:seed(now()),
+    NumAppend = random:uniform(10),
+    NumRead = random:uniform(10),
+    ListAppends = get_random_append_ops(NumAppend, Dict, Id, KeyGen, ValueGen),
+    ListReads = get_random_read_ops(NumRead, KeyGen),
+    ListOps = ListAppends++ListReads,
+    Res = rpc:call(Node, floppy, clockSI_execute_TX, [1, ListOps], ?TIMEOUT),
+    case Res of
+        {ok, _ReadSet, CommitTime} ->
+            {ok, State#state{time=CommitTime}};
+        {error, Reason} ->
+            {error, Reason};
+        {badrpc, Reason} ->
+            {badrpc, Reason};
+        _Reason ->
+            {ok, State}
+    end;
+run(interactive_tx, KeyGen, ValueGen, State=#state{node=Node, worker_id=Id, type_dict=Dict}) ->
+    random:seed(now()),
+    NumAppend = random:uniform(10),
+    NumRead = random:uniform(10),
+    ListAppends = get_random_append_ops(NumAppend, Dict, Id, KeyGen, ValueGen),
+    ListReads = get_random_read_ops(NumRead, KeyGen),
+    ListOps = ListAppends++ListReads,
+    Res = rpc:call(Node, floppy, clockSI_execute_TX, [1, ListOps], ?TIMEOUT),
+    case Res of
+        {ok, _ReadSet, CommitTime} ->
+            {ok, State#state{time=CommitTime}};
+        {error, Reason} ->
+            {error, Reason};
+        {badrpc, Reason} ->
+            {badrpc, Reason};
+        _Reason ->
+            {ok, State}
     end.
 
 
-floppy_valgen(Id) ->
-    Id.
 
 %% Private
 ping_each([]) ->
@@ -135,12 +161,16 @@ ping_each([Node | Rest]) ->
             ?FAIL_MSG("Failed to ping node ~p\n", [Node])
     end.
 
-get_random_elem(List) ->
-    random:seed(now()),
-    Num = random:uniform(length(List)),
-    lists:nth(Num, List).
+get_key_type(_Key) ->
+    %Rem = Key rem 10,
+    %case Rem > 5 of
+    %    true ->
+            riak_dt_gcounter.
+    %    false ->
+    %        riak_dt_gset
+    %end.
 
-get_random_param(Dict, Type, Actor) -> 
+get_random_param(Dict, Type, Actor, Value) -> 
     Params = dict:fetch(Type, Dict),
     random:seed(now()),
     Num = random:uniform(length(Params)),
@@ -148,6 +178,24 @@ get_random_param(Dict, Type, Actor) ->
         riak_dt_gcounter ->
             {lists:nth(Num, Params), Actor};
         riak_dt_gset ->
-            {{lists:nth(Num, Params), random:uniform(10000)}, Actor}
+            {{lists:nth(Num, Params), Value}, Actor}
     end.
 
+get_random_append_op(Key, Dict, Actor, Value) ->
+    Type = get_key_type(Key),
+    Params = get_random_param(Dict, Type, Actor, Value),
+    {update, Key, Params}.
+
+get_random_read_op(Key) ->
+    Type = get_key_type(Key),
+    {read, Key, Type}.
+    
+get_random_append_ops(Num, Dict, Actor, KeyGen, ValueGen) ->
+    %KeyList = [<<(KeyGen()):32/big>> || _ <- lists:seq(1, Num)],
+    KeyList = [KeyGen() || _ <- lists:seq(1, Num)],
+    [get_random_append_op(Key, Dict, Actor, ValueGen()) || Key <- KeyList].
+
+get_random_read_ops(Num, KeyGen) ->
+    %KeyList = [<<(KeyGen()):32/big>> || _ <- lists:seq(1, Num)],
+    KeyList = [KeyGen() || _ <- lists:seq(1, Num)],
+    [get_random_read_op(Key) || Key <- KeyList].
