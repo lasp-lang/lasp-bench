@@ -74,7 +74,7 @@ new(Id) ->
     ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
     %KeyDict= dict:new(),
     TypeDict = dict:from_list(Types),
-    {ok, #state{node=TargetNode, time=1, worker_id=Id, type_dict=TypeDict}}.
+    {ok, #state{node=TargetNode, time={1,1,1}, worker_id=Id, type_dict=TypeDict}}.
 
 %% @doc Read a key
 run(read, KeyGen, _ValueGen, State=#state{node=Node}) ->
@@ -110,14 +110,14 @@ run(append, KeyGen, ValueGen, State=#state{node=Node, worker_id=Id, type_dict=Ty
             {ok, State}
     end;
 %% @doc Start a static transaction
-run(static_tx, KeyGen, ValueGen, State=#state{node=Node, worker_id=Id, type_dict=Dict}) ->
+run(static_tx, KeyGen, ValueGen, State=#state{node=Node, time=ClientTime, worker_id=Id, type_dict=Dict}) ->
     random:seed(now()),
     NumAppend = random:uniform(10),
     NumRead = random:uniform(10),
     ListAppends = get_random_append_ops(NumAppend, Dict, Id, KeyGen, ValueGen),
     ListReads = get_random_read_ops(NumRead, KeyGen),
     ListOps = ListAppends++ListReads,
-    Res = rpc:call(Node, floppy, clockSI_execute_TX, [1, ListOps], ?TIMEOUT),
+    Res = rpc:call(Node, floppy, clockSI_execute_TX, [ClientTime, ListOps], ?TIMEOUT),
     case Res of
         {ok, _ReadSet, CommitTime} ->
             {ok, State#state{time=CommitTime}};
@@ -135,10 +135,19 @@ run(interactive_tx, KeyGen, ValueGen, State=#state{node=Node, worker_id=Id, type
     ListAppends = get_random_append_ops(NumAppend, Dict, Id, KeyGen, ValueGen),
     ListReads = get_random_read_ops(NumRead, KeyGen),
     ListOps = ListAppends++ListReads,
-    Res = rpc:call(Node, floppy, clockSI_execute_TX, [1, ListOps], ?TIMEOUT),
-    case Res of
-        {ok, _ReadSet, CommitTime} ->
-            {ok, State#state{time=CommitTime}};
+    RandomOps = [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- ListOps])],
+    {ok, TxId} = rpc:call(Node, floppy, clockSI_istart_tx, [now()], ?TIMEOUT),
+    ExecuteFun = fun(X) ->  case X of 
+                            {update, UKey, UParam} -> ok = rpc:call(Node, floppy, clockSI_iupdate, [TxId, UKey, UParam]);
+                            {read, RKey, RType} -> {ok, _} = rpc:call(Node, floppy, clockSI_iread, [TxId, RKey, RType])
+                            end
+                 end,
+    lists:foreach(ExecuteFun, RandomOps),  
+    {ok, _} = rpc:call(Node, floppy, clockSI_iprepare, [TxId]),
+    End=rpc:call(Node, floppy, clockSI_icommit, [TxId]),
+    case End of
+        {ok, _} ->
+            {ok, State};
         {error, Reason} ->
             {error, Reason};
         {badrpc, Reason} ->
@@ -180,6 +189,7 @@ get_random_param(Dict, Type, Actor, Value) ->
         riak_dt_gset ->
             {{lists:nth(Num, Params), Value}, Actor}
     end.
+
 
 get_random_append_op(Key, Dict, Actor, Value) ->
     Type = get_key_type(Key),
