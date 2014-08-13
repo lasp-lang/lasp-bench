@@ -1,0 +1,369 @@
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:17 ===
+          supervisor: {local,sasl_safe_sup}
+             started: [{pid,<0.71.0>},
+                       {name,alarm_handler},
+                       {mfargs,{alarm_handler,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:17 ===
+          supervisor: {local,sasl_safe_sup}
+             started: [{pid,<0.72.0>},
+                       {name,overload},
+                       {mfargs,{overload,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:17 ===
+          supervisor: {local,sasl_sup}
+             started: [{pid,<0.70.0>},
+                       {name,sasl_safe_sup},
+                       {mfargs,
+                           {supervisor,start_link,
+                               [{local,sasl_safe_sup},sasl,safe]}},
+                       {restart_type,permanent},
+                       {shutdown,infinity},
+                       {child_type,supervisor}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:17 ===
+          supervisor: {local,sasl_sup}
+             started: [{pid,<0.73.0>},
+                       {name,release_handler},
+                       {mfargs,{release_handler,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:17 ===
+         application: sasl
+          started_at: nonode@nohost
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,crypto_sup}
+             started: [{pid,<0.79.0>},
+                       {name,crypto_server},
+                       {mfargs,{crypto_server,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+         application: crypto
+          started_at: nonode@nohost
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,folsom_sup}
+             started: [{pid,<0.89.0>},
+                       {name,folsom_sample_slide_sup},
+                       {mfargs,{folsom_sample_slide_sup,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,supervisor}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,folsom_sup}
+             started: [{pid,<0.90.0>},
+                       {name,folsom_meter_timer_server},
+                       {mfargs,{folsom_meter_timer_server,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,folsom_sup}
+             started: [{pid,<0.91.0>},
+                       {name,folsom_metrics_histogram_ets},
+                       {mfargs,{folsom_metrics_histogram_ets,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+         application: folsom
+          started_at: nonode@nohost
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,basho_bench_sup}
+             started: [{pid,<0.84.0>},
+                       {name,basho_bench_stats},
+                       {mfargs,{basho_bench_stats,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,net_sup}
+             started: [{pid,<0.98.0>},
+                       {name,erl_epmd},
+                       {mfargs,{erl_epmd,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,net_sup}
+             started: [{pid,<0.99.0>},
+                       {name,auth},
+                       {mfargs,{auth,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,net_sup}
+             started: [{pid,<0.100.0>},
+                       {name,net_kernel},
+                       {mfargs,
+                           {net_kernel,start_link,
+                               [['floppy_bench@127.0.0.1',longnames]]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,kernel_sup}
+             started: [{pid,<0.97.0>},
+                       {name,net_sup_dynamic},
+                       {mfargs,
+                           {erl_distribution,start_link,
+                               [['floppy_bench@127.0.0.1',longnames]]}},
+                       {restart_type,permanent},
+                       {shutdown,1000},
+                       {child_type,supervisor}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,inet_gethost_native_sup}
+             started: [{pid,<0.105.0>},{mfa,{inet_gethost_native,init,[[]]}}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,kernel_safe_sup}
+             started: [{pid,<0.104.0>},
+                       {name,inet_gethost_native_sup},
+                       {mfargs,{inet_gethost_native,start_link,[]}},
+                       {restart_type,temporary},
+                       {shutdown,1000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,basho_bench_sup}
+             started: [{pid,<0.94.0>},
+                       {name,basho_bench_worker_1},
+                       {mfargs,
+                           {basho_bench_worker,start_link,
+                               [basho_bench_worker_1,1]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,basho_bench_sup}
+             started: [{pid,<0.108.0>},
+                       {name,basho_bench_worker_2},
+                       {mfargs,
+                           {basho_bench_worker,start_link,
+                               [basho_bench_worker_2,2]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,basho_bench_sup}
+             started: [{pid,<0.110.0>},
+                       {name,basho_bench_worker_3},
+                       {mfargs,
+                           {basho_bench_worker,start_link,
+                               [basho_bench_worker_3,3]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,basho_bench_sup}
+             started: [{pid,<0.112.0>},
+                       {name,basho_bench_worker_4},
+                       {mfargs,
+                           {basho_bench_worker,start_link,
+                               [basho_bench_worker_4,4]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,basho_bench_sup}
+             started: [{pid,<0.114.0>},
+                       {name,basho_bench_worker_5},
+                       {mfargs,
+                           {basho_bench_worker,start_link,
+                               [basho_bench_worker_5,5]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+          supervisor: {local,kernel_safe_sup}
+             started: [{pid,<0.116.0>},
+                       {name,timer_server},
+                       {mfargs,{timer,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,1000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:18 ===
+         application: basho_bench
+          started_at: 'floppy_bench@127.0.0.1'
+
+=SUPERVISOR REPORT==== 23-Jul-2014::12:39:19 ===
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.110.0>},
+                  {name,basho_bench_worker_3},
+                  {mfargs,
+                      {basho_bench_worker,start_link,
+                          [basho_bench_worker_3,3]}},
+                  {restart_type,permanent},
+                  {shutdown,5000},
+                  {child_type,worker}]
+
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:19 ===
+          supervisor: {local,basho_bench_sup}
+             started: [{pid,<0.142.0>},
+                       {name,basho_bench_worker_3},
+                       {mfargs,
+                           {basho_bench_worker,start_link,
+                               [basho_bench_worker_3,3]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,worker}]
+
+=SUPERVISOR REPORT==== 23-Jul-2014::12:39:19 ===
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.114.0>},
+                  {name,basho_bench_worker_5},
+                  {mfargs,
+                      {basho_bench_worker,start_link,
+                          [basho_bench_worker_5,5]}},
+                  {restart_type,permanent},
+                  {shutdown,5000},
+                  {child_type,worker}]
+
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:19 ===
+          supervisor: {local,basho_bench_sup}
+             started: [{pid,<0.150.0>},
+                       {name,basho_bench_worker_5},
+                       {mfargs,
+                           {basho_bench_worker,start_link,
+                               [basho_bench_worker_5,5]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,worker}]
+
+=SUPERVISOR REPORT==== 23-Jul-2014::12:39:20 ===
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.108.0>},
+                  {name,basho_bench_worker_2},
+                  {mfargs,
+                      {basho_bench_worker,start_link,
+                          [basho_bench_worker_2,2]}},
+                  {restart_type,permanent},
+                  {shutdown,5000},
+                  {child_type,worker}]
+
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:20 ===
+          supervisor: {local,basho_bench_sup}
+             started: [{pid,<0.165.0>},
+                       {name,basho_bench_worker_2},
+                       {mfargs,
+                           {basho_bench_worker,start_link,
+                               [basho_bench_worker_2,2]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,worker}]
+
+=SUPERVISOR REPORT==== 23-Jul-2014::12:39:21 ===
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.142.0>},
+                  {name,basho_bench_worker_3},
+                  {mfargs,
+                      {basho_bench_worker,start_link,
+                          [basho_bench_worker_3,3]}},
+                  {restart_type,permanent},
+                  {shutdown,5000},
+                  {child_type,worker}]
+
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:21 ===
+          supervisor: {local,basho_bench_sup}
+             started: [{pid,<0.192.0>},
+                       {name,basho_bench_worker_3},
+                       {mfargs,
+                           {basho_bench_worker,start_link,
+                               [basho_bench_worker_3,3]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,worker}]
+
+=SUPERVISOR REPORT==== 23-Jul-2014::12:39:22 ===
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.94.0>},
+                  {name,basho_bench_worker_1},
+                  {mfargs,
+                      {basho_bench_worker,start_link,
+                          [basho_bench_worker_1,1]}},
+                  {restart_type,permanent},
+                  {shutdown,5000},
+                  {child_type,worker}]
+
+
+=PROGRESS REPORT==== 23-Jul-2014::12:39:22 ===
+          supervisor: {local,basho_bench_sup}
+             started: [{pid,<0.220.0>},
+                       {name,basho_bench_worker_1},
+                       {mfargs,
+                           {basho_bench_worker,start_link,
+                               [basho_bench_worker_1,1]}},
+                       {restart_type,permanent},
+                       {shutdown,5000},
+                       {child_type,worker}]
+
+=SUPERVISOR REPORT==== 23-Jul-2014::12:39:22 ===
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.112.0>},
+                  {name,basho_bench_worker_4},
+                  {mfargs,
+                      {basho_bench_worker,start_link,
+                          [basho_bench_worker_4,4]}},
+                  {restart_type,permanent},
+                  {shutdown,5000},
+                  {child_type,worker}]
+
+
+=SUPERVISOR REPORT==== 23-Jul-2014::12:39:22 ===
+     Supervisor: {local,basho_bench_sup}
+     Context:    shutdown
+     Reason:     reached_max_restart_intensity
+     Offender:   [{pid,<0.112.0>},
+                  {name,basho_bench_worker_4},
+                  {mfargs,
+                      {basho_bench_worker,start_link,
+                          [basho_bench_worker_4,4]}},
+                  {restart_type,permanent},
+                  {shutdown,5000},
+                  {child_type,worker}]
+

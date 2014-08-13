@@ -1,0 +1,18 @@
+2014-07-22 15:03:42.243 [debug] <0.52.0>@lager_handler_watcher:94 Lager installed handler {lager_file_backend,
+                            "/Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140722_150342/error.log"} into lager_event
+2014-07-22 15:03:42.243 [debug] <0.54.0>@lager_handler_watcher:94 Lager installed handler {lager_file_backend,
+                            "/Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140722_150342/console.log"} into lager_event
+2014-07-22 15:03:42.243 [debug] <0.56.0>@lager_handler_watcher:94 Lager installed handler error_logger_lager_h into error_logger
+2014-07-22 15:03:42.277 [debug] <0.39.0> Supervisor gr_param_sup started gr_param:start_link(gr_lager_default_tracer_params) at pid <0.58.0>
+2014-07-22 15:03:42.277 [debug] <0.38.0> Supervisor gr_counter_sup started gr_counter:start_link(gr_lager_default_tracer_counters) at pid <0.59.0>
+2014-07-22 15:03:42.277 [debug] <0.40.0> Supervisor gr_manager_sup started gr_manager:start_link(gr_lager_default_tracer_params_mgr, gr_lager_default_tracer_params, []) at pid <0.60.0>
+2014-07-22 15:03:42.277 [debug] <0.40.0> Supervisor gr_manager_sup started gr_manager:start_link(gr_lager_default_tracer_counters_mgr, gr_lager_default_tracer_counters, [{input,0},{filter,0},{output,0}]) at pid <0.61.0>
+2014-07-22 15:03:42.714 [debug] <0.48.0>@lager_handler_watcher:94 Lager installed handler lager_backend_throttle into lager_event
+2014-07-22 15:03:43.094 [info] <0.7.0> Application lager started on node nonode@nohost
+2014-07-22 15:03:43.095 [notice] <0.45.0>@lager_file_backend:128 Changed loglevel of /Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140722_150342/console.log to debug
+2014-07-22 15:03:43.110 [info] <0.2.0>@basho_bench:log_dimensions:250 Est. data size: 47.68 MB
+2014-07-22 15:03:43.182 [debug] <0.70.0> Supervisor sasl_safe_sup started alarm_handler:start_link() at pid <0.71.0>
+2014-07-22 15:03:43.182 [debug] <0.70.0> Supervisor sasl_safe_sup started overload:start_link() at pid <0.72.0>
+2014-07-22 15:03:43.182 [debug] <0.69.0> Supervisor sasl_sup started supervisor:start_link({local,sasl_safe_sup}, sasl, safe) at pid <0.70.0>
+2014-07-22 15:03:43.198 [debug] <0.69.0> Supervisor sasl_sup started release_handler:start_link() at pid <0.73.0>
+2014-07-22 15:03:43.199 [info] <0.7.0> Application sasl started on node nonode@nohost

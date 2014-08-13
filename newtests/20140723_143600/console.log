@@ -1,0 +1,114 @@
+2014-07-23 14:36:00.227 [debug] <0.52.0>@lager_handler_watcher:94 Lager installed handler {lager_file_backend,
+                            "/Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140723_143600/error.log"} into lager_event
+2014-07-23 14:36:00.227 [debug] <0.54.0>@lager_handler_watcher:94 Lager installed handler {lager_file_backend,
+                            "/Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140723_143600/console.log"} into lager_event
+2014-07-23 14:36:00.227 [debug] <0.56.0>@lager_handler_watcher:94 Lager installed handler error_logger_lager_h into error_logger
+2014-07-23 14:36:00.263 [debug] <0.39.0> Supervisor gr_param_sup started gr_param:start_link(gr_lager_default_tracer_params) at pid <0.58.0>
+2014-07-23 14:36:00.263 [debug] <0.38.0> Supervisor gr_counter_sup started gr_counter:start_link(gr_lager_default_tracer_counters) at pid <0.59.0>
+2014-07-23 14:36:00.263 [debug] <0.40.0> Supervisor gr_manager_sup started gr_manager:start_link(gr_lager_default_tracer_params_mgr, gr_lager_default_tracer_params, []) at pid <0.60.0>
+2014-07-23 14:36:00.263 [debug] <0.40.0> Supervisor gr_manager_sup started gr_manager:start_link(gr_lager_default_tracer_counters_mgr, gr_lager_default_tracer_counters, [{input,0},{filter,0},{output,0}]) at pid <0.61.0>
+2014-07-23 14:36:00.699 [debug] <0.48.0>@lager_handler_watcher:94 Lager installed handler lager_backend_throttle into lager_event
+2014-07-23 14:36:01.076 [info] <0.7.0> Application lager started on node nonode@nohost
+2014-07-23 14:36:01.077 [notice] <0.45.0>@lager_file_backend:128 Changed loglevel of /Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140723_143600/console.log to debug
+2014-07-23 14:36:01.090 [info] <0.2.0>@basho_bench:log_dimensions:250 Est. data size: 47.68 MB
+2014-07-23 14:36:01.175 [debug] <0.70.0> Supervisor sasl_safe_sup started alarm_handler:start_link() at pid <0.71.0>
+2014-07-23 14:36:01.176 [debug] <0.70.0> Supervisor sasl_safe_sup started overload:start_link() at pid <0.72.0>
+2014-07-23 14:36:01.176 [debug] <0.69.0> Supervisor sasl_sup started supervisor:start_link({local,sasl_safe_sup}, sasl, safe) at pid <0.70.0>
+2014-07-23 14:36:01.191 [debug] <0.69.0> Supervisor sasl_sup started release_handler:start_link() at pid <0.73.0>
+2014-07-23 14:36:01.192 [info] <0.7.0> Application sasl started on node nonode@nohost
+2014-07-23 14:36:01.285 [debug] <0.78.0> Supervisor crypto_sup started crypto_server:start_link() at pid <0.79.0>
+2014-07-23 14:36:01.285 [info] <0.7.0> Application crypto started on node nonode@nohost
+2014-07-23 14:36:01.315 [debug] <0.88.0> Supervisor folsom_sup started folsom_sample_slide_sup:start_link() at pid <0.89.0>
+2014-07-23 14:36:01.319 [debug] <0.88.0> Supervisor folsom_sup started folsom_meter_timer_server:start_link() at pid <0.90.0>
+2014-07-23 14:36:01.325 [debug] <0.88.0> Supervisor folsom_sup started folsom_metrics_histogram_ets:start_link() at pid <0.91.0>
+2014-07-23 14:36:01.325 [info] <0.7.0> Application folsom started on node nonode@nohost
+2014-07-23 14:36:01.359 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_stats:start_link() at pid <0.84.0>
+2014-07-23 14:36:01.365 [debug] <0.94.0>@basho_bench_valgen:init_source:85 random source
+2014-07-23 14:36:01.493 [debug] <0.97.0> Supervisor net_sup started erl_epmd:start_link() at pid <0.98.0>
+2014-07-23 14:36:01.500 [debug] <0.97.0> Supervisor net_sup started auth:start_link() at pid <0.99.0>
+2014-07-23 14:36:01.513 [info] <0.96.0>@basho_bench_driver_floppystore:new:58 Net kernel started as 'floppy_bench@127.0.0.1'
+2014-07-23 14:36:01.513 [debug] <0.97.0> Supervisor net_sup started net_kernel:start_link(['floppy_bench@127.0.0.1',longnames]) at pid <0.100.0>
+2014-07-23 14:36:01.514 [debug] <0.11.0> Supervisor kernel_sup started erl_distribution:start_link(['floppy_bench@127.0.0.1',longnames]) at pid <0.97.0>
+2014-07-23 14:36:01.530 [debug] <0.104.0> Supervisor inet_gethost_native_sup started undefined at pid <0.105.0>
+2014-07-23 14:36:01.531 [debug] <0.25.0> Supervisor kernel_safe_sup started inet_gethost_native:start_link() at pid <0.104.0>
+2014-07-23 14:36:01.548 [info] <0.96.0>@basho_bench_driver_floppystore:ping_each:167 Finished pinging 'floppy@127.0.0.1'
+2014-07-23 14:36:01.548 [info] <0.96.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 1
+2014-07-23 14:36:01.549 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_1, 1) at pid <0.94.0>
+2014-07-23 14:36:01.626 [info] <0.109.0>@basho_bench_driver_floppystore:ping_each:167 Finished pinging 'floppy@127.0.0.1'
+2014-07-23 14:36:01.626 [info] <0.109.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 2
+2014-07-23 14:36:01.627 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_2, 2) at pid <0.108.0>
+2014-07-23 14:36:01.700 [info] <0.111.0>@basho_bench_driver_floppystore:ping_each:167 Finished pinging 'floppy@127.0.0.1'
+2014-07-23 14:36:01.700 [info] <0.111.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 3
+2014-07-23 14:36:01.700 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_3, 3) at pid <0.110.0>
+2014-07-23 14:36:01.773 [info] <0.113.0>@basho_bench_driver_floppystore:ping_each:167 Finished pinging 'floppy@127.0.0.1'
+2014-07-23 14:36:01.773 [info] <0.113.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 4
+2014-07-23 14:36:01.774 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_4, 4) at pid <0.112.0>
+2014-07-23 14:36:01.847 [info] <0.115.0>@basho_bench_driver_floppystore:ping_each:167 Finished pinging 'floppy@127.0.0.1'
+2014-07-23 14:36:01.847 [info] <0.115.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 5
+2014-07-23 14:36:01.847 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_5, 5) at pid <0.114.0>
+2014-07-23 14:36:01.848 [debug] <0.25.0> Supervisor kernel_safe_sup started timer:start_link() at pid <0.116.0>
+2014-07-23 14:36:01.853 [info] <0.115.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.115.0>
+2014-07-23 14:36:01.853 [info] <0.113.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.113.0>
+2014-07-23 14:36:01.853 [info] <0.111.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.111.0>
+2014-07-23 14:36:01.853 [info] <0.96.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.96.0>
+2014-07-23 14:36:01.853 [info] <0.109.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.109.0>
+2014-07-23 14:36:01.854 [info] <0.7.0> Application basho_bench started on node 'floppy_bench@127.0.0.1'
+2014-07-23 14:36:01.929 [debug] <0.113.0>@basho_bench_worker:worker_next_op:268 Driver basho_bench_driver_floppystore crashed: {{case_clause,{read,2807225,riak_dt_gcounter}},[{basho_bench_driver_floppystore,'-run/4-fun-0-',3,[{file,"src/basho_bench_driver_floppystore.erl"},{line,140}]},{lists,foreach,2,[{file,"lists.erl"},{line,1323}]},{basho_bench_driver_floppystore,run,4,[{file,"src/basho_bench_driver_floppystore.erl"},{line,145}]},{basho_bench_worker,worker_next_op2,2,[{file,"src/basho_bench_worker.erl"},{line,236}]},{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,242}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-23 14:36:01.929 [error] <0.112.0>@basho_bench_worker:handle_info:149 Worker <0.113.0> exited with crash
+2014-07-23 14:36:01.930 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_4 started with basho_bench_worker:start_link(basho_bench_worker_4, 4) at <0.112.0> exit with reason normal in context child_terminated
+2014-07-23 14:36:01.952 [debug] <0.111.0>@basho_bench_worker:worker_next_op:268 Driver basho_bench_driver_floppystore crashed: {{case_clause,{read,2492595,riak_dt_gcounter}},[{basho_bench_driver_floppystore,'-run/4-fun-0-',3,[{file,"src/basho_bench_driver_floppystore.erl"},{line,140}]},{lists,foreach,2,[{file,"lists.erl"},{line,1323}]},{basho_bench_driver_floppystore,run,4,[{file,"src/basho_bench_driver_floppystore.erl"},{line,145}]},{basho_bench_worker,worker_next_op2,2,[{file,"src/basho_bench_worker.erl"},{line,236}]},{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,242}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-23 14:36:01.952 [error] <0.110.0>@basho_bench_worker:handle_info:149 Worker <0.111.0> exited with crash
+2014-07-23 14:36:01.986 [debug] <0.115.0>@basho_bench_worker:worker_next_op:268 Driver basho_bench_driver_floppystore crashed: {{case_clause,{read,661116,riak_dt_gcounter}},[{basho_bench_driver_floppystore,'-run/4-fun-0-',3,[{file,"src/basho_bench_driver_floppystore.erl"},{line,140}]},{lists,foreach,2,[{file,"lists.erl"},{line,1323}]},{basho_bench_driver_floppystore,run,4,[{file,"src/basho_bench_driver_floppystore.erl"},{line,145}]},{basho_bench_worker,worker_next_op2,2,[{file,"src/basho_bench_worker.erl"},{line,236}]},{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,242}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-23 14:36:01.986 [error] <0.114.0>@basho_bench_worker:handle_info:149 Worker <0.115.0> exited with crash
+2014-07-23 14:36:02.060 [info] <0.123.0>@basho_bench_driver_floppystore:ping_each:167 Finished pinging 'floppy@127.0.0.1'
+2014-07-23 14:36:02.060 [info] <0.123.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 4
+2014-07-23 14:36:02.060 [warning] <0.122.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-23 14:36:02.060 [info] <0.123.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.123.0>
+2014-07-23 14:36:02.061 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_4, 4) at pid <0.122.0>
+2014-07-23 14:36:02.062 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_3 started with basho_bench_worker:start_link(basho_bench_worker_3, 3) at <0.110.0> exit with reason normal in context child_terminated
+2014-07-23 14:36:02.062 [debug] <0.123.0>@basho_bench_worker:worker_next_op:268 Driver basho_bench_driver_floppystore crashed: {{case_clause,{read,2538062,riak_dt_gcounter}},[{basho_bench_driver_floppystore,'-run/4-fun-0-',3,[{file,"src/basho_bench_driver_floppystore.erl"},{line,140}]},{lists,foreach,2,[{file,"lists.erl"},{line,1323}]},{basho_bench_driver_floppystore,run,4,[{file,"src/basho_bench_driver_floppystore.erl"},{line,145}]},{basho_bench_worker,worker_next_op2,2,[{file,"src/basho_bench_worker.erl"},{line,236}]},{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,242}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-23 14:36:02.063 [error] <0.122.0>@basho_bench_worker:handle_info:149 Worker <0.123.0> exited with crash
+2014-07-23 14:36:02.064 [debug] <0.96.0>@basho_bench_worker:worker_next_op:268 Driver basho_bench_driver_floppystore crashed: {{case_clause,{read,3171097,riak_dt_gcounter}},[{basho_bench_driver_floppystore,'-run/4-fun-0-',3,[{file,"src/basho_bench_driver_floppystore.erl"},{line,140}]},{lists,foreach,2,[{file,"lists.erl"},{line,1323}]},{basho_bench_driver_floppystore,run,4,[{file,"src/basho_bench_driver_floppystore.erl"},{line,145}]},{basho_bench_worker,worker_next_op2,2,[{file,"src/basho_bench_worker.erl"},{line,236}]},{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,242}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-23 14:36:02.064 [error] <0.94.0>@basho_bench_worker:handle_info:149 Worker <0.96.0> exited with crash
+2014-07-23 14:36:02.168 [info] <0.128.0>@basho_bench_driver_floppystore:ping_each:167 Finished pinging 'floppy@127.0.0.1'
+2014-07-23 14:36:02.169 [info] <0.128.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 3
+2014-07-23 14:36:02.169 [warning] <0.125.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-23 14:36:02.169 [info] <0.128.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.128.0>
+2014-07-23 14:36:02.169 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_3, 3) at pid <0.125.0>
+2014-07-23 14:36:02.170 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_5 started with basho_bench_worker:start_link(basho_bench_worker_5, 5) at <0.114.0> exit with reason normal in context child_terminated
+2014-07-23 14:36:02.170 [debug] <0.128.0>@basho_bench_worker:worker_next_op:268 Driver basho_bench_driver_floppystore crashed: {{case_clause,{read,3813775,riak_dt_gcounter}},[{basho_bench_driver_floppystore,'-run/4-fun-0-',3,[{file,"src/basho_bench_driver_floppystore.erl"},{line,140}]},{lists,foreach,2,[{file,"lists.erl"},{line,1323}]},{basho_bench_driver_floppystore,run,4,[{file,"src/basho_bench_driver_floppystore.erl"},{line,145}]},{basho_bench_worker,worker_next_op2,2,[{file,"src/basho_bench_worker.erl"},{line,236}]},{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,242}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-23 14:36:02.170 [error] <0.125.0>@basho_bench_worker:handle_info:149 Worker <0.128.0> exited with crash
+2014-07-23 14:36:02.250 [info] <0.131.0>@basho_bench_driver_floppystore:ping_each:167 Finished pinging 'floppy@127.0.0.1'
+2014-07-23 14:36:02.250 [info] <0.131.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 5
+2014-07-23 14:36:02.251 [warning] <0.130.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-23 14:36:02.251 [info] <0.131.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.131.0>
+2014-07-23 14:36:02.251 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_5, 5) at pid <0.130.0>
+2014-07-23 14:36:02.252 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_4 started with basho_bench_worker:start_link(basho_bench_worker_4, 4) at <0.122.0> exit with reason normal in context child_terminated
+2014-07-23 14:36:02.255 [debug] <0.131.0>@basho_bench_worker:worker_next_op:268 Driver basho_bench_driver_floppystore crashed: {{case_clause,{read,2833991,riak_dt_gcounter}},[{basho_bench_driver_floppystore,'-run/4-fun-0-',3,[{file,"src/basho_bench_driver_floppystore.erl"},{line,140}]},{lists,foreach,2,[{file,"lists.erl"},{line,1323}]},{basho_bench_driver_floppystore,run,4,[{file,"src/basho_bench_driver_floppystore.erl"},{line,145}]},{basho_bench_worker,worker_next_op2,2,[{file,"src/basho_bench_worker.erl"},{line,236}]},{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,242}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-23 14:36:02.255 [error] <0.130.0>@basho_bench_worker:handle_info:149 Worker <0.131.0> exited with crash
+2014-07-23 14:36:02.289 [debug] <0.109.0>@basho_bench_worker:worker_next_op:268 Driver basho_bench_driver_floppystore crashed: {{case_clause,{read,3056099,riak_dt_gcounter}},[{basho_bench_driver_floppystore,'-run/4-fun-0-',3,[{file,"src/basho_bench_driver_floppystore.erl"},{line,140}]},{lists,foreach,2,[{file,"lists.erl"},{line,1323}]},{basho_bench_driver_floppystore,run,4,[{file,"src/basho_bench_driver_floppystore.erl"},{line,145}]},{basho_bench_worker,worker_next_op2,2,[{file,"src/basho_bench_worker.erl"},{line,236}]},{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,242}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-23 14:36:02.289 [error] <0.108.0>@basho_bench_worker:handle_info:149 Worker <0.109.0> exited with crash
+2014-07-23 14:36:02.345 [info] <0.135.0>@basho_bench_driver_floppystore:ping_each:167 Finished pinging 'floppy@127.0.0.1'
+2014-07-23 14:36:02.345 [info] <0.135.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 4
+2014-07-23 14:36:02.345 [warning] <0.132.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-23 14:36:02.345 [info] <0.135.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.135.0>
+2014-07-23 14:36:02.345 [debug] <0.136.0>@basho_bench_valgen:init_source:85 random source
+2014-07-23 14:36:02.346 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_4, 4) at pid <0.132.0>
+2014-07-23 14:36:02.347 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.94.0> exit with reason normal in context child_terminated
+2014-07-23 14:36:02.347 [debug] <0.135.0>@basho_bench_worker:worker_next_op:268 Driver basho_bench_driver_floppystore crashed: {{case_clause,{read,3794017,riak_dt_gcounter}},[{basho_bench_driver_floppystore,'-run/4-fun-0-',3,[{file,"src/basho_bench_driver_floppystore.erl"},{line,140}]},{lists,foreach,2,[{file,"lists.erl"},{line,1323}]},{basho_bench_driver_floppystore,run,4,[{file,"src/basho_bench_driver_floppystore.erl"},{line,145}]},{basho_bench_worker,worker_next_op2,2,[{file,"src/basho_bench_worker.erl"},{line,236}]},{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,242}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-23 14:36:02.347 [error] <0.132.0>@basho_bench_worker:handle_info:149 Worker <0.135.0> exited with crash
+2014-07-23 14:36:02.419 [info] <0.138.0>@basho_bench_driver_floppystore:ping_each:167 Finished pinging 'floppy@127.0.0.1'
+2014-07-23 14:36:02.419 [info] <0.138.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 1
+2014-07-23 14:36:02.419 [warning] <0.136.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-23 14:36:02.420 [info] <0.138.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.138.0>
+2014-07-23 14:36:02.420 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_1, 1) at pid <0.136.0>
+2014-07-23 14:36:02.421 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_3 started with basho_bench_worker:start_link(basho_bench_worker_3, 3) at <0.125.0> exit with reason normal in context child_terminated
+2014-07-23 14:36:02.421 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_3 started with basho_bench_worker:start_link(basho_bench_worker_3, 3) at <0.125.0> exit with reason reached_max_restart_intensity in context shutdown
+2014-07-23 14:36:02.422 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_5 started with basho_bench_worker:start_link(basho_bench_worker_5, 5) at <0.130.0> exit with reason normal in context shutdown_error
+2014-07-23 14:36:02.422 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_4 started with basho_bench_worker:start_link(basho_bench_worker_4, 4) at <0.132.0> exit with reason normal in context shutdown_error
+2014-07-23 14:36:02.423 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.108.0> exit with reason normal in context shutdown_error
+2014-07-23 14:36:02.435 [warning] <0.84.0>@basho_bench_stats:report_latency:306 No data for op: {static_tx,static_tx}
+2014-07-23 14:36:02.435 [warning] <0.84.0>@basho_bench_stats:report_latency:306 No data for op: {interactive_tx,interactive_tx}
+2014-07-23 14:36:02.436 [info] <0.84.0>@basho_bench_stats:process_stats:274 Errors:[{{interactive_tx,interactive_tx},9},{{{interactive_tx,interactive_tx},crash},9}]
+2014-07-23 14:36:02.436 [info] <0.84.0>@basho_bench_stats:report_total_errors:321 Total Errors:
+2014-07-23 14:36:02.436 [info] <0.84.0>@basho_bench_stats:report_total_errors:327   {{interactive_tx,interactive_tx},crash}: 9

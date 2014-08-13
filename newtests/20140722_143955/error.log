@@ -1,0 +1,15 @@
+2014-07-22 14:40:40.268 [error] emulator Error in process <0.108.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 14:40:40.268 [error] <0.107.0>@basho_bench_worker:handle_info:149 Worker <0.108.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 14:40:40.269 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.107.0> exit with reason normal in context child_terminated
+2014-07-22 14:40:40.745 [error] <0.93.0>@basho_bench_worker:handle_info:149 Worker <0.95.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 14:40:40.745 [error] emulator Error in process <0.95.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 14:40:40.747 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.93.0> exit with reason normal in context child_terminated
+2014-07-22 14:40:45.163 [error] emulator Error in process <0.4035.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 14:40:45.163 [error] <0.4031.0>@basho_bench_worker:handle_info:149 Worker <0.4035.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 14:40:45.164 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.4031.0> exit with reason normal in context child_terminated

@@ -1,0 +1,13 @@
+2014-07-17 15:12:52.373 [error] <0.108.0>@basho_bench_worker:handle_info:149 Worker <0.109.0> exited with crash
+2014-07-17 15:12:52.373 [error] <0.94.0>@basho_bench_worker:handle_info:149 Worker <0.96.0> exited with crash
+2014-07-17 15:12:52.374 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.108.0> exit with reason normal in context child_terminated
+2014-07-17 15:12:52.459 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.94.0> exit with reason normal in context child_terminated
+2014-07-17 15:12:52.460 [error] <0.111.0>@basho_bench_worker:handle_info:149 Worker <0.112.0> exited with crash
+2014-07-17 15:12:52.541 [error] <0.113.0>@basho_bench_worker:handle_info:149 Worker <0.114.0> exited with crash
+2014-07-17 15:12:52.542 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.111.0> exit with reason normal in context child_terminated
+2014-07-17 15:12:52.623 [error] <0.115.0>@basho_bench_worker:handle_info:149 Worker <0.116.0> exited with crash
+2014-07-17 15:12:52.624 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.113.0> exit with reason normal in context child_terminated
+2014-07-17 15:12:52.706 [error] <0.117.0>@basho_bench_worker:handle_info:149 Worker <0.118.0> exited with crash
+2014-07-17 15:12:52.707 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.115.0> exit with reason normal in context child_terminated
+2014-07-17 15:12:52.788 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.117.0> exit with reason normal in context child_terminated
+2014-07-17 15:12:52.788 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.117.0> exit with reason reached_max_restart_intensity in context shutdown

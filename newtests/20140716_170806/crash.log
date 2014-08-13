@@ -1,0 +1,60 @@
+2014-07-16 17:08:09 =ERROR REPORT====
+Error in process <0.95.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,{'EXIT',{function_clause,[{riak_dt_gcounter,update,[{add,4980},1,[]],[{file,"src/riak_dt_gcounter.erl"},{line,82}]},{materializer,update_snapshot,3,[{file,"src/materializer.erl"},{line,24}]},{floppy,read,2,[... 
+
+2014-07-16 17:08:09 =SUPERVISOR REPORT====
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.94.0>},{name,basho_bench_worker_1},{mfargs,{basho_bench_worker,start_link,[basho_bench_worker_1,1]}},{restart_type,permanent},{shutdown,5000},{child_type,worker}]
+
+2014-07-16 17:08:10 =ERROR REPORT====
+Error in process <0.1575.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,{'EXIT',{function_clause,[{riak_dt_gcounter,update,[{add,5611},1,[]],[{file,"src/riak_dt_gcounter.erl"},{line,82}]},{materializer,update_snapshot,3,[{file,"src/materializer.erl"},{line,24}]},{floppy,read,2,[... 
+
+2014-07-16 17:08:10 =SUPERVISOR REPORT====
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.1574.0>},{name,basho_bench_worker_1},{mfargs,{basho_bench_worker,start_link,[basho_bench_worker_1,1]}},{restart_type,permanent},{shutdown,5000},{child_type,worker}]
+
+2014-07-16 17:08:10 =ERROR REPORT====
+Error in process <0.2161.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,{'EXIT',{function_clause,[{riak_dt_gcounter,update,[{add,8079},1,[]],[{file,"src/riak_dt_gcounter.erl"},{line,82}]},{materializer,update_snapshot,3,[{file,"src/materializer.erl"},{line,24}]},{floppy,read,2,[... 
+
+2014-07-16 17:08:10 =SUPERVISOR REPORT====
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.2160.0>},{name,basho_bench_worker_1},{mfargs,{basho_bench_worker,start_link,[basho_bench_worker_1,1]}},{restart_type,permanent},{shutdown,5000},{child_type,worker}]
+
+2014-07-16 17:08:11 =ERROR REPORT====
+Error in process <0.2952.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,{'EXIT',{function_clause,[{riak_dt_gcounter,update,[{add,8963},1,[]],[{file,"src/riak_dt_gcounter.erl"},{line,82}]},{materializer,update_snapshot,3,[{file,"src/materializer.erl"},{line,24}]},{floppy,read,2,[... 
+
+2014-07-16 17:08:11 =SUPERVISOR REPORT====
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.2951.0>},{name,basho_bench_worker_1},{mfargs,{basho_bench_worker,start_link,[basho_bench_worker_1,1]}},{restart_type,permanent},{shutdown,5000},{child_type,worker}]
+
+2014-07-16 17:08:12 =ERROR REPORT====
+Error in process <0.108.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,{'EXIT',{function_clause,[{riak_dt_gcounter,update,[{add,3082},1,[]],[{file,"src/riak_dt_gcounter.erl"},{line,82}]},{materializer,update_snapshot,3,[{file,"src/materializer.erl"},{line,24}]},{floppy,read,2,[... 
+
+2014-07-16 17:08:12 =SUPERVISOR REPORT====
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.107.0>},{name,basho_bench_worker_2},{mfargs,{basho_bench_worker,start_link,[basho_bench_worker_2,2]}},{restart_type,permanent},{shutdown,5000},{child_type,worker}]
+
+2014-07-16 17:08:12 =ERROR REPORT====
+Error in process <0.4490.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,{'EXIT',{function_clause,[{riak_dt_gcounter,update,[{add,5915},1,[]],[{file,"src/riak_dt_gcounter.erl"},{line,82}]},{materializer,update_snapshot,3,[{file,"src/materializer.erl"},{line,24}]},{floppy,read,2,[... 
+
+2014-07-16 17:08:12 =SUPERVISOR REPORT====
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.4489.0>},{name,basho_bench_worker_2},{mfargs,{basho_bench_worker,start_link,[basho_bench_worker_2,2]}},{restart_type,permanent},{shutdown,5000},{child_type,worker}]
+
+2014-07-16 17:08:12 =SUPERVISOR REPORT====
+     Supervisor: {local,basho_bench_sup}
+     Context:    shutdown
+     Reason:     reached_max_restart_intensity
+     Offender:   [{pid,<0.4489.0>},{name,basho_bench_worker_2},{mfargs,{basho_bench_worker,start_link,[basho_bench_worker_2,2]}},{restart_type,permanent},{shutdown,5000},{child_type,worker}]
+

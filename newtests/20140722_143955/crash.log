@@ -1,0 +1,27 @@
+2014-07-22 14:40:40 =ERROR REPORT====
+Error in process <0.108.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+2014-07-22 14:40:40 =SUPERVISOR REPORT====
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.107.0>},{name,basho_bench_worker_2},{mfargs,{basho_bench_worker,start_link,[basho_bench_worker_2,2]}},{restart_type,permanent},{shutdown,5000},{child_type,worker}]
+
+2014-07-22 14:40:40 =ERROR REPORT====
+Error in process <0.95.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+2014-07-22 14:40:40 =SUPERVISOR REPORT====
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.93.0>},{name,basho_bench_worker_1},{mfargs,{basho_bench_worker,start_link,[basho_bench_worker_1,1]}},{restart_type,permanent},{shutdown,5000},{child_type,worker}]
+
+2014-07-22 14:40:45 =ERROR REPORT====
+Error in process <0.4035.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+2014-07-22 14:40:45 =SUPERVISOR REPORT====
+     Supervisor: {local,basho_bench_sup}
+     Context:    child_terminated
+     Reason:     normal
+     Offender:   [{pid,<0.4031.0>},{name,basho_bench_worker_1},{mfargs,{basho_bench_worker,start_link,[basho_bench_worker_1,1]}},{restart_type,permanent},{shutdown,5000},{child_type,worker}]
+

@@ -1,0 +1,138 @@
+2014-07-22 15:29:13.862 [debug] <0.52.0>@lager_handler_watcher:94 Lager installed handler {lager_file_backend,
+                            "/Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140722_152913/error.log"} into lager_event
+2014-07-22 15:29:13.862 [debug] <0.54.0>@lager_handler_watcher:94 Lager installed handler {lager_file_backend,
+                            "/Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140722_152913/console.log"} into lager_event
+2014-07-22 15:29:13.862 [debug] <0.56.0>@lager_handler_watcher:94 Lager installed handler error_logger_lager_h into error_logger
+2014-07-22 15:29:13.899 [debug] <0.39.0> Supervisor gr_param_sup started gr_param:start_link(gr_lager_default_tracer_params) at pid <0.58.0>
+2014-07-22 15:29:13.899 [debug] <0.38.0> Supervisor gr_counter_sup started gr_counter:start_link(gr_lager_default_tracer_counters) at pid <0.59.0>
+2014-07-22 15:29:13.900 [debug] <0.40.0> Supervisor gr_manager_sup started gr_manager:start_link(gr_lager_default_tracer_params_mgr, gr_lager_default_tracer_params, []) at pid <0.60.0>
+2014-07-22 15:29:13.900 [debug] <0.40.0> Supervisor gr_manager_sup started gr_manager:start_link(gr_lager_default_tracer_counters_mgr, gr_lager_default_tracer_counters, [{input,0},{filter,0},{output,0}]) at pid <0.61.0>
+2014-07-22 15:29:14.336 [debug] <0.48.0>@lager_handler_watcher:94 Lager installed handler lager_backend_throttle into lager_event
+2014-07-22 15:29:14.763 [info] <0.7.0> Application lager started on node nonode@nohost
+2014-07-22 15:29:14.765 [notice] <0.45.0>@lager_file_backend:128 Changed loglevel of /Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140722_152913/console.log to debug
+2014-07-22 15:29:14.777 [info] <0.2.0>@basho_bench:log_dimensions:250 Est. data size: 47.68 MB
+2014-07-22 15:29:14.859 [debug] <0.70.0> Supervisor sasl_safe_sup started alarm_handler:start_link() at pid <0.71.0>
+2014-07-22 15:29:14.859 [debug] <0.70.0> Supervisor sasl_safe_sup started overload:start_link() at pid <0.72.0>
+2014-07-22 15:29:14.860 [debug] <0.69.0> Supervisor sasl_sup started supervisor:start_link({local,sasl_safe_sup}, sasl, safe) at pid <0.70.0>
+2014-07-22 15:29:14.874 [debug] <0.69.0> Supervisor sasl_sup started release_handler:start_link() at pid <0.73.0>
+2014-07-22 15:29:14.874 [info] <0.7.0> Application sasl started on node nonode@nohost
+2014-07-22 15:29:14.965 [debug] <0.78.0> Supervisor crypto_sup started crypto_server:start_link() at pid <0.79.0>
+2014-07-22 15:29:14.965 [info] <0.7.0> Application crypto started on node nonode@nohost
+2014-07-22 15:29:14.993 [debug] <0.88.0> Supervisor folsom_sup started folsom_sample_slide_sup:start_link() at pid <0.89.0>
+2014-07-22 15:29:14.997 [debug] <0.88.0> Supervisor folsom_sup started folsom_meter_timer_server:start_link() at pid <0.90.0>
+2014-07-22 15:29:15.002 [debug] <0.88.0> Supervisor folsom_sup started folsom_metrics_histogram_ets:start_link() at pid <0.91.0>
+2014-07-22 15:29:15.002 [info] <0.7.0> Application folsom started on node nonode@nohost
+2014-07-22 15:29:15.042 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_stats:start_link() at pid <0.84.0>
+2014-07-22 15:29:15.047 [debug] <0.94.0>@basho_bench_valgen:init_source:85 random source
+2014-07-22 15:29:15.188 [debug] <0.97.0> Supervisor net_sup started erl_epmd:start_link() at pid <0.98.0>
+2014-07-22 15:29:15.195 [debug] <0.97.0> Supervisor net_sup started auth:start_link() at pid <0.99.0>
+2014-07-22 15:29:15.207 [info] <0.96.0>@basho_bench_driver_floppystore:new:58 Net kernel started as 'floppy_bench@127.0.0.1'
+2014-07-22 15:29:15.208 [debug] <0.97.0> Supervisor net_sup started net_kernel:start_link(['floppy_bench@127.0.0.1',longnames]) at pid <0.100.0>
+2014-07-22 15:29:15.208 [debug] <0.11.0> Supervisor kernel_sup started erl_distribution:start_link(['floppy_bench@127.0.0.1',longnames]) at pid <0.97.0>
+2014-07-22 15:29:15.222 [debug] <0.104.0> Supervisor inet_gethost_native_sup started undefined at pid <0.105.0>
+2014-07-22 15:29:15.223 [debug] <0.25.0> Supervisor kernel_safe_sup started inet_gethost_native:start_link() at pid <0.104.0>
+2014-07-22 15:29:15.244 [info] <0.96.0>@basho_bench_driver_floppystore:ping_each:158 Finished pinging 'floppy@127.0.0.1'
+2014-07-22 15:29:15.244 [info] <0.96.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 1
+2014-07-22 15:29:15.244 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_1, 1) at pid <0.94.0>
+2014-07-22 15:29:15.326 [info] <0.109.0>@basho_bench_driver_floppystore:ping_each:158 Finished pinging 'floppy@127.0.0.1'
+2014-07-22 15:29:15.326 [info] <0.109.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 2
+2014-07-22 15:29:15.327 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_2, 2) at pid <0.108.0>
+2014-07-22 15:29:15.327 [debug] <0.25.0> Supervisor kernel_safe_sup started timer:start_link() at pid <0.110.0>
+2014-07-22 15:29:15.333 [info] <0.109.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.109.0>
+2014-07-22 15:29:15.333 [info] <0.96.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.96.0>
+2014-07-22 15:29:15.333 [info] <0.7.0> Application basho_bench started on node 'floppy_bench@127.0.0.1'
+2014-07-22 15:29:24.421 [error] <0.108.0>@basho_bench_worker:handle_info:149 Worker <0.109.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 15:29:24.421 [error] emulator Error in process <0.109.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 15:29:24.422 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.108.0> exit with reason normal in context child_terminated
+2014-07-22 15:29:24.549 [info] <0.273.0>@basho_bench_driver_floppystore:ping_each:158 Finished pinging 'floppy@127.0.0.1'
+2014-07-22 15:29:24.549 [info] <0.273.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 2
+2014-07-22 15:29:24.549 [warning] <0.271.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-22 15:29:24.549 [info] <0.273.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.273.0>
+2014-07-22 15:29:24.549 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_2, 2) at pid <0.271.0>
+2014-07-22 15:29:27.747 [error] emulator Error in process <0.273.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 15:29:27.747 [error] <0.271.0>@basho_bench_worker:handle_info:149 Worker <0.273.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 15:29:27.748 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.271.0> exit with reason normal in context child_terminated
+2014-07-22 15:29:27.841 [info] <0.326.0>@basho_bench_driver_floppystore:ping_each:158 Finished pinging 'floppy@127.0.0.1'
+2014-07-22 15:29:27.841 [info] <0.326.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 2
+2014-07-22 15:29:27.841 [warning] <0.324.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-22 15:29:27.841 [info] <0.326.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.326.0>
+2014-07-22 15:29:27.841 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_2, 2) at pid <0.324.0>
+2014-07-22 15:29:32.296 [error] <0.324.0>@basho_bench_worker:handle_info:149 Worker <0.326.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 15:29:32.296 [error] emulator Error in process <0.326.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 15:29:32.296 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.324.0> exit with reason normal in context child_terminated
+2014-07-22 15:29:32.386 [info] <0.400.0>@basho_bench_driver_floppystore:ping_each:158 Finished pinging 'floppy@127.0.0.1'
+2014-07-22 15:29:32.386 [info] <0.400.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 2
+2014-07-22 15:29:32.386 [warning] <0.399.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-22 15:29:32.386 [info] <0.400.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.400.0>
+2014-07-22 15:29:32.387 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_2, 2) at pid <0.399.0>
+2014-07-22 15:29:40.924 [error] <0.94.0>@basho_bench_worker:handle_info:149 Worker <0.96.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 15:29:40.924 [debug] <0.545.0>@basho_bench_valgen:init_source:85 random source
+2014-07-22 15:29:40.924 [error] emulator Error in process <0.96.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 15:29:40.925 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.94.0> exit with reason normal in context child_terminated
+2014-07-22 15:29:41.029 [info] <0.546.0>@basho_bench_driver_floppystore:ping_each:158 Finished pinging 'floppy@127.0.0.1'
+2014-07-22 15:29:41.030 [info] <0.546.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 1
+2014-07-22 15:29:41.030 [warning] <0.545.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-22 15:29:41.030 [info] <0.546.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.546.0>
+2014-07-22 15:29:41.030 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_1, 1) at pid <0.545.0>
+2014-07-22 15:29:47.605 [error] <0.545.0>@basho_bench_worker:handle_info:149 Worker <0.546.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 15:29:47.605 [error] emulator Error in process <0.546.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 15:29:47.605 [debug] <0.645.0>@basho_bench_valgen:init_source:85 random source
+2014-07-22 15:29:47.606 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.545.0> exit with reason normal in context child_terminated
+2014-07-22 15:29:47.703 [info] <0.646.0>@basho_bench_driver_floppystore:ping_each:158 Finished pinging 'floppy@127.0.0.1'
+2014-07-22 15:29:47.703 [info] <0.646.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 1
+2014-07-22 15:29:47.703 [warning] <0.645.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-22 15:29:47.704 [info] <0.646.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.646.0>
+2014-07-22 15:29:47.704 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_1, 1) at pid <0.645.0>
+2014-07-22 15:29:50.475 [error] emulator Error in process <0.646.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 15:29:50.475 [error] <0.645.0>@basho_bench_worker:handle_info:149 Worker <0.646.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 15:29:50.475 [debug] <0.687.0>@basho_bench_valgen:init_source:85 random source
+2014-07-22 15:29:50.475 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.645.0> exit with reason normal in context child_terminated
+2014-07-22 15:29:50.588 [info] <0.688.0>@basho_bench_driver_floppystore:ping_each:158 Finished pinging 'floppy@127.0.0.1'
+2014-07-22 15:29:50.588 [info] <0.688.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 1
+2014-07-22 15:29:50.588 [warning] <0.687.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-22 15:29:50.588 [info] <0.688.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.688.0>
+2014-07-22 15:29:50.588 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_1, 1) at pid <0.687.0>
+2014-07-22 15:29:54.316 [error] <0.399.0>@basho_bench_worker:handle_info:149 Worker <0.400.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 15:29:54.316 [error] emulator Error in process <0.400.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 15:29:54.317 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.399.0> exit with reason normal in context child_terminated
+2014-07-22 15:29:54.418 [info] <0.746.0>@basho_bench_driver_floppystore:ping_each:158 Finished pinging 'floppy@127.0.0.1'
+2014-07-22 15:29:54.418 [info] <0.746.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 2
+2014-07-22 15:29:54.418 [warning] <0.745.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-22 15:29:54.418 [info] <0.746.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.746.0>
+2014-07-22 15:29:54.418 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_2, 2) at pid <0.745.0>
+2014-07-22 15:30:10.069 [error] <0.745.0>@basho_bench_worker:handle_info:149 Worker <0.746.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 15:30:10.069 [error] emulator Error in process <0.746.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 15:30:10.069 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.745.0> exit with reason normal in context child_terminated
+2014-07-22 15:30:10.157 [info] <0.961.0>@basho_bench_driver_floppystore:ping_each:158 Finished pinging 'floppy@127.0.0.1'
+2014-07-22 15:30:10.157 [info] <0.961.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 2
+2014-07-22 15:30:10.157 [warning] <0.960.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-22 15:30:10.157 [info] <0.961.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.961.0>
+2014-07-22 15:30:10.158 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_2, 2) at pid <0.960.0>
+2014-07-22 15:30:12.906 [error] <0.687.0>@basho_bench_worker:handle_info:149 Worker <0.688.0> exited with {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-22 15:30:12.906 [error] emulator Error in process <0.688.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,timeout}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+
+
+2014-07-22 15:30:12.906 [debug] <0.999.0>@basho_bench_valgen:init_source:85 random source
+2014-07-22 15:30:12.907 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.687.0> exit with reason normal in context child_terminated
+2014-07-22 15:30:13.017 [info] <0.1000.0>@basho_bench_driver_floppystore:ping_each:158 Finished pinging 'floppy@127.0.0.1'
+2014-07-22 15:30:13.017 [info] <0.1000.0>@basho_bench_driver_floppystore:new:74 Using target node 'floppy@127.0.0.1' for worker 1
+2014-07-22 15:30:13.017 [warning] <0.999.0>@basho_bench_worker:init:124 Restarting crashed worker.
+2014-07-22 15:30:13.017 [info] <0.1000.0>@basho_bench_worker:worker_idle_loop:221 Starting max worker: <0.1000.0>
+2014-07-22 15:30:13.018 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_1, 1) at pid <0.999.0>
+2014-07-22 15:30:16.335 [info] <0.84.0>@basho_bench_stats:report_total_errors:318 No Errors.

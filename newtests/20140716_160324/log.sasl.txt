@@ -1,0 +1,42 @@
+
+=PROGRESS REPORT==== 16-Jul-2014::16:03:25 ===
+          supervisor: {local,sasl_safe_sup}
+             started: [{pid,<0.71.0>},
+                       {name,alarm_handler},
+                       {mfargs,{alarm_handler,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 16-Jul-2014::16:03:25 ===
+          supervisor: {local,sasl_safe_sup}
+             started: [{pid,<0.72.0>},
+                       {name,overload},
+                       {mfargs,{overload,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 16-Jul-2014::16:03:25 ===
+          supervisor: {local,sasl_sup}
+             started: [{pid,<0.70.0>},
+                       {name,sasl_safe_sup},
+                       {mfargs,
+                           {supervisor,start_link,
+                               [{local,sasl_safe_sup},sasl,safe]}},
+                       {restart_type,permanent},
+                       {shutdown,infinity},
+                       {child_type,supervisor}]
+
+=PROGRESS REPORT==== 16-Jul-2014::16:03:25 ===
+          supervisor: {local,sasl_sup}
+             started: [{pid,<0.73.0>},
+                       {name,release_handler},
+                       {mfargs,{release_handler,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 16-Jul-2014::16:03:25 ===
+         application: sasl
+          started_at: nonode@nohost

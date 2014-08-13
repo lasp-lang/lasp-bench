@@ -1,0 +1,35 @@
+2014-07-11 18:26:14.052 [debug] <0.52.0>@lager_handler_watcher:94 Lager installed handler {lager_file_backend,
+                            "/Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140711_182613/error.log"} into lager_event
+2014-07-11 18:26:14.052 [debug] <0.54.0>@lager_handler_watcher:94 Lager installed handler {lager_file_backend,
+                            "/Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140711_182613/console.log"} into lager_event
+2014-07-11 18:26:14.052 [debug] <0.56.0>@lager_handler_watcher:94 Lager installed handler error_logger_lager_h into error_logger
+2014-07-11 18:26:14.084 [debug] <0.39.0> Supervisor gr_param_sup started gr_param:start_link(gr_lager_default_tracer_params) at pid <0.58.0>
+2014-07-11 18:26:14.084 [debug] <0.38.0> Supervisor gr_counter_sup started gr_counter:start_link(gr_lager_default_tracer_counters) at pid <0.59.0>
+2014-07-11 18:26:14.084 [debug] <0.40.0> Supervisor gr_manager_sup started gr_manager:start_link(gr_lager_default_tracer_params_mgr, gr_lager_default_tracer_params, []) at pid <0.60.0>
+2014-07-11 18:26:14.084 [debug] <0.40.0> Supervisor gr_manager_sup started gr_manager:start_link(gr_lager_default_tracer_counters_mgr, gr_lager_default_tracer_counters, [{input,0},{filter,0},{output,0}]) at pid <0.61.0>
+2014-07-11 18:26:14.529 [debug] <0.48.0>@lager_handler_watcher:94 Lager installed handler lager_backend_throttle into lager_event
+2014-07-11 18:26:14.896 [info] <0.7.0> Application lager started on node nonode@nohost
+2014-07-11 18:26:14.904 [notice] <0.45.0>@lager_file_backend:128 Changed loglevel of /Users/liz/Documents/MyDocument/repositories/basho_bench/tests/20140711_182613/console.log to debug
+2014-07-11 18:26:14.913 [info] <0.2.0>@basho_bench_keygen:dimension:138 No dimension available for key generator: {int_to_bin_bigendian,{uniform_int,5000000}}
+2014-07-11 18:26:15.001 [debug] <0.70.0> Supervisor sasl_safe_sup started alarm_handler:start_link() at pid <0.71.0>
+2014-07-11 18:26:15.001 [debug] <0.70.0> Supervisor sasl_safe_sup started overload:start_link() at pid <0.72.0>
+2014-07-11 18:26:15.002 [debug] <0.69.0> Supervisor sasl_sup started supervisor:start_link({local,sasl_safe_sup}, sasl, safe) at pid <0.70.0>
+2014-07-11 18:26:15.018 [debug] <0.69.0> Supervisor sasl_sup started release_handler:start_link() at pid <0.73.0>
+2014-07-11 18:26:15.018 [info] <0.7.0> Application sasl started on node nonode@nohost
+2014-07-11 18:26:15.111 [debug] <0.78.0> Supervisor crypto_sup started crypto_server:start_link() at pid <0.79.0>
+2014-07-11 18:26:15.111 [info] <0.7.0> Application crypto started on node nonode@nohost
+2014-07-11 18:26:15.141 [debug] <0.88.0> Supervisor folsom_sup started folsom_sample_slide_sup:start_link() at pid <0.89.0>
+2014-07-11 18:26:15.145 [debug] <0.88.0> Supervisor folsom_sup started folsom_meter_timer_server:start_link() at pid <0.90.0>
+2014-07-11 18:26:15.151 [debug] <0.88.0> Supervisor folsom_sup started folsom_metrics_histogram_ets:start_link() at pid <0.91.0>
+2014-07-11 18:26:15.151 [info] <0.7.0> Application folsom started on node nonode@nohost
+2014-07-11 18:26:15.190 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_stats:start_link() at pid <0.84.0>
+2014-07-11 18:26:15.258 [debug] <0.96.0> Supervisor net_sup started erl_epmd:start_link() at pid <0.97.0>
+2014-07-11 18:26:15.267 [debug] <0.96.0> Supervisor net_sup started auth:start_link() at pid <0.98.0>
+2014-07-11 18:26:15.283 [info] <0.95.0>@basho_bench_driver_floppystore:new:56 Net kernel started as 'floppy_bench@127.0.0.1'
+2014-07-11 18:26:15.284 [debug] <0.96.0> Supervisor net_sup started net_kernel:start_link(['floppy_bench@127.0.0.1',longnames]) at pid <0.99.0>
+2014-07-11 18:26:15.284 [debug] <0.11.0> Supervisor kernel_sup started erl_distribution:start_link(['floppy_bench@127.0.0.1',longnames]) at pid <0.96.0>
+2014-07-11 18:26:15.302 [debug] <0.103.0> Supervisor inet_gethost_native_sup started undefined at pid <0.104.0>
+2014-07-11 18:26:15.302 [debug] <0.25.0> Supervisor kernel_safe_sup started inet_gethost_native:start_link() at pid <0.103.0>
+2014-07-11 18:26:15.320 [error] <0.95.0>@basho_bench_driver_floppystore:ping_each:137 Failed to ping node 'floppy@127.0.0.1'
+2014-07-11 18:26:15.320 [info] <0.95.0>@basho_bench_driver_floppystore:new:72 Using target node 'floppy@127.0.0.1' for worker 1
+2014-07-11 18:26:15.320 [debug] <0.83.0> Supervisor basho_bench_sup started basho_bench_worker:start_link(basho_bench_worker_1, 1) at pid <0.94.0>

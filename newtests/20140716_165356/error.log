@@ -1,0 +1,16 @@
+2014-07-16 16:53:57.825 [error] <0.94.0>@basho_bench_worker:handle_info:149 Worker <0.95.0> exited with crash
+2014-07-16 16:53:57.825 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.94.0> exit with reason normal in context child_terminated
+2014-07-16 16:53:58.487 [error] <0.107.0>@basho_bench_worker:handle_info:149 Worker <0.108.0> exited with crash
+2014-07-16 16:53:58.493 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.107.0> exit with reason normal in context child_terminated
+2014-07-16 16:53:59.718 [error] <0.1070.0>@basho_bench_worker:handle_info:149 Worker <0.1071.0> exited with crash
+2014-07-16 16:53:59.718 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.1070.0> exit with reason normal in context child_terminated
+2014-07-16 16:54:00.365 [error] <0.323.0>@basho_bench_worker:handle_info:149 Worker <0.325.0> exited with crash
+2014-07-16 16:54:00.372 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_1 started with basho_bench_worker:start_link(basho_bench_worker_1, 1) at <0.323.0> exit with reason normal in context child_terminated
+2014-07-16 16:54:00.827 [error] <0.2468.0>@basho_bench_worker:handle_info:149 Worker <0.2469.0> exited with crash
+2014-07-16 16:54:00.834 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.2468.0> exit with reason normal in context child_terminated
+2014-07-16 16:54:01.869 [error] emulator Error in process <0.3695.0> on node 'floppy_bench@127.0.0.1' with exit value: {{case_clause,{badrpc,{'EXIT',{badarg,[{erlang,apply,[[riak_dt_gset],new,[]],[]},{materializer,create_snapshot,1,[{file,"src/materializer.erl"},{line,14}]},{floppy,read,2,[{file,"src/floppy.erl"},{line,30}]},{rpc,'-handle_call_call/6-fun-0-'... 
+
+
+2014-07-16 16:54:01.869 [error] <0.3694.0>@basho_bench_worker:handle_info:149 Worker <0.3695.0> exited with {{case_clause,{badrpc,{'EXIT',{badarg,[{erlang,apply,[[riak_dt_gset],new,[]],[]},{materializer,create_snapshot,1,[{file,"src/materializer.erl"},{line,14}]},{floppy,read,2,[{file,"src/floppy.erl"},{line,30}]},{rpc,'-handle_call_call/6-fun-0-',5,[{file,"rpc.erl"},{line,205}]}]}}}},[{basho_bench_worker,worker_next_op,1,[{file,"src/basho_bench_worker.erl"},{line,244}]},{basho_bench_worker,max_worker_run_loop,1,[{file,"src/basho_bench_worker.erl"},{line,317}]}]}
+2014-07-16 16:54:01.870 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.3694.0> exit with reason normal in context child_terminated
+2014-07-16 16:54:01.876 [error] <0.83.0> Supervisor basho_bench_sup had child basho_bench_worker_2 started with basho_bench_worker:start_link(basho_bench_worker_2, 2) at <0.3694.0> exit with reason reached_max_restart_intensity in context shutdown
