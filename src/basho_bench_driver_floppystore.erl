@@ -26,7 +26,7 @@
 
 -include("basho_bench.hrl").
 
--define(TIMEOUT, 1000).
+-define(TIMEOUT, 20000).
 -record(state, {node,
                 worker_id,
                 time,
@@ -63,8 +63,8 @@ new(Id) ->
     end,
 
     %% Initialize cookie for each of the nodes
+    true = erlang:set_cookie(node(), Cookie),
     [true = erlang:set_cookie(N, Cookie) || N <- Nodes],
-    %true = erlang:set_cookie(Node, Cookie),
 
     %% Try to ping each of the nodes
     ping_each(Nodes),
@@ -138,13 +138,13 @@ run(itx, KeyGen, ValueGen, State=#state{node=Node, worker_id=Id, type_dict=Dict}
     RandomOps = [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- ListOps])],
     {ok, TxId} = rpc:call(Node, floppy, clocksi_istart_tx, [now()], ?TIMEOUT),
     ExecuteFun = fun(X) ->  case X of 
-                            {update, UKey, UType, UParam} -> ok = rpc:call(Node, floppy, clocksi_iupdate, [TxId, UKey, UType, UParam]);
-                            {read, RKey, RType} -> {ok, _} = rpc:call(Node, floppy, clocksi_iread, [TxId, RKey, RType])
+                            {update, UKey, UType, UParam} -> ok = rpc:call(Node, floppy, clocksi_iupdate, [TxId, UKey, UType, UParam], ?TIMEOUT);
+                            {read, RKey, RType} -> {ok, _} = rpc:call(Node, floppy, clocksi_iread, [TxId, RKey, RType], ?TIMEOUT)
                             end
                  end,
     lists:foreach(ExecuteFun, RandomOps),  
-    {ok, _} = rpc:call(Node, floppy, clocksi_iprepare, [TxId]),
-    End=rpc:call(Node, floppy, clocksi_icommit, [TxId]),
+    {ok, _} = rpc:call(Node, floppy, clocksi_iprepare, [TxId], ?TIMEOUT),
+    End=rpc:call(Node, floppy, clocksi_icommit, [TxId], ?TIMEOUT),
     case End of
         {ok, _} ->
             {ok, State};
