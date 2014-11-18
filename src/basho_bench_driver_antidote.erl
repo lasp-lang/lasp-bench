@@ -79,7 +79,7 @@ new(Id) ->
 run(read, KeyGen, _ValueGen, State=#state{node=Node}) ->
     Key = KeyGen(),
     Type = get_key_type(Key),
-    Response = rpc:call(Node, antidote, materializer_read, [Key, Type]),
+    Response = rpc:call(Node, antidote, read, [Key, Type]),
     case Response of
         {ok, _Value} ->
             {ok, State};
@@ -95,7 +95,7 @@ run(append, KeyGen, ValueGen,
     Key = KeyGen(),
     Type = get_key_type(Key),
     {Type, KeyParam} = get_random_param(TypeDict, Type, Id, ValueGen()),
-    Response = rpc:call(Node, antidote, materializer_append, [Key, Type, KeyParam]),
+    Response = rpc:call(Node, antidote, append, [Key, Type, KeyParam]),
     case Response of
         {ok, _Result} ->
             {ok, State};
