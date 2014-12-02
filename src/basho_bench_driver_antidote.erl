@@ -76,9 +76,9 @@ new(Id) ->
     {ok, #state{node=TargetNode, time={1,1,1}, worker_id=Id, type_dict=TypeDict}}.
 
 %% @doc Read a key
-run(read, KeyGen, _ValueGen, State=#state{node=Node}) ->
+run(read, KeyGen, _ValueGen, State=#state{node=Node, type_dict=TypeDict}) ->
     Key = KeyGen(),
-    Type = get_key_type(Key),
+    Type = get_key_type(Key, TypeDict),
     Response = rpc:call(Node, antidote, read, [Key, Type]),
     case Response of
         {ok, _Value} ->
@@ -93,7 +93,7 @@ run(read, KeyGen, _ValueGen, State=#state{node=Node}) ->
 run(append, KeyGen, ValueGen,
     State=#state{node=Node, worker_id=Id, type_dict=TypeDict}) ->
     Key = KeyGen(),
-    Type = get_key_type(Key),
+    Type = get_key_type(Key, TypeDict),
     {Type, KeyParam} = get_random_param(TypeDict, Type, Id, ValueGen()),
     Response = rpc:call(Node, antidote, append, [Key, Type, KeyParam]),
     case Response of
@@ -117,13 +117,10 @@ ping_each([Node | Rest]) ->
             ?FAIL_MSG("Failed to ping node ~p\n", [Node])
     end.
 
-get_key_type(Key) ->
-    case (Key rem 10) > 5 of
-        true ->
-            riak_dt_gcounter;
-        false ->
-            riak_dt_gset
-    end.
+get_key_type(Key, Dict) ->
+    Keys = dict:fetch_keys(Dict),
+    RanNum = Key rem length(Keys),
+    lists:nth(RanNum+1, Keys).
 
 get_random_param(Dict, Type, Actor, Value) ->
     Params = dict:fetch(Type, Dict),
@@ -132,6 +129,14 @@ get_random_param(Dict, Type, Actor, Value) ->
     case Type of
         riak_dt_gcounter ->
            {riak_dt_gcounter, {lists:nth(Num, Params), Actor}};
+        crdt_pncounter ->
+           {crdt_pncounter, {lists:nth(Num, Params), Actor}};
         riak_dt_gset ->
-           {riak_dt_gset, {{lists:nth(Num, Params), Value}, Actor}}
+           {riak_dt_gset, {{lists:nth(Num, Params), Value}, Actor}};
+        crdt_orset ->
+           {crdt_orset, {{lists:nth(Num, Params), Value}, Actor}}
+        %crdt_pncounter ->
+        %   {crdt_pncounter, {lists:nth(Num, Params), Actor}};
+        %crdt_orset ->
+        %   {crdt_orset, {{lists:nth(Num, Params), Value}, Actor}}
     end.
