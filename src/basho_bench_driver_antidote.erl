@@ -66,10 +66,10 @@ new(Id) ->
     [true = erlang:set_cookie(N, Cookie) || N <- Nodes],
 
     %% Try to ping each of the nodes
-    ping_each(Nodes),
+    AvailableNodes = ping_each(Nodes, []),
 
     %% Choose the node using our ID as a modulus
-    TargetNode = lists:nth((Id rem length(Nodes)+1), Nodes),
+    TargetNode = lists:nth((Id rem length(AvailableNodes)+1), AvailableNodes),
     ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
     %KeyDict= dict:new(),
     TypeDict = dict:from_list(Types),
@@ -106,15 +106,16 @@ run(append, KeyGen, ValueGen,
     end.
 
 %% Private
-ping_each([]) ->
-    ok;
-ping_each([Node | Rest]) ->
+ping_each([], Acc) ->
+    Acc;
+ping_each([Node | Rest], Acc) ->
     case net_adm:ping(Node) of
         pong ->
             ?INFO("Finished pinging ~p", [Node]),
-            ping_each(Rest);
+            ping_each(Rest, Acc ++ [Node]);
         pang ->
-            ?FAIL_MSG("Failed to ping node ~p\n", [Node])
+            ?INFO("Failed to ping node ~p\n", [Node]),
+            ping_each(Rest, Acc)
     end.
 
 get_key_type(Key, Dict) ->

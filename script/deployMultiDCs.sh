@@ -1,14 +1,12 @@
 #!/bin/bash
 
-if [ $# -ne 0 ]
-then
-	Cookie=$1	
-	AllNodes=$2
-else
-	Cookie="antidote"
-	AllNodes="10.20.0.78 10.20.0.79"
-fi
-./script/restartNodes.sh "$AllNodes"
+AllNodes=$1
+Cookie=$2	
+./script/startNodes.sh "$AllNodes"
 echo "Finished restarting"
-sleep 3
-#sudo escript ./script/connectDCs.script $Cookie $AllNodes 
+if [ $3 -eq 1 ]; then
+	echo "Coonect DCs"
+	sudo escript ./script/connectDCs.script $Cookie $AllNodes 
+else
+	echo "Not connecting DCs"
+fi
