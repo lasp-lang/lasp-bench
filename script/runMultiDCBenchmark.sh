@@ -12,4 +12,7 @@ else
 fi
 ./script/stopNodes.sh "$AllSystemNodes" 
 ./script/deployMultiDCs.sh "$AllNodes" $Cookie $ConnectDCs
+
+##Replace benchmark configuration to include nodes
+./script/changeConfig.sh "$AllNodes" $Cookie
 sudo ./basho_bench examples/antidote.config
