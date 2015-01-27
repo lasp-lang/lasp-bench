@@ -14,5 +14,6 @@ fi
 ./script/deployMultiDCs.sh "$AllNodes" $Cookie $ConnectDCs
 
 ##Replace benchmark configuration to include nodes
-./script/changeConfig.sh "$AllNodes" $Cookie
-sudo ./basho_bench examples/antidote.config
+File="examples/antidote_pb.config"
+./script/changeConfig.sh "$AllNodes" $Cookie $File
+sudo ./basho_bench $File 

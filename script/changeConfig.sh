@@ -2,7 +2,7 @@
 
 AllNodes=$1
 Cookie=$2
-File="./examples/antidote.config"
+File="./"$3
 sudo sed -i '/antidote_nodes/d' $File 
 BenchConfig="{antidote_nodes, ["
 for Node in $AllNodes
