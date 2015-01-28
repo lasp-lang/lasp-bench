@@ -47,32 +47,14 @@ new(Id) ->
             ok
     end,
 
-    Nodes   = basho_bench_config:get(antidote_nodes),
-    Cookie  = basho_bench_config:get(antidote_cookie),
-    MyNode  = basho_bench_config:get(antidote_mynode, [basho_bench, longnames]),
-   
-    %% Try to spin up net_kernel
-    case net_kernel:start(MyNode) of
-        {ok, _} ->
-            ?INFO("Net kernel started as ~p\n", [node()]);
-        {error, {already_started, _}} ->
-            ok;
-        {error, Reason} ->
-            ?FAIL_MSG("Failed to start net_kernel for ~p: ~p\n", [?MODULE, Reason])
-    end,
-
-    %% Initialize cookie for each of the nodes
-    true = erlang:set_cookie(node(), Cookie),
-    [true = erlang:set_cookie(N, Cookie) || N <- Nodes],
-
-    %% Try to ping each of the nodes
-    ping_each(Nodes),   
+    IPs = basho_bench_config:get(antidote_pb_ips),
+    PbPort = basho_bench_config:get(antidote_pb_port),
 
     %% Choose the node using our ID as a modulus
-    TargetNode = lists:nth((Id rem length(Nodes)+1), Nodes),
+    TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
     ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
 
-    {ok, Pid} = antidotec_pb_socket:start_link("localhost",8087),
+    {ok, Pid} = antidotec_pb_socket:start_link(TargetNode, PbPort),
     {ok, #state{node=TargetNode, time={1,1,1}, worker_id=Id,
                pb_pid = Pid}}.
 
