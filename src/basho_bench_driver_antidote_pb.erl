@@ -27,7 +27,7 @@
 -include("basho_bench.hrl").
 
 -define(TIMEOUT, 20000).
--record(state, {node,
+-record(state, {
                 worker_id,
                 time,
                 type_dict,
@@ -47,40 +47,25 @@ new(Id) ->
             ok
     end,
 
-    Nodes   = basho_bench_config:get(antidote_nodes),
-    Cookie  = basho_bench_config:get(antidote_cookie),
-    MyNode  = basho_bench_config:get(antidote_mynode, [basho_bench, longnames]),
-   
-    %% Try to spin up net_kernel
-    case net_kernel:start(MyNode) of
-        {ok, _} ->
-            ?INFO("Net kernel started as ~p\n", [node()]);
-        {error, {already_started, _}} ->
-            ok;
-        {error, Reason} ->
-            ?FAIL_MSG("Failed to start net_kernel for ~p: ~p\n", [?MODULE, Reason])
-    end,
-
-    %% Initialize cookie for each of the nodes
-    true = erlang:set_cookie(node(), Cookie),
-    [true = erlang:set_cookie(N, Cookie) || N <- Nodes],
-
-    %% Try to ping each of the nodes
-    ping_each(Nodes),   
+    IPs = basho_bench_config:get(antidote_pb_ips),
+    PbPort = basho_bench_config:get(antidote_pb_port),
+    Types  = basho_bench_config:get(antidote_types),
 
     %% Choose the node using our ID as a modulus
-    TargetNode = lists:nth((Id rem length(Nodes)+1), Nodes),
+    TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
     ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
 
-    {ok, Pid} = antidotec_pb_socket:start_link("localhost",8087),
-    {ok, #state{node=TargetNode, time={1,1,1}, worker_id=Id,
-               pb_pid = Pid}}.
+    {ok, Pid} = antidotec_pb_socket:start_link(TargetNode, PbPort),
+    TypeDict = dict:from_list(Types),
+    {ok, #state{time={1,1,1}, worker_id=Id,
+               pb_pid = Pid,
+               type_dict = TypeDict}}.
 
 %% @doc Read a key
-run(read, KeyGen, _ValueGen, State=#state{node=_Node, pb_pid = Pid}) ->
-    Key = list_to_binary(integer_to_list(KeyGen())),
-    %% TODO : Currently only for counters
-    Type = riak_dt_pncounter,
+run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid}) ->
+    KeyInt = KeyGen(),
+    Key = list_to_binary(integer_to_list(KeyInt)),
+    Type = get_key_type(KeyInt),
     Response =  antidotec_pb_socket:get_crdt(Key, Type, Pid),
     case Response of
         {ok, _Value} ->
@@ -93,12 +78,14 @@ run(read, KeyGen, _ValueGen, State=#state{node=_Node, pb_pid = Pid}) ->
 
 %% @doc Write to a key
 run(append, KeyGen, ValueGen,
-    State=#state{node=_Node, worker_id=_Id, type_dict=_TypeDict,
+    State=#state{type_dict=TypeDict,
                  pb_pid = Pid}) ->
-    Key = list_to_binary(integer_to_list(KeyGen())),
+    KeyInt = KeyGen(),
+    Key = list_to_binary(integer_to_list(KeyInt)),
     %%TODO: Support for different data types
-    Mod = antidotec_counter,
-    Obj = antidotec_counter:increment(1, Mod:new(Key)),
+    Type = get_key_type(KeyInt),
+    {Mod, Op, Param} = get_random_param(TypeDict, Type, ValueGen()),
+    Obj = Mod:Op(Param, Mod:new(Key)),
     Response = antidotec_pb_socket:store_crdt(Obj, Pid),
     case Response of
         ok ->
@@ -111,14 +98,21 @@ run(append, KeyGen, ValueGen,
             {error, Reason, State}
     end.
 
-%% Private
-ping_each([]) ->
-    ok;
-ping_each([Node | Rest]) ->
-    case net_adm:ping(Node) of
-        pong ->
-            ?INFO("Finished pinging ~p", [Node]),
-            ping_each(Rest);
-        pang ->
-            ?FAIL_MSG("Failed to ping node ~p\n", [Node])
+get_key_type(Key) ->
+    case (Key rem 10) > 5 of
+        true ->
+            riak_dt_pncounter;
+        false ->
+            riak_dt_orset
+    end.
+
+get_random_param(Dict, Type, Value) ->
+    Params = dict:fetch(Type, Dict),
+    random:seed(now()),
+    Num = random:uniform(length(Params)),
+    case Type of
+        riak_dt_pncounter ->
+           {antidotec_counter,lists:nth(Num, Params), 1};
+        riak_dt_orset ->
+           {antidotec_set, lists:nth(Num, Params), Value}
     end.
