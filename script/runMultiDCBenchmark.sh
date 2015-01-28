@@ -6,12 +6,14 @@ if [ $# -eq 0 ]; then
 else
 	AllSystemNodes=$1
 	AllNodes=$2
-	echo $AllNodes
 	Cookie=$3
 	ConnectDCs=$4
-    if [ $5 -eq "erl" ]; then
+	echo $5
+    if [ "$5" = "erl" ]; then
+	echo "Benchmark erl"
         BenchmarkType=0
-    elif [ $5 -eq "pb" ]; then
+    elif [ "$5" = "pb" ]; then
+	echo "Benchmark pb"
         BenchmarkType=1
     else
         echo "Wrong benchmark type!"
@@ -22,7 +24,7 @@ fi
 ./script/deployMultiDCs.sh "$AllNodes" $Cookie $ConnectDCs
 
 ##Replace benchmark configuration to include nodes
-if [ $BenchmarkType -eq "erl" ]; then
+if [ $BenchmarkType -eq 0 ]; then
     FileName="examples/antidote.config"
     ./script/changeErlConfig.sh "$AllNodes" $Cookie $FileName
 else
