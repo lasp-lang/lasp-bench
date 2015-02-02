@@ -51,8 +51,6 @@ new(Id) ->
     PbPort = basho_bench_config:get(antidote_pb_port),
     Types  = basho_bench_config:get(antidote_types),
 
-    net_kernel:start(['bench@127.0.0.1', longnames]),
-    true = erlang:set_cookie(node(), 'antidote'),
     %% Choose the node using our ID as a modulus
     TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
     ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
