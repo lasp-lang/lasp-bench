@@ -27,11 +27,12 @@
 -include("basho_bench.hrl").
 
 -define(TIMEOUT, 20000).
--record(state, {
-                worker_id,
+-record(state, {worker_id,
                 time,
                 type_dict,
-                pb_pid}).
+                pb_pid,
+                pb_port,
+                target_node}).
 
 %% ====================================================================
 %% API
@@ -59,10 +60,11 @@ new(Id) ->
     TypeDict = dict:from_list(Types),
     {ok, #state{time={1,1,1}, worker_id=Id,
                pb_pid = Pid,
-               type_dict = TypeDict}}.
+               type_dict = TypeDict, pb_port=PbPort,
+               target_node=TargetNode}}.
 
 %% @doc Read a key
-run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid}) ->
+run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=Port, target_node=Node}) ->
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
     Type = get_key_type(KeyInt),
@@ -70,6 +72,11 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid}) ->
     case Response of
         {ok, _Value} ->
             {ok, State};
+        {error,timeout} ->
+            lager:info("Timeout on client ~p",[Id]),
+            antidotec_pb_socket:stop(Pid),
+            {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
+            {error, timeout, State#state{pb_pid=NewPid}    };            
         {error, Reason} ->
             {error, Reason, State};
         {badrpc, Reason} ->
@@ -79,7 +86,10 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid}) ->
 %% @doc Write to a key
 run(append, KeyGen, ValueGen,
     State=#state{type_dict=TypeDict,
-                 pb_pid = Pid}) ->
+                 pb_pid = Pid,
+                 worker_id = Id,
+                 pb_port=Port,
+                 target_node=Node}) ->
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
     %%TODO: Support for different data types
@@ -92,6 +102,45 @@ run(append, KeyGen, ValueGen,
             {ok, State};
         {ok, _Result} ->
             {ok, State};
+        {error,timeout}->
+            lager:info("Timeout on client ~p",[Id]),
+            antidotec_pb_socket:stop(Pid),
+            {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
+            {error, timeout, State#state{pb_pid=NewPid}}; 
+        {error, Reason} ->
+            {error, Reason, State};
+        {badrpc, Reason} ->
+            {error, Reason, State}
+    end;
+
+run(update, KeyGen, ValueGen,
+    State=#state{type_dict=TypeDict,
+                 pb_pid = Pid,
+                 worker_id = Id,
+                 pb_port=Port,
+                 target_node=Node}) ->
+    KeyInt = KeyGen(),
+    Key = list_to_binary(integer_to_list(KeyInt)),
+    %%TODO: Support for different data types
+    Type = get_key_type(KeyInt),
+    Response =  case antidotec_pb_socket:get_crdt(Key, Type, Pid) of
+                    {ok, CRDT} ->
+                        {Mod, Op, Param} = get_random_param(TypeDict, Type, ValueGen(), CRDT),
+                        Obj = Mod:Op(Param,CRDT),
+                        antidotec_pb_socket:store_crdt(Obj, Pid);
+                    Other -> Other
+
+                end,
+    case Response of
+        ok ->
+            {ok, State};
+        {ok, _Result} ->
+            {ok, State};
+        {error,timeout}->
+            lager:info("Timeout on client ~p",[Id]),
+            antidotec_pb_socket:stop(Pid),
+            {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
+            {error, timeout, State#state{pb_pid=NewPid}}; 
         {error, Reason} ->
             {error, Reason, State};
         {badrpc, Reason} ->
@@ -103,7 +152,8 @@ get_key_type(Key) ->
         true ->
             riak_dt_pncounter;
         false ->
-            riak_dt_orset
+            %%riak_dt_orset
+            riak_dt_pncounter
     end.
 
 get_random_param(Dict, Type, Value) ->
@@ -114,5 +164,26 @@ get_random_param(Dict, Type, Value) ->
         riak_dt_pncounter ->
            {antidotec_counter,lists:nth(Num, Params), 1};
         riak_dt_orset ->
-           {antidotec_set, lists:nth(Num, Params), Value}
+            {antidotec_set, lists:nth(Num, Params), Value}                     
+    end.
+
+get_random_param(Dict, Type, Value, Obj) ->
+    Params = dict:fetch(Type, Dict),
+    random:seed(now()),
+    Num = random:uniform(length(Params)),
+    case Type of
+        riak_dt_pncounter ->
+           {antidotec_counter,lists:nth(Num, Params), 1};
+        riak_dt_orset ->
+            Set = antidotec_set:value(Obj),
+            Op = lists:nth(Num, Params),
+            case Op of 
+                remove ->
+                    case sets:to_list(Set) of 
+                        [] -> {antidotec_set, add, Value};                     
+                        [H|_T] -> {antidotec_set, remove, H}
+                    end;
+                _ ->
+                    {antidotec_set, Op, Value}
+            end                      
     end.
