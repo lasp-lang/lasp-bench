@@ -62,10 +62,10 @@ new(Id) ->
                type_dict = TypeDict}}.
 
 %% @doc Read a key
-run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid}) ->
+run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, type_dict=TypeDict}) ->
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
-    Type = get_key_type(KeyInt),
+    Type = get_key_type(KeyInt, TypeDict),
     Response =  antidotec_pb_socket:get_crdt(Key, Type, Pid),
     case Response of
         {ok, _Value} ->
@@ -83,7 +83,7 @@ run(append, KeyGen, ValueGen,
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
     %%TODO: Support for different data types
-    Type = get_key_type(KeyInt),
+    Type = get_key_type(KeyInt, TypeDict),
     {Mod, Op, Param} = get_random_param(TypeDict, Type, ValueGen()),
     Obj = Mod:Op(Param, Mod:new(Key)),
     Response = antidotec_pb_socket:store_crdt(Obj, Pid),
@@ -98,13 +98,11 @@ run(append, KeyGen, ValueGen,
             {error, Reason, State}
     end.
 
-get_key_type(Key) ->
-    case (Key rem 10) > 5 of
-        true ->
-            riak_dt_pncounter;
-        false ->
-            riak_dt_orset
-    end.
+
+get_key_type(Key, Dict) ->
+    Keys = dict:fetch_keys(Dict),
+    RanNum = Key rem length(Keys),
+    lists:nth(RanNum+1, Keys).
 
 get_random_param(Dict, Type, Value) ->
     Params = dict:fetch(Type, Dict),

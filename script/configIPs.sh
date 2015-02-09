@@ -1,6 +1,6 @@
 #!/bin/bash
 
-AllNodes="172.31.52.113 172.31.52.114 172.31.52.115 172.31.52.116 172.31.52.117"
+AllNodes="172.31.54.217 172.31.54.218 172.31.54.219 172.31.54.220 172.31.54.221"
 File1="./antidote/rel/vars.config"
 File2="./antidote/rel/files/app.config"
 Command1="sudo sed -i 's/172.31.52.119/localhost/g' $File1"
