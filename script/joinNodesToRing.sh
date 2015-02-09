@@ -1,8 +1,7 @@
 #!/bin/bash
 
-First="10.20.0.77"
-Others="10.20.0.78 10.20.0.79"
-AllNodes="10.20.0.77 10.20.0.78 10.20.0.79"
+First=$1
+Others=$2
 
 Join="sudo antidote/rel/antidote/bin/antidote-admin cluster join antidote@$First"
 Plan="sudo antidote/rel/antidote/bin/antidote-admin cluster plan"

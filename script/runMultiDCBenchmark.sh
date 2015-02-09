@@ -8,6 +8,7 @@ else
 	AllNodes=$2
 	Cookie=$3
 	ConnectDCs=$4
+	DCPerRing=$6
 	echo $5
     if [ "$5" = "erl" ]; then
 	echo "Benchmark erl"
@@ -21,7 +22,7 @@ else
     fi
 fi
 ./script/stopNodes.sh "$AllSystemNodes" 
-./script/deployMultiDCs.sh "$AllNodes" $Cookie $ConnectDCs
+./script/deployMultiDCs.sh "$AllNodes" $Cookie $ConnectDCs $DCPerRing
 
 ##Replace benchmark configuration to include nodes
 if [ $BenchmarkType -eq 0 ]; then
