@@ -12,9 +12,21 @@ function joinNodes {
         	SI=$((I * DCPerRing - DCPerRing))
         	First=("${TNodes[@]:$SI:1}")
         	Others=("${TNodes[@]:$((SI+1)):$((DCPerRing-1))}")
-		echo "Connecting" "${Others[@]}" to $First
-        	sudo ./script/joinNodesToRing.sh $First "${Others[@]}"
+		if [ -n "$Others" ]; then
+			echo "Connecting" "${Others[@]}" to $First
+        		sudo ./script/joinNodesToRing.sh $First "${Others[@]}"
+		else
+			echo "not connecting.."
+		fi
         done
+
+	for I in $(seq 1 $NumDCs);
+        do
+                SI=$((I * DCPerRing - DCPerRing))
+                First=("${TNodes[@]:$SI:1}")
+		./script/waitRingsToFinish.sh $First
+        done
+	echo "Ring transfer have finished..."
 }
 
 AllNodes=$1
