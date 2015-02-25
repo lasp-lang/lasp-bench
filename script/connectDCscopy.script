@@ -1,0 +1,30 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+%%! -name haha@localhost
+
+main(StringNodes) -> 
+    Temp = [list_to_atom(StringNode) || StringNode <- StringNodes],
+    Cookie = hd(Temp),
+    Nodes= tl(Temp),
+    true = erlang:set_cookie(node(), Cookie),
+    Ports = lists:seq(8091, 8090 + length(Nodes)),
+    NodesInfo = combineLists(Nodes, Cookie, Ports, []),
+    startListening(NodesInfo),
+    connect(NodesInfo, NodesInfo).
+
+combineLists([], _, [], Adder) ->
+    Adder;
+combineLists([Node|RestNodes], Cookie, [Port|RestPorts], Adder) ->
+    NodeAddr = list_to_atom(atom_to_list(Cookie) ++ "@" ++ atom_to_list(Node)),
+    combineLists(RestNodes, Cookie, RestPorts, Adder ++ [{NodeAddr, Port}]).
+
+connect(Nodes, AllNodes) ->
+    case Nodes of
+	[] ->
+		ok;
+	[{Node, Port}|Rest] ->
+		OtherNodeAddrs = AllNodes -- [{Node, Port}],
+	        io:format("Connect node ~w to ~w ~n", [{Node, Port}, OtherNodeAddrs]),
+		ok = rpc:call(Node, inter_dc_manager, add_list_dcs,[OtherNodeAddrs]),
+		connect(Rest, AllNodes)
+    end.
