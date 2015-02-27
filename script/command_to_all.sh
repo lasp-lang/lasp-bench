@@ -6,10 +6,9 @@ command=$2
 echo $command" for nodes:"$nodes 
 for node in $nodes
 do
-   ssh -o ConnectTimeout=3 -t ubuntu@$node -i key ${command/localhost/$node} &
+   ssh -o ConnectTimeout=3 -t ubuntu@$node -i key ${command/localhost/$node}  
    sleep 1
 done
-wait
 echo $command done
 
 for job in `jobs -p`
