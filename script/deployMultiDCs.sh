@@ -2,16 +2,16 @@
 
 function joinNodes {
         TNodes=($1)
-        DCPerRing=$2
+        NodesPerDC=$2
         TotalLength="${#TNodes[@]}"
 	echo $TotalLength
-        NumDCs=$((TotalLength / DCPerRing))
+        NumDCs=$((TotalLength / NodesPerDC))
 	echo $NumDCs
         for I in $(seq 1 $NumDCs);
         do
-        	SI=$((I * DCPerRing - DCPerRing))
+        	SI=$((I * NodesPerDC - NodesPerDC))
         	First=("${TNodes[@]:$SI:1}")
-        	Others=("${TNodes[@]:$((SI+1)):$((DCPerRing-1))}")
+        	Others=("${TNodes[@]:$((SI+1)):$((NodesPerDC-1))}")
 		if [ -n "$Others" ]; then
 			echo "Connecting" "${Others[@]}" to $First
         		sudo ./script/joinNodesToRing.sh $First "${Others[@]}"
@@ -22,7 +22,7 @@ function joinNodes {
 
 	for I in $(seq 1 $NumDCs);
         do
-                SI=$((I * DCPerRing - DCPerRing))
+                SI=$((I * NodesPerDC - NodesPerDC))
                 First=("${TNodes[@]:$SI:1}")
 		./script/waitRingsToFinish.sh $First
         done
@@ -31,13 +31,13 @@ function joinNodes {
 
 AllNodes=$1
 Cookie=$2	
-DCPerRing=$4
+NodesPerDC=$4
 ./script/startNodes.sh "$AllNodes"
 echo "Finished restarting"
 if [ $3 -eq 1 ]; then
 	echo "Connect DCs"
-	joinNodes "$AllNodes" $DCPerRing
-	sudo escript ./script/connectDCs.script $Cookie $DCPerRing $AllNodes
+	joinNodes "$AllNodes" $NodesPerDC
+	sudo escript ./script/connectDCs.script $Cookie $NodesPerDC $AllNodes
 else
 	echo "Not connecting DCs"
 fi
