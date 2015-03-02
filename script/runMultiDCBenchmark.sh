@@ -1,15 +1,18 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-	echo "Usage: all_nodes, nodes_for_this_bench, cookie, if_to_connect_nodes, erl|pb"
+	echo "Usage: all_nodes, cookie, number_of_dcs, nodes_per_dc, erl|pb"
 	exit
 else
 	AllSystemNodes=$1
-	AllNodes=$2
-	Cookie=$3
-	ConnectDCs=$4
-	DCPerRing=$6
-	echo $5
+    SystemNodesArray=($AllSystemNodes)
+	Cookie=$2
+	NumberDC=$3
+	NodesPerDC=$4
+    NodesToUse=$((NumberDC * NodesPerDC))
+	AllNodes=${SystemNodesArray[@]:0:$NodesToUse}
+    AllNodes=`echo ${AllNodes[@]}`
+    echo "Using" $AllNodes
     if [ "$5" = "erl" ]; then
 	echo "Benchmark erl"
         BenchmarkType=0
@@ -22,7 +25,7 @@ else
     fi
 fi
 ./script/stopNodes.sh "$AllSystemNodes" 
-./script/deployMultiDCs.sh "$AllNodes" $Cookie $ConnectDCs $DCPerRing
+./script/deployMultiDCs.sh "$AllNodes" $Cookie $NumberDC $NodesPerDC
 
 ##Replace benchmark configuration to include nodes
 if [ $BenchmarkType -eq 0 ]; then

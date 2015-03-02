@@ -1,13 +1,11 @@
 #!/bin/bash
 
-#AllNodes="172.31.54.217 172.31.54.218 172.31.54.219 172.31.54.220 172.31.54.221"
-AllNodes="172.31.30.219 172.31.30.220 172.31.30.221 172.31.30.222 172.31.30.223 172.31.30.224 172.31.30.225 172.31.30.226"
+AllNodes=`cat script/allnodes`
 File1="./antidote/rel/vars.config"
 File2="./antidote/rel/files/app.config"
 Command0="cd ./antidote/ && sudo git stash && sudo git fetch && sudo git checkout evaluation && sudo git pull"
-Command1="sudo sed -i 's/172.31.30.71/localhost/g' $File1"
+Command1="sudo sed -i 's/127.0.0.1/localhost/g' $File1"
 Command2="sudo sed -i 's/127.0.0.1/localhost/g' $File2"
-#Command3="cd ./antidote/ && sudo git stash && sudo git fetch && sudo git checkout evaluation && sudo git pull && sudo make rel"
 Command3="cd ./antidote/ && sudo make rel"
 Command4="sudo ntpdate ntp.ubuntu.com"
 ./script/command_to_all.sh "$AllNodes" "$Command0"	
