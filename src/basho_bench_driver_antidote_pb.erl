@@ -114,11 +114,6 @@ run(append, KeyGen, ValueGen,
     end;
 
 
-get_key_type(Key, Dict) ->
-    Keys = dict:fetch_keys(Dict),
-    RanNum = Key rem length(Keys),
-    lists:nth(RanNum+1, Keys).
-=======
 run(update, KeyGen, ValueGen,
     State=#state{type_dict=TypeDict,
                  pb_pid = Pid,
@@ -128,7 +123,7 @@ run(update, KeyGen, ValueGen,
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
     %%TODO: Support for different data types
-    Type = get_key_type(KeyInt),
+    Type = get_key_type(KeyInt, TypeDict),
     Response =  case antidotec_pb_socket:get_crdt(Key, Type, Pid) of
                     {ok, CRDT} ->
                         {Mod, Op, Param} = get_random_param(TypeDict, Type, ValueGen(), CRDT),
@@ -152,7 +147,6 @@ run(update, KeyGen, ValueGen,
         {badrpc, Reason} ->
             {error, Reason, State}
     end.
->>>>>>> e1b7820fc358fbb7eda0074e3bc0af77457ba2ce
 
 
 get_key_type(Key, Dict) ->
