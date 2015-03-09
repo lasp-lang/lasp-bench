@@ -101,6 +101,18 @@ run(multiread, _KeyGen, _ValueGen, State=#state{node=Node, type_dict=TypeDict}) 
             {error, Reason, State}
     end;
 
+run(multiupdate, _KeyGen, _ValueGen, State=#state{node=Node, type_dict=TypeDict}) ->
+    Ops = generate_list_of_ops(10, 1, TypeDict, []),
+    Response = rpc:call(Node, antidote, clocksi_execute_tx, [Ops]),
+    case Response of
+        {ok, _Value} ->
+            {ok, State};
+        {error, Reason} ->
+            {error, Reason, State};
+        {badrpc, Reason} ->
+            {error, Reason, State}
+    end;
+
 %% @doc Write to a key
 run(append, KeyGen, ValueGen,
     State=#state{node=Node, worker_id=Id, type_dict=TypeDict}) ->
