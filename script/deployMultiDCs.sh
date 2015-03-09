@@ -4,7 +4,7 @@ function joinNodes {
         TNodes=($1)
         NodesPerDC=$2
         TotalLength="${#TNodes[@]}"
-	echo $TotalLength
+	echo "Total nodes:" $TotalLength ", nodes per dc:"$NodesPerDC
         NumDCs=$((TotalLength / NodesPerDC))
 	echo $NumDCs
         for I in $(seq 1 $NumDCs);
@@ -14,7 +14,8 @@ function joinNodes {
         	Others=("${TNodes[@]:$((SI+1)):$((NodesPerDC-1))}")
 		if [ -n "$Others" ]; then
 			echo "Connecting" "${Others[@]}" to $First
-        		sudo ./script/joinNodesToRing.sh $First "${Others[@]}"
+			Others=`echo ${Others[@]}`
+        		sudo ./script/joinNodesToRing.sh $First "$Others"
 		else
 			echo "not connecting.."
 		fi
