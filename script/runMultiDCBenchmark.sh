@@ -37,9 +37,9 @@ else
     ./script/changePBConfig.sh "$AllNodes" $Cookie $FileName
 fi
 
-LoadFile="loadfile.config"
-./script/createLoadFile.sh $FileName $LoadFile
-echo "Loading phase..."
-sudo ./basho_bench "$LoadFile"
+#LoadFile="loadfile.config"
+#./script/createLoadFile.sh $FileName $LoadFile
+echo "No loading phase..."
+#sudo ./basho_bench "$LoadFile"
 echo "Benchmarking phase..."
 sudo ./basho_bench $FileName 
