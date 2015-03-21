@@ -79,7 +79,7 @@ new(Id) ->
 run(read, KeyGen, _ValueGen, State=#state{node=Node, type_dict=TypeDict}) ->
     Key = KeyGen(),
     Type = get_key_type(Key, TypeDict),
-    Response = rpc:call(Node, antidote, clocksi_execute_tx, [Key, Type]),
+    Response = rpc:call(Node, antidote, read, [Key, Type]),
     case Response of
         {ok, _Value} ->
             {ok, State};
