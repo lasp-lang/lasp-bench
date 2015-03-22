@@ -42,4 +42,5 @@ fi
 echo "No loading phase..."
 #sudo ./basho_bench "$LoadFile"
 echo "Benchmarking phase..."
+./script/adjustTime.sh
 sudo ./basho_bench $FileName 
