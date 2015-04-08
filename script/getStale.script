@@ -1,0 +1,11 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+%%! -name haha@localhost
+
+main(_Node) -> 
+    true = erlang:set_cookie(node(), antidote),
+    {ok, Data} = rpc:call('antidote@172.31.42.136', inter_dc_recvr_vnode, fetch_stale_statistics, []),
+    lager:info("Data : ~w ~n", [Data]).
+
+
+
