@@ -4,5 +4,5 @@
 while [ 1 == 1 ] ;
 do
     ./script/preciseTime.sh
-    sleep 5
+    sleep 60 
 done
