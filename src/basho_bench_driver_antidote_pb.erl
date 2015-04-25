@@ -31,6 +31,7 @@
                 time,
                 type_dict,
                 pb_pid,
+		num_partitions,
                 pb_port,
                 target_node}).
 
@@ -51,6 +52,7 @@ new(Id) ->
     IPs = basho_bench_config:get(antidote_pb_ips),
     PbPort = basho_bench_config:get(antidote_pb_port),
     Types  = basho_bench_config:get(antidote_types),
+    NumPartitions = length(IPs),
 
     %% Choose the node using our ID as a modulus
     TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
@@ -60,6 +62,7 @@ new(Id) ->
     TypeDict = dict:from_list(Types),
     {ok, #state{time={1,1,1}, worker_id=Id,
                pb_pid = Pid,
+	       num_partitions = NumPartitions,
                type_dict = TypeDict, pb_port=PbPort,
                target_node=TargetNode}}.
 
@@ -82,6 +85,29 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=
         {badrpc, Reason} ->
             {error, Reason, State}
     end;
+
+
+%% @doc Multikey txn 
+run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=Port, target_node=Node, type_dict=TypeDict}) ->
+    KeyInt = KeyGen(),
+    KeyList = lists:seq(KeyInt, KeyInt+NumPart-1), 
+    KeyTypeList = get_list_key_types(KeyList, TypeDict, []),
+    Response =  antidotec_pb_socket:snapshot_get_crdts(KeyTypeList, Pid),
+    case Response of
+        {ok, _Value} ->
+    	    run(append, KeyGen, ValueGen, State);
+        {error,timeout} ->
+            lager:info("Timeout on client ~p",[Id]),
+            antidotec_pb_socket:stop(Pid),
+            {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
+            {error, timeout, State#state{pb_pid=NewPid}    };            
+        {error, Reason} ->
+            {error, Reason, State};
+        {badrpc, Reason} ->
+            {error, Reason, State}
+    end;
+    
+
 
 %% @doc Write to a key
 run(append, KeyGen, ValueGen,
@@ -148,6 +174,12 @@ run(update, KeyGen, ValueGen,
             {error, Reason, State}
     end.
 
+
+get_list_key_types([], _Dict, Acc) ->
+    Acc;
+get_list_key_type([Key|Rest], Dict, Acc) ->
+    Pair = {list_to_binary(integer_to_list(Key)), get_key_type(Key, Dict)},
+    get_list_key_type(Rest, Dict, [Pair | Acc]).
 
 get_key_type(Key, Dict) ->
     Keys = dict:fetch_keys(Dict),
