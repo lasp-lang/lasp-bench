@@ -91,11 +91,13 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=
 run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=Port, target_node=Node, type_dict=TypeDict}) ->
     KeyInt = KeyGen(),
     KeyList = lists:seq(KeyInt, KeyInt+NumPart-1), 
-    KeyTypeList = get_list_key_types(KeyList, TypeDict, []),
+    KeyTypeList = get_list_key_type(KeyList, TypeDict, []),
     Response =  antidotec_pb_socket:snapshot_get_crdts(KeyTypeList, Pid),
     case Response of
-        {ok, _Value} ->
+        {ok, _, _} ->
     	    run(append, KeyGen, ValueGen, State);
+	error ->
+	    {ok, State};
         {error,timeout} ->
             lager:info("Timeout on client ~p",[Id]),
             antidotec_pb_socket:stop(Pid),
@@ -128,6 +130,8 @@ run(append, KeyGen, ValueGen,
             {ok, State};
         {ok, _Result} ->
             {ok, State};
+	error ->
+	    {ok, State};
         {error,timeout}->
             lager:info("Timeout on client ~p",[Id]),
             antidotec_pb_socket:stop(Pid),
@@ -175,7 +179,7 @@ run(update, KeyGen, ValueGen,
     end.
 
 
-get_list_key_types([], _Dict, Acc) ->
+get_list_key_type([], _Dict, Acc) ->
     Acc;
 get_list_key_type([Key|Rest], Dict, Acc) ->
     Pair = {list_to_binary(integer_to_list(Key)), get_key_type(Key, Dict)},
