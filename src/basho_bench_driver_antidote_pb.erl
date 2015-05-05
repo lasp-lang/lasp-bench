@@ -31,7 +31,7 @@
                 time,
                 type_dict,
                 pb_pid,
-		num_partitions,
+		        num_partitions,
                 pb_port,
                 target_node}).
 
@@ -81,6 +81,7 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=
             {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
             {error, timeout, State#state{pb_pid=NewPid}    };            
         {error, Reason} ->
+            lager:error("Error: ~p",[Reason]),
             {error, Reason, State};
         {badrpc, Reason} ->
             {error, Reason, State}
@@ -96,20 +97,18 @@ run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id =
     case Response of
         {ok, _, _} ->
     	    run(append, KeyGen, ValueGen, State);
-	error ->
-	    {ok, State};
         {error,timeout} ->
             lager:info("Timeout on client ~p",[Id]),
             antidotec_pb_socket:stop(Pid),
             {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
             {error, timeout, State#state{pb_pid=NewPid}    };            
         {error, Reason} ->
+            lager:error("Error: ~p",[Reason]),
             {error, Reason, State};
         {badrpc, Reason} ->
             {error, Reason, State}
     end;
     
-
 
 %% @doc Write to a key
 run(append, KeyGen, ValueGen,
@@ -130,14 +129,13 @@ run(append, KeyGen, ValueGen,
             {ok, State};
         {ok, _Result} ->
             {ok, State};
-	error ->
-	    {ok, State};
         {error,timeout}->
             lager:info("Timeout on client ~p",[Id]),
             antidotec_pb_socket:stop(Pid),
             {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
             {error, timeout, State#state{pb_pid=NewPid}}; 
         {error, Reason} ->
+            lager:error("Error: ~p",[Reason]),
             {error, Reason, State};
         {badrpc, Reason} ->
             {error, Reason, State}
