@@ -110,6 +110,34 @@ run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id =
     end;
     
 
+run(append_multiple, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=Port, target_node=Node, type_dict=TypeDict}) ->
+    KeyInt = KeyGen(),
+    KeyList = lists:seq(KeyInt, KeyInt+8), 
+    Value = ValueGen(),
+    OpList = lists:foldl(fun(X, Acc) -> 
+                                Type = get_key_type(X, TypeDict),
+                                {Mod, Op, Param} = get_random_param(TypeDict, Type, Value),
+                                Acc++[Mod:Op(Param, Mod:new(list_to_binary(integer_to_list(X))))] 
+                         end, [], KeyList),
+    Response =  antidotec_pb_socket:atomic_store_crdts(OpList, Pid),
+    case Response of
+        {ok, _} ->
+            {ok, State};
+        {error,timeout} ->
+            lager:info("Timeout on client ~p",[Id]),
+            antidotec_pb_socket:stop(Pid),
+            {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
+            {error, timeout, State#state{pb_pid=NewPid}    };            
+        {error, Reason} ->
+            lager:error("Error: ~p",[Reason]),
+            {error, Reason, State};
+        error ->
+            lager:info("Error!!!"),
+            {error, State};
+        {badrpc, Reason} ->
+            {error, Reason, State}
+    end;
+
 %% @doc Write to a key
 run(append, KeyGen, ValueGen,
     State=#state{type_dict=TypeDict,
@@ -158,7 +186,6 @@ run(update, KeyGen, ValueGen,
                         Obj = Mod:Op(Param,CRDT),
                         antidotec_pb_socket:store_crdt(Obj, Pid);
                     Other -> Other
-
                 end,
     case Response of
         ok ->
