@@ -28,18 +28,5 @@ fi
 ./script/stopNodes.sh "$AllSystemNodes" 
 ./script/deployMultiDCs.sh "$AllNodes" $Cookie $ConnectDCs $NodesPerDC
 
-##Replace benchmark configuration to include nodes
-if [ $BenchmarkType -eq 0 ]; then
-    FileName="examples/antidote.config"
-    ./script/changeErlConfig.sh "$AllNodes" $Cookie $FileName
-else
-    FileName="examples/antidote_pb.config"
-    ./script/changePBConfig.sh "$AllNodes" $Cookie $FileName
-fi
 
-#LoadFile="loadfile.config"
-#./script/createLoadFile.sh $FileName $LoadFile
-echo "No loading phase..."
-#sudo ./basho_bench "$LoadFile"
-echo "Benchmarking phase..."
-sudo ./basho_bench $FileName 
+./script/runSimpleBenchmark.sh $4 $BenchmarkType

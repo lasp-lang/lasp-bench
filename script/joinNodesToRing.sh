@@ -1,9 +1,16 @@
 #!/bin/bash
 
 
-
-First=$1
-Others=$2
+if [ $# -eq 1 ]
+then
+    First=`head -1 ./script/allnodes`
+    Others=`awk 'NR>=2&&NR<=$1' ./script/allnodes`
+    echo "Joinig "$Others " to "$First
+else
+    First=$1
+    Others=$2
+    echo "Joinig "$Others " to "$First
+fi
 
 Join="sudo antidote/rel/antidote/bin/antidote-admin cluster join antidote@$First"
 Plan="sudo antidote/rel/antidote/bin/antidote-admin cluster plan"
