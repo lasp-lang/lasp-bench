@@ -18,4 +18,4 @@ done
 echo "$Nodes"
 echo "$NewExtIP"
 
-erl -pa script -run connDCFun connect  $3 $Nodes  $NewExtIP
+erl -pa script -setcookie antidote -name setup@localhost -run connDCFun connect  $3 $Nodes  $NewExtIP
