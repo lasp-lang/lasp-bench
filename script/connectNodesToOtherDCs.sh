@@ -21,4 +21,4 @@ done
 
 echo "Trying to connect" $Nodes "to" $NewExtIPs
 
-erl -pa script -setcookie antidote -name setup@localhost -run connectDCs connect  $1 $Nodes  $NewExtIPs
+erl -pa script -setcookie antidote -name setup@localhost -run connectDCs connect  $1 $Nodes  $NewExtIPs -run init stop
