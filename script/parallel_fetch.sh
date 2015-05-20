@@ -7,9 +7,9 @@ Folder=$3
 echo "Fetching "$File" from" $Nodes 
 for Node in $Nodes
 do
-   NewDir=$folder"/"$node
-   mkdir NewDir
-   scp -i key -r $file $NewDir
+   NewDir=$Folder"/"$Node
+   mkdir $NewDir
+   scp -i key -r ubuntu@$Node:$File $NewDir
 done
 echo $command done
 
