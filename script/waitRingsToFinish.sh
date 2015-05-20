@@ -1,7 +1,12 @@
 #!/bin/bash
 
+if [ $# -eq 0]
+then
+    First=`head -1 script/allnodes`
+else
+    First=$1
+fi
 
-First=$1
 Status="sudo antidote/rel/antidote/bin/antidote-admin member-status"
 
 while true; do

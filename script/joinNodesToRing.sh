@@ -5,7 +5,7 @@ if [ $# -eq 1 ]
 then
     First=`head -1 ./script/allnodes`
     Others=`awk 'NR>=2&&NR<=$1' ./script/allnodes`
-    echo "Joinig "$Others " to "$First
+    echo "Parameter:"$1", joinig "$Others " to "$First
 else
     First=$1
     Others=$2
