@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $# -eq 0]
+if [ $# -eq 0 ]
 then
     First=`head -1 script/allnodes`
 else

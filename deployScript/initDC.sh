@@ -15,6 +15,6 @@ Command4="cd basho_bench && sudo ./script/addHost.sh"
 ./deployScript/command_to_all.sh "$1" "$Command3"
 
 #Config antidote nodes
-./deployScript/command_to_all.sh "$1" "$Command4"
+#./deployScript/command_to_all.sh "$1" "$Command4"
 
 
