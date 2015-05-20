@@ -2,7 +2,7 @@
 
 if [ $# -eq 0 ]
 then
-	AllNodes="10.20.0.78 10.20.0.79"
+	AllNodes=`cat script/allnodes`
 else
 	AllNodes=$1	
 fi
