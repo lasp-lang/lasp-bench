@@ -53,7 +53,12 @@ startListener([Node]) ->
 addCookie([], _, Adder) ->
     Adder;
 addCookie([Node|RestNodes], Cookie, Adder) ->
-    NodeAddr = list_to_atom(atom_to_list(Cookie) ++ "@" ++ atom_to_list(Node)),
+    NodeAddr = case is_atom(Node) of 
+                true ->
+                    list_to_atom(atom_to_list(Cookie) ++ "@" ++ atom_to_list(Node));
+                false ->
+                    list_to_atom(atom_to_list(Cookie) ++ "@" ++ Node)
+                end,
     addCookie(RestNodes, Cookie, Adder ++ [NodeAddr]).
 
 addPort([], [], Adder) ->
