@@ -2,6 +2,6 @@
 
 FirstNode=`head -1 ./script/allnodes`
 NodeName="antidote@"$FirstNode 
-erl -pa script -s connectDCs startListening $NodeName 
+erl -pa script -s connectDCs startListener $NodeName 
 
 
