@@ -29,19 +29,7 @@ connect(NodeList) ->
     FullNodes = addCookie(Nodes, antidote, []),
     Ports= lists:duplicate(length(Listeners), ?LISTEN_PORT),
     ListenerAddrs = addPort(Listeners, Ports, []),
-    case FullNodes of
-        [] ->
-                ok;
-        [Node|Others] ->
-                io:format("Connect node ~w to ~w ~n", [Node, ListenerAddrs]),
-                case rpc:call(Node, inter_dc_manager, add_list_dcs,[ListenerAddrs]) of
-                    ok -> 
-                        io:format("Successfully connected");
-                    _ ->
-                        io:format("*****Failure connecting.******")
-                end,
-                connect([Others, ListenerAddrs])
-    end.
+    connect(FullNodes, ListenerAddrs).
 
 
 startListener([Node]) ->
