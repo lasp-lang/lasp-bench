@@ -44,8 +44,7 @@ connect(NodeList) ->
     end.
 
 
-startListener([NodeStr]) ->
-    Node=list_to_atom(NodeStr),
+startListener([Node]) ->
     {ok, DC} = rpc:call(Node, inter_dc_manager, start_receiver,[?LISTEN_PORT]),
     io:format("Datacenter ~w ~n", [DC]).
 
