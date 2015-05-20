@@ -15,6 +15,7 @@ do
     fi 
 done
 
-erl -s connectDCs connect $Nodes $LocalExIP 
+echo "$Nodes"
+echo "$NewExtIP"
 
-
+erl -pa script -run connDCFun connect  $3 $Nodes  $NewExtIP
