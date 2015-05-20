@@ -12,7 +12,7 @@ Command2="cd ./basho_bench && sudo ./script/startNodes.sh"
 Command3="cd ./basho_bench && sudo ./script/joinNodesToRing.sh $NumNodesPerDC"
 Command4="cd ./basho_bench && sudo ./script/waitRingsToFinish.sh"
 Command5="cd ./basho_bench && sudo ./script/listenOnFirstNode.sh"
-Command6="cd ./basho_bench && sudo ./script/connectNodesToOtherDCs.sh $NumNodesPerDC $FirstNodeExternalIPs $(NumNodesPerDC-1)"
+Command6="cd ./basho_bench && sudo ./script/connectNodesToOtherDCs.sh $NumNodesPerDC \"$FirstNodeExternalIPs\""
 
 ./deployScript/parallel_command.sh "$3" "$Command0"
 ./deployScript/parallel_command.sh "$3" "$Command1"
@@ -20,5 +20,5 @@ Command6="cd ./basho_bench && sudo ./script/connectNodesToOtherDCs.sh $NumNodesP
 ./deployScript/parallel_command.sh "$3" "$Command3"
 ./deployScript/parallel_command.sh "$3" "$Command4"
 ./deployScript/parallel_command.sh "$3" "$Command5"
-#./deployScript/parallel_command.sh "$3" "$Command6"
+./deployScript/parallel_command.sh "$3" "$Command6"
 

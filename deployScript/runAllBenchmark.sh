@@ -13,11 +13,11 @@ Branch1="evaluation"
 
 
 ./deployScript/initDC.sh $DC1Benchmark "$DC1Antidote"
-./deployScript/initDC.sh $DC2Benchmark $DC2Antidote 
+./deployScript/initDC.sh $DC2Benchmark "$DC2Antidote" 
 
-#./deployScript/makeBranch.sh "$AllBenchmarkers" "$Branch1"
+./deployScript/makeBranch.sh "$AllBenchmarkers" "$Branch1"
 ./deployScript/setupDCTopology.sh 2 2 "$AllBenchmarkers" "52.1.88.171 54.77.63.61"
-#./deployScript/runBenchmark.sh $AllBenchmarkers 3
+./deployScript/runBenchmark.sh $AllBenchmarkers 2 
 
 #./deployScript/makeBranch.sh $AllBenchmarkers $Branch1
 #./deployScript/setupDCTopology.sh 1 3 $AllNodes
