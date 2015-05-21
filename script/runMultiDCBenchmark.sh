@@ -25,8 +25,7 @@ else
         exit
     fi
 fi
+
 ./script/stopNodes.sh "$AllSystemNodes" 
 ./script/deployMultiDCs.sh "$AllNodes" $Cookie $ConnectDCs $NodesPerDC
-
-
 ./script/runSimpleBenchmark.sh $4 $BenchmarkType
