@@ -1,0 +1,37 @@
+The way to start a benchmark job:
+
+oargridsub -t deploy -w '0:30:00' rennes:rdef="/nodes=1",lille:rdef="/nodes=1"
+
+Then run this from the frontend to deploy the nodes:
+
+~/basho_scripts/grid5000start.sh
+
+Then can ssh to the node that will be running basho bench.  On this node need to update the script/allnodes file with the names of the other nodes.
+(Should create a script to do this automatically).
+Then can run the benchmark as normal.
+
+
+
+
+
+
+Some other notes:
+
+
+This doesnt work, don't have the rights to run kdeploy directly from the deploy job:
+
+oargridsub -t deploy -w '0:30:00' rennes:rdef="/nodes=1",lille:rdef="/nodes=1" -p ~/basho_scripts/grid5000start.sh
+
+
+
+A grid job that you can ssh to:
+
+oargridsub -t deploy -w '0:30:00' rennes:rdef="/nodes=1",lille:rdef="/nodes=1"
+
+oargridstat
+
+oargridstat -w -l 53584 | sed '/^$/d' > ~/machines
+
+OAR_JOB_ID=53584 oarsh -i /tmp/oargrid//oargrid_ssh_key_tcrain_53579 `head -n 1 machines`
+
+oargriddel 53577
