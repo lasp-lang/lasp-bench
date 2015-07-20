@@ -1,5 +1,11 @@
 The way to start a benchmark job:
 
+First you need to have the antidote image and env file in each site you want to run the experiment
+~/antidote_images/antidote_image_init.tgz
+~/antidote_images/mywheezy-x64-base.env
+Ask me for images if you need them
+
+To get a reservation for example run, this gives an 30 min reservation with 1 site at rennes and one at lille:
 oargridsub -t deploy -w '0:30:00' rennes:rdef="/nodes=1",lille:rdef="/nodes=1"
 
 Then run this from the frontend to deploy the nodes:
