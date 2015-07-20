@@ -5,6 +5,9 @@
 #    exit
 #fi
 
+# Wait some time to be sure the reservations have started
+sleep 60s
+
 Clusters=(`oargridstat | awk '/-->/ { print $1 }'`)
 Reservations=(`oargridstat | awk '/-->/ { print $3 }'`)
 JobId=`oargridstat | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
