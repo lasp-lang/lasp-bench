@@ -1,22 +1,44 @@
 #!/bin/bash
 
-#if [ $# -eq 0 ]; then
-#    excho "Usage clusters"
-#    exit
-#fi
+if [ $# -eq 0 ]; then
+    echo "Usage gridjobid benchnode"
+    exit
+fi
 
 # Wait some time to be sure the reservations have started
-sleep 60s
+# sleep 60s
 
-Clusters=(`oargridstat | awk '/-->/ { print $1 }'`)
-Reservations=(`oargridstat | awk '/-->/ { print $3 }'`)
-JobId=`oargridstat | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
+GridJob=$1
+BenchNode=$2
+Clusters=(`oargridstat $1 | awk '/-->/ { print $1 }'`)
+# Reservations=(`oargridstat $1 | awk '/-->/ { print $3 }'`)
+# JobId=`oargridstat $1 | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
 
 for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     echo ${Clusters[$I]}
-    ssh ${Clusters[$I]} ~/basho_scripts/grid5000start-createnodes.sh ${Clusters[$I]} $JobId &
+    ssh ${Clusters[$I]} ~/basho_bench/script/grid5000start-createnodes.sh ${Clusters[$I]} $GridJob &
     #oargridstat -w -l $JobId | sed '/^$/d' > ~/machines
     #awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
     #kadeploy3 -f ~/machines-tmp -a ~/antidote_images/mywheezy-x64-base.env -k ~/.ssh/exp_key.pub
 done
 wait
+
+oargridstat -w -l $GridJob | sed '/^$/d' > ~/machines
+awk < ~/machines '!/'"$BenchNode"'/ { print $1 }' > ~/machines-tmp
+awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp2
+
+TotalDCs=0
+for I in $(seq 0 $((${#Clusters[*]} - 1))); do
+    echo ${Clusters[$I]}
+    DCSize=`grep -o ${Clusters[$I]} machines-tmp2 | wc -l`
+    if [ $DCSize -ne 0 ]; then
+	Size=$DCSize
+	TotalDCs=$(($TotalDCs + 1))
+    fi
+done
+echo Nodes per DC: $Size
+echo Number of DCs: $TotalDCs
+
+scp ~/machines-tmp2 root@$BenchNode:~/basho_bench/script/allnodes
+ssh root@$BenchNode ~/basho_bench/script/runMultipleTests.sh $TotalDCs $Size
+scp root@$BenchNode:~/test.tar ~/
