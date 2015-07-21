@@ -6,7 +6,5 @@ Mode="pb"
 Pid=$!
 ./script/changePartitions.sh 2
 ./script/runMultiDCBenchmark.sh "$AllNodes"  antidote 1 2 1 $Mode 
-./script/changePartitions.sh 4 
-./script/runMultiDCBenchmark.sh "$AllNodes"  antidote 1 4 1 $Mode 
 
 sudo kill $Pid
