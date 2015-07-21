@@ -6,7 +6,7 @@ ExternalIPs=$2
 Nodes=`head -$1 ./script/allnodes`
 First=`head -1 ./script/allnodes`
 
-LocalExIP=`ssh -i key ubuntu@$First "curl \"http://169.254.169.254/latest/meta-data/public-ipv4\""`
+LocalExIP=`ssh -i key -o StrictHostKeyChecking=no root@$First "curl \"http://169.254.169.254/latest/meta-data/public-ipv4\""`
 echo "Local ex ip is"$LocalExIP
 
 Array=($ExternalIPs)

@@ -9,7 +9,7 @@ for Node in $Nodes
 do
    NewDir=$Folder"/"$Node
    mkdir $NewDir
-   scp -i key -r root@$Node:$File $NewDir
+   scp -i key -o StrictHostKeyChecking=no -r root@$Node:$File $NewDir
 done
 echo $command done
 
