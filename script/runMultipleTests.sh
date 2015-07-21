@@ -14,4 +14,6 @@ Pid=$!
 ./script/changePartitions.sh $NodesPerDC
 ./script/runMultiDCBenchmark.sh "$AllNodes"  antidote $NumDCs $NodesPerDC 1 $Mode 
 
+tar cvzf ~/test.tar ~/basho_bench/tests
+
 sudo kill $Pid
