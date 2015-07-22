@@ -9,5 +9,5 @@ fi
 
 echo "Starting nodes:" $AllNodes
 
-Start="sudo antidote/rel/antidote/bin/antidote start"
+Start="antidote/rel/antidote/bin/antidote start"
 ./script/command_to_all.sh "$AllNodes" "$Start" 

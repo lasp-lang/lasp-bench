@@ -15,7 +15,7 @@ function joinNodes {
 		if [ -n "$Others" ]; then
 			echo "Connecting" "${Others[@]}" to $First
 			Others=`echo ${Others[@]}`
-        		sudo ./script/joinNodesToRing.sh $First "$Others"
+        		./script/joinNodesToRing.sh $First "$Others"
 		else
 			echo "not connecting.."
 		fi
@@ -38,7 +38,7 @@ echo "Finished restarting"
 if [ $3 -eq 1 ]; then
 	echo "Connect DCs"
 	joinNodes "$AllNodes" $NodesPerDC
-    sudo erl -pa script -name setter@localhost -setcookie $Cookie -run connectDCs listenAndConnect $Cookie $NodesPerDC $AllNodes -run init stop 
+    erl -pa script -name setter@localhost -setcookie $Cookie -run connectDCs listenAndConnect $Cookie $NodesPerDC $AllNodes -run init stop 
 else
 	echo "Not connecting DCs"
 fi

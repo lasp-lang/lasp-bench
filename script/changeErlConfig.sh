@@ -3,7 +3,7 @@
 AllNodes=$1
 Cookie=$2
 File="./"$3
-sudo sed -i '/antidote_nodes/d' $File 
+sed -i '/antidote_nodes/d' $File 
 BenchConfig="{antidote_nodes, ["
 for Node in $AllNodes
 do
@@ -14,4 +14,4 @@ do
 done
 BenchConfig=${BenchConfig::-1}"]}."
 echo $BenchConfig
-sudo echo "$BenchConfig" >> $File
+echo "$BenchConfig" >> $File

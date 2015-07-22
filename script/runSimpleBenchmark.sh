@@ -21,7 +21,7 @@ Pid=$!
 echo "No loading phase..."
 #sudo ./basho_bench "$LoadFile"
 echo "Benchmarking phase..."
-sudo ./basho_bench $FileName
+./basho_bench $FileName
 
 echo "Time stabilize stopped.."
-sudo kill $Pid
+kill $Pid

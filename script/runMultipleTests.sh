@@ -18,4 +18,4 @@ Pid=$!
 
 tar cvzf /root/test.tar /root/basho_bench/tests
 
-sudo kill $Pid
+kill $Pid

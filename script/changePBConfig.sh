@@ -3,8 +3,8 @@
 AllNodes=$1
 Cookie=$2
 File="./"$3
-sudo sed -i '/antidote_pb_ips/d' $File 
-sudo sed -i '/concurrent/d' $File
+sed -i '/antidote_pb_ips/d' $File 
+sed -i '/concurrent/d' $File
 PerNodeNum=20
 Thread=0
 BenchConfig="{antidote_pb_ips, ["
@@ -16,5 +16,5 @@ do
 done
 BenchConfig=${BenchConfig::-1}"]}."
 echo $BenchConfig
-sudo echo "$BenchConfig" >> $File
-sudo sed -i "5i {concurrent, $Thread}." $File
+echo "$BenchConfig" >> $File
+sed -i "5i {concurrent, $Thread}." $File

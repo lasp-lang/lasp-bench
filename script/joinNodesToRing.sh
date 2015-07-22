@@ -12,9 +12,9 @@ else
     echo "Joinig "$Others " to "$First
 fi
 
-Join="sudo antidote/rel/antidote/bin/antidote-admin cluster join antidote@$First"
-Plan="sudo antidote/rel/antidote/bin/antidote-admin cluster plan"
-Commit="sudo antidote/rel/antidote/bin/antidote-admin cluster commit"
+Join="antidote/rel/antidote/bin/antidote-admin cluster join antidote@$First"
+Plan="antidote/rel/antidote/bin/antidote-admin cluster plan"
+Commit="antidote/rel/antidote/bin/antidote-admin cluster commit"
 ./script/command_to_all.sh "$Others" "$Join"
 ./script/command_to_all.sh "$First" "$Plan"
 ./script/command_to_all.sh "$First" "$Commit"
