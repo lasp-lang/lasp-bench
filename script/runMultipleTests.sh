@@ -5,6 +5,8 @@ if [ $# -eq 0 ]; then
 	exit
 fi
 
+cd /root/basho_bench/
+
 NumDCs=$1
 NodesPerDC=$2
 AllNodes=`cat script/allnodes`
@@ -14,6 +16,6 @@ Pid=$!
 ./script/changePartitions.sh $NodesPerDC
 ./script/runMultiDCBenchmark.sh "$AllNodes"  antidote $NumDCs $NodesPerDC 1 $Mode 
 
-tar cvzf ~/test.tar ~/basho_bench/tests
+tar cvzf /root/test.tar /root/basho_bench/tests
 
 sudo kill $Pid

@@ -40,5 +40,5 @@ echo Nodes per DC: $Size
 echo Number of DCs: $TotalDCs
 
 scp ~/machines-tmp2 root@$BenchNode:~/basho_bench/script/allnodes
-ssh root@$BenchNode ~/basho_bench/script/runMultipleTests.sh $TotalDCs $Size
-scp root@$BenchNode:~/test.tar ~/
+ssh root@$BenchNode /root/basho_bench/script/runMultipleTests.sh $TotalDCs $Size
+scp root@$BenchNode:/root/test.tar ~/
