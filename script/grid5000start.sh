@@ -27,6 +27,7 @@ wait
 oargridstat -w -l $GridJob | sed '/^$/d' > ~/machines
 awk < ~/machines '!/'"$BenchNode"'/ { print $1 }' > ~/machines-tmp
 awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp2
+while read in; do dig +short "$in"; done < ~/machines-tmp2 > ~/allnodes
 
 TotalDCs=0
 for I in $(seq 0 $((${#Clusters[*]} - 1))); do
@@ -40,7 +41,7 @@ done
 echo Nodes per DC: $Size
 echo Number of DCs: $TotalDCs
 
-scp ~/machines-tmp2 root@$BenchNode:~/basho_bench/script/allnodes
+scp ~/allnodes root@$BenchNode:~/basho_bench/script/allnodes
 ssh root@$BenchNode /root/basho_bench/script/configMachines.sh $Branch
 ssh root@$BenchNode /root/basho_bench/script/makeRel.sh
 ssh root@$BenchNode /root/basho_bench/script/runMultipleTests.sh $TotalDCs $Size
