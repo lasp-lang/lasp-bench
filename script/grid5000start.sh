@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-    echo "Usage gridjobid benchnode"
+    echo "Usage gridjobid benchnode branch"
     exit
 fi
 
@@ -10,6 +10,7 @@ fi
 
 GridJob=$1
 BenchNode=$2
+Branch=$3
 Clusters=(`oargridstat $1 | awk '/-->/ { print $1 }'`)
 # Reservations=(`oargridstat $1 | awk '/-->/ { print $3 }'`)
 # JobId=`oargridstat $1 | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
@@ -40,5 +41,7 @@ echo Nodes per DC: $Size
 echo Number of DCs: $TotalDCs
 
 scp ~/machines-tmp2 root@$BenchNode:~/basho_bench/script/allnodes
+ssh root@$BenchNode /root/basho_bench/script/configMachines.sh $Branch
+ssh root@$BenchNode /root/basho_bench/script/makeRel.sh
 ssh root@$BenchNode /root/basho_bench/script/runMultipleTests.sh $TotalDCs $Size
 scp root@$BenchNode:/root/test.tar ~/
