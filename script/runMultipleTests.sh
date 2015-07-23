@@ -13,7 +13,7 @@ AllNodes=`cat script/allnodes`
 Mode="pb"
 ./script/stablizeTime.sh &
 Pid=$!
-./script/changePartitions.sh $NodesPerDC
+./script/changePartition.sh $NodesPerDC
 ./script/runMultiDCBenchmark.sh "$AllNodes"  antidote $NumDCs $NodesPerDC 1 $Mode 
 
 tar cvzf /root/test.tar /root/basho_bench/tests

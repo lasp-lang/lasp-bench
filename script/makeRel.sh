@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd /root/basho_bench/
+
 AllNodes=`cat script/allnodes`
 File1="./antidote/rel/vars.config"
 File2="./antidote/rel/files/app.config"
