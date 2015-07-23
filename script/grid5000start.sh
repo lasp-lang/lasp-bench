@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-    echo "Usage gridjobid benchnode branch dodeploy"
+    echo "Usage gridjobid benchnode branch dodeploy secondrun"
     exit
 fi
 
@@ -12,6 +12,7 @@ GridJob=$1
 BenchNode=$2
 Branch=$3
 DoDeploy=$4
+SecondRun=$5
 Clusters=(`oargridstat $1 | awk '/-->/ { print $1 }'`)
 # Reservations=(`oargridstat $1 | awk '/-->/ { print $3 }'`)
 # JobId=`oargridstat $1 | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
@@ -50,8 +51,15 @@ AllNodes=`cat ~/machines-tmp`
 Command0="cd ./basho_bench/ && git stash && git fetch && git checkout grid5000 && git pull"
 ~/basho_bench/script/parallel_command.sh "$AllNodes" "$Command0"	
 
+if [ $SecondRun -eq 0 ]; then
+    ssh root@$BenchNode /root/basho_bench/script/configMachines.sh $Branch
+else
+    AllNodes1=`cat ~/machines-tmp2`
+    Command1="cd ./antidote/ && make relclean"
+    ~/basho_bench/script/parallel_command.sh "$AllNodes1" "$Command1"	
+fi
+
 scp ~/allnodes root@$BenchNode:~/basho_bench/script/allnodes
-ssh root@$BenchNode /root/basho_bench/script/configMachines.sh $Branch
 ssh root@$BenchNode /root/basho_bench/script/makeRel.sh
 ssh root@$BenchNode /root/basho_bench/script/runMultipleTests.sh $TotalDCs $Size
 scp root@$BenchNode:/root/test.tar ~/
