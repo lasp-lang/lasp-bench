@@ -29,8 +29,9 @@ if [ $DoDeploy -eq 1 ]; then
 fi
 
 oargridstat -w -l $GridJob | sed '/^$/d' > ~/machines
-awk < ~/machines '!/'"$BenchNode"'/ { print $1 }' > ~/machines-tmp
-awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp2
+awk < ~/machines '!seen[$0]++' > ~/machines-tmp
+awk < ~/machines-tmp '!/'"$BenchNode"'/ { print $1 }' > ~/machines-tmp2
+
 while read in; do dig +short "$in"; done < ~/machines-tmp2 > ~/allnodes
 
 TotalDCs=0
@@ -45,7 +46,7 @@ done
 echo Nodes per DC: $Size
 echo Number of DCs: $TotalDCs
 
-AllNodes=`cat ~/machines-tmp2`
+AllNodes=`cat ~/machines-tmp`
 Command0="cd ./basho_bench/ && git stash && git fetch && git checkout grid5000 && git pull"
 ~/basho_bench/script/parallel_command.sh "$AllNodes" "$Command0"	
 
