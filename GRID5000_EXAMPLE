@@ -8,6 +8,8 @@ Ask me for images if you need them
 To get a reservation for example run, this gives an 30 min reservation with 1 site at rennes and one at lille:
 oargridsub -t deploy -w '0:30:00' rennes:rdef="/nodes=1",lille:rdef="/nodes=1"
 
+oargridsub -t deploy -w '6:00:00' -s '2015-07-26 20:00:00' sophia:rdef="/nodes=22":prop="cluster='suno'",lille:rdef="/nodes=22":prop="cluster='chinqchint'"
+
 Then run this from the frontend to deploy the nodes:
 
 ~/basho_scripts/grid5000start.sh
