@@ -11,6 +11,7 @@ Id=$3
 
 cd /root/basho_bench"$Id"/basho_bench/
 AllNodes=`cat script/allnodes`
+echo All nodes: $AllNodes
 Mode="pb"
 ./script/stablizeTime.sh &
 Pid=$!

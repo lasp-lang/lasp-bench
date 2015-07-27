@@ -24,7 +24,7 @@ rm ~/nodelist
 rm ~/benchnodelist
 for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     echo ${Clusters[$I]}
-    oargridstat -w -l $JobId | sed '/^$/d' > ~/machines
+    oargridstat -w -l $GridJob | sed '/^$/d' > ~/machines
     awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
     awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp2
     head -"$BenchCount" ~/machines-tmp2 >> ~/benchnodelist
@@ -61,7 +61,7 @@ while read in; do dig +short "$in"; done < ~/benchnodelist > ~/benchnodelistip
 TotalDCs=0
 for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     echo ${Clusters[$I]}
-    DCSize=`grep -o ${Clusters[$I]} ~/benchnodelist | wc -l`
+    DCSize=`grep -o ${Clusters[$I]} ~/nodelist | wc -l`
     if [ $DCSize -ne 0 ]; then
 	Size=$DCSize
 	TotalDCs=$(($TotalDCs + 1))
@@ -70,10 +70,17 @@ done
 echo Nodes per DC: $Size
 echo Number of DCs: $TotalDCs
 
+# Copy the allnodes file to the benchmark locations
+for Node in `cat ~/benchnodelist`; do
+    for I in $(seq 1 $BenchParallel); do
+	scp ~/nodelistip root@$Node:/root/basho_bench"$I"/basho_bench/script/allnodes
+    done
+done
+
 if [ $SecondRun -eq 0 ]; then
     # The first run should download and update all code files
     BenchNode=`head -1 ~/benchnodelist`
-    ssh root@$BenchNode /root/basho_bench/script/configMachines.sh $Branch
+    ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch
     AllNodes=`cat ~/benchnodelist`
     for I in $(seq 1 $BenchParallel); do
 	Command0="cd ./basho_bench"$I"/basho_bench/ && git stash && git fetch && git checkout grid5000 && git pull"
@@ -87,15 +94,8 @@ else
     ~/basho_bench/script/parallel_command.sh "$AllNodes1" "$Command1"	
 fi
 
-# Copy the allnodes file to the benchmark locations
-for Node in `cat ~/benchnodelist`; do
-    for I in $(seq 1 $BenchParallel); do
-	scp ~/nodelistip root@$Node:/root/basho_bench"$I"/basho_bench/script/allnodes
-    done
-done
-
 # Compile the code
-ssh root@$BenchNode /root/basho_bench/script/makeRel.sh
+ssh root@$BenchNode /root/basho_bench1/basho_bench/script/makeRel.sh
 
 # Run the benchmarks in parallel
 # This is not a good way to do this, should be implemented inside basho bench
