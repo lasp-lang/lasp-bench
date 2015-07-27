@@ -5,17 +5,18 @@ if [ $# -eq 0 ]; then
 	exit
 fi
 
-cd /root/basho_bench/
-
 NumDCs=$1
 NodesPerDC=$2
+Id=$3
+
+cd /root/basho_bench"$Id"/basho_bench/
 AllNodes=`cat script/allnodes`
 Mode="pb"
 ./script/stablizeTime.sh &
 Pid=$!
 ./script/changePartition.sh $NodesPerDC
-./script/runMultiDCBenchmark.sh "$AllNodes"  antidote $NumDCs $NodesPerDC 1 $Mode 
+./script/runMultiDCBenchmark.sh "$AllNodes" antidote $NumDCs $NodesPerDC 1 $Mode 
 
-tar cvzf /root/test.tar /root/basho_bench/tests
+tar cvzf /root/test"$Id".tar /root/basho_bench"$Id"/basho_bench/tests
 
 kill $Pid
