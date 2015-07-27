@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-    echo "Usage gridjobid benchnode branch dodeploy secondrun benchCount benchParallel"
+    echo "Usage gridjobid branch dodeploy secondrun benchCount benchParallel"
     exit
 fi
 
@@ -26,11 +26,14 @@ for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     echo ${Clusters[$I]}
     oargridstat -w -l $JobId | sed '/^$/d' > ~/machines
     awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
-    awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp
-    head -"$BenchCount" ~/machines-tmp >> ~/benchnodelist
-    sed '1,'"$BenchCount"'d' ~/machines-tmp >> ~/nodelist
+    awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp2
+    head -"$BenchCount" ~/machines-tmp2 >> ~/benchnodelist
+    sed '1,'"$BenchCount"'d' ~/machines-tmp2 >> ~/nodelist
 done
 
+echo Benchmark nodes: `cat ~/benchnodelist`
+echo
+echo Compute nodes: `cat ~/nodelist`
 
 if [ $DoDeploy -eq 1 ]; then
     # Connect to each cluster to deloy the nodes
