@@ -8,7 +8,7 @@ else
     Branch=$1
 fi
 
-cd /root/basho_bench/
+cd /root/basho_bench1/basho_bench/
 
 AllNodes=`cat script/allnodes`
 File1="./antidote/rel/vars.config"

@@ -73,19 +73,20 @@ echo Number of DCs: $TotalDCs
 # Copy the allnodes file to the benchmark locations
 for Node in `cat ~/benchnodelist`; do
     for I in $(seq 1 $BenchParallel); do
-	scp ~/nodelistip root@$Node:/root/basho_bench"$I"/basho_bench/script/allnodes
+	echo scping to $Node
+	scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
     done
 done
 
 if [ $SecondRun -eq 0 ]; then
     # The first run should download and update all code files
-    BenchNode=`head -1 ~/benchnodelist`
-    ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch
     AllNodes=`cat ~/benchnodelist`
     for I in $(seq 1 $BenchParallel); do
 	Command0="cd ./basho_bench"$I"/basho_bench/ && git stash && git fetch && git checkout grid5000 && git pull"
 	~/basho_bench/script/parallel_command.sh "$AllNodes" "$Command0"
     done
+    BenchNode=`head -1 ~/benchnodelist`
+    ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch
     
 else
     # The second run only need to do a make clean
