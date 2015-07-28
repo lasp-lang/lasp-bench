@@ -1,16 +1,18 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-	echo "Usage: all_nodes, cookie, number_of_dcs, nodes_per_dc, connect_dc_or_not, erl|pb"
-	exit
+    echo "Usage: all_nodes, cookie, number_of_dcs, nodes_per_dc, connect_dc_or_not, erl|pb, bench_parallel"
+    exit
 else
-	AllSystemNodes=$1
+    AllSystemNodes=$1
     SystemNodesArray=($AllSystemNodes)
-	Cookie=$2
-	NumberDC=$3
-	NodesPerDC=$4
+    Cookie=$2
+    NumberDC=$3
+    NodesPerDC=$4
+    BenchParallel=$5
+    BenchNodes=`cat script/allnodesbench`
     NodesToUse=$((NumberDC * NodesPerDC))
-	AllNodes=${SystemNodesArray[@]:0:$NodesToUse}
+    AllNodes=${SystemNodesArray[@]:0:$NodesToUse}
     AllNodes=`echo ${AllNodes[@]}`
     ConnectDCs=$5
     echo "Using" $AllNodes ", will connect DCs:" $ConnectDCs
@@ -28,4 +30,15 @@ fi
 
 ./script/stopNodes.sh "$AllSystemNodes" 
 ./script/deployMultiDCs.sh "$AllNodes" $Cookie $ConnectDCs $NodesPerDC
-./script/runSimpleBenchmark.sh $4 $BenchmarkType
+
+# Run the benchmarks in parallel
+# This is not a good way to do this, should be implemented inside basho bench
+for Node in $BenchNodes; do
+    for I in $(seq 1 $BenchParallel); do
+	ssh root@$Node /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $4 $BenchmarkType $I &
+    done
+done
+wait
+
+
+#./script/runSimpleBenchmark.sh $4 $BenchmarkType

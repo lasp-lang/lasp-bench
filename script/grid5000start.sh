@@ -85,6 +85,7 @@ if [ $SecondRun -eq 0 ]; then
 	for I in $(seq 1 $BenchParallel); do
 	    echo scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
 	    scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
+	    scp ~/benchnodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodesbench
 	done
     done
 
@@ -98,6 +99,7 @@ else
 	for I in $(seq 1 $BenchParallel); do
 	    echo scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
 	    scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
+	    scp ~/benchnodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodesbench
 	done
     done
     
@@ -110,14 +112,8 @@ fi
 # Compile the code
 ssh root@$BenchNode /root/basho_bench1/basho_bench/script/makeRel.sh
 
-# # Run the benchmarks in parallel
-# # This is not a good way to do this, should be implemented inside basho bench
-# for Node in `cat ~/benchnodelist`; do
-#     for I in $(seq 1 $BenchParallel); do
-# 	ssh root@$Node /root/basho_bench"$I"/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $I &
-#     done
-# done
-# wait
+# Run the benchmark
+ssh root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel
 
 # # Get the results
 # for Node in `cat ~/benchnodelist`; do
