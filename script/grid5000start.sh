@@ -54,6 +54,7 @@ fi
 # Change node names to ips
 while read in; do dig +short "$in"; done < ~/nodelist > ~/nodelistip
 while read in; do dig +short "$in"; done < ~/benchnodelist > ~/benchnodelistip
+BenchNode=`head -1 ~/benchnodelist`
 
 # Calculate the number of DCs in case there is one that is just benchmark nodes
 # Otherwise all DCs should have the same number of nodes
@@ -70,14 +71,6 @@ done
 echo Nodes per DC: $Size
 echo Number of DCs: $TotalDCs
 
-# Copy the allnodes file to the benchmark locations
-for Node in `cat ~/benchnodelist`; do
-    for I in $(seq 1 $BenchParallel); do
-	echo scping to $Node
-	scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
-    done
-done
-
 if [ $SecondRun -eq 0 ]; then
     # The first run should download and update all code files
     AllNodes=`cat ~/benchnodelist`
@@ -85,10 +78,29 @@ if [ $SecondRun -eq 0 ]; then
 	Command0="cd ./basho_bench"$I"/basho_bench/ && git stash && git fetch && git checkout grid5000 && git pull"
 	~/basho_bench/script/parallel_command.sh "$AllNodes" "$Command0"
     done
-    BenchNode=`head -1 ~/benchnodelist`
+
+    # Copy the allnodes file to the benchmark locations
+    echo all nodes are `cat ~/nodelistip`
+    for Node in `cat ~/benchnodelist`; do
+	for I in $(seq 1 $BenchParallel); do
+	    echo scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
+	    scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
+	done
+    done
+
+    echo ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch
     ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch
     
 else
+    # Copy the allnodes file to the benchmark locations
+    echo all nodes are `cat ~/nodelistip`
+    for Node in `cat ~/benchnodelist`; do
+	for I in $(seq 1 $BenchParallel); do
+	    echo scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
+	    scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
+	done
+    done
+    
     # The second run only need to do a make clean
     AllNodes1=`cat ~/nodelist`
     Command1="cd ./antidote/ && make relclean"
@@ -98,18 +110,18 @@ fi
 # Compile the code
 ssh root@$BenchNode /root/basho_bench1/basho_bench/script/makeRel.sh
 
-# Run the benchmarks in parallel
-# This is not a good way to do this, should be implemented inside basho bench
-for Node in `cat ~/benchnodelist`; do
-    for I in $(seq 1 $BenchParallel); do
-	ssh root@$Node /root/basho_bench"$I"/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $I &
-    done
-done
-wait
+# # Run the benchmarks in parallel
+# # This is not a good way to do this, should be implemented inside basho bench
+# for Node in `cat ~/benchnodelist`; do
+#     for I in $(seq 1 $BenchParallel); do
+# 	ssh root@$Node /root/basho_bench"$I"/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $I &
+#     done
+# done
+# wait
 
-# Get the results
-for Node in `cat ~/benchnodelist`; do
-    for I in $(seq 1 $BenchParallel); do
-	scp root@$Node:/root/test$I$.tar ~/test"$Node"-"$I".tar
-    done
-done
+# # Get the results
+# for Node in `cat ~/benchnodelist`; do
+#     for I in $(seq 1 $BenchParallel); do
+# 	scp root@$Node:/root/test$I$.tar ~/test"$Node"-"$I".tar
+#     done
+# done
