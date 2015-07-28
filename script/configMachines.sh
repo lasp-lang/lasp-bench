@@ -11,6 +11,9 @@ fi
 cd /root/basho_bench1/basho_bench/
 
 AllNodes=`cat script/allnodes`
+
+echo All nodes "$AllNodes"
+
 File1="./antidote/rel/vars.config"
 File2="./antidote/rel/files/app.config"
 Command0="cd ./antidote/ && ./rel/antidote/bin/antidote stop && git stash && git fetch && git checkout $Branch && git pull"
