@@ -10,7 +10,7 @@ fi
 
 cd /root/basho_bench1/basho_bench/
 
-AllNodes=`cat script/allnodes`
+AllNodes=`cat /root/basho_bench1/basho_bench/script/allnodes`
 
 echo All nodes "$AllNodes"
 
