@@ -39,7 +39,7 @@ if [ $DoDeploy -eq 1 ]; then
     # Connect to each cluster to deloy the nodes
     for I in $(seq 0 $((${#Clusters[*]} - 1))); do
 	echo ${Clusters[$I]}
-	ssh ${Clusters[$I]} ~/basho_bench/script/grid5000start-createnodes.sh ${Clusters[$I]} $GridJob &
+	ssh -o StrictHostKeyChecking=no ${Clusters[$I]} ~/basho_bench/script/grid5000start-createnodes.sh ${Clusters[$I]} $GridJob &
 	#oargridstat -w -l $JobId | sed '/^$/d' > ~/machines
 	#awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
 	#kadeploy3 -f ~/machines-tmp -a ~/antidote_images/mywheezy-x64-base.env -k ~/.ssh/exp_key.pub
@@ -90,7 +90,7 @@ if [ $SecondRun -eq 0 ]; then
     done
 
     echo ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch
-    ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch
+    ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch
     
 else
     # Copy the allnodes file to the benchmark locations
@@ -111,10 +111,10 @@ Command1="cd ./antidote/ && make relclean"
 ~/basho_bench/script/parallel_command.sh "$AllNodes1" "$Command1"	
 
 # Compile the code
-ssh root@$BenchNode /root/basho_bench1/basho_bench/script/makeRel.sh
+ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/makeRel.sh
 
 # Run the benchmark
-ssh root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount
+ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount
 
 # # Get the results
 # for Node in `cat ~/benchnodelist`; do
