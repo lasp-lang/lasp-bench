@@ -51,7 +51,7 @@ for DCNum in $(seq 1 $NumberDC); do
     for Item in ${TmpArray[@]}; do
 	for I in $(seq 1 $BenchParallel); do
 	    echo Running bench $I on $Item with nodes "${NodeArray[$DCNum]}"
-    	    ssh -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh "${NodeArray[$DCNum]}" $BenchmarkType &
+    	    ssh -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh "${NodeArray[$DCNum]}" $BenchmarkType $I &
 	done
     done
 done

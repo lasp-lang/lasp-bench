@@ -3,6 +3,13 @@
 
 #AllNodes=`head -$1 script/allnodes`
 AllNodes=$1
+Id=$3
+
+echo $AllNodes
+echo $2
+echo $Id
+
+cd  /root/basho_bench"$Id"/basho_bench/
 
 ##Replace benchmark configuration to include nodes
 if [ $2 -eq 0 ]; then
