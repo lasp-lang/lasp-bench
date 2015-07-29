@@ -1,10 +1,11 @@
 #!/bin/bash
 
-cd  /root/basho_bench"$Id"/basho_bench/
 
 #AllNodes=`head -$1 script/allnodes`
-AllNodes=`cat script/runnodes`
 Id=$2
+
+cd  /root/basho_bench"$Id"/basho_bench/
+AllNodes=`cat script/runnodes`
 
 echo All nodes: $AllNodes
 echo Type: $1

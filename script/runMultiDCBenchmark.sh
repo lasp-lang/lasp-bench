@@ -52,7 +52,7 @@ for DCNum in $(seq 1 $NumberDC); do
 	for I in $(seq 1 $BenchParallel); do
 	    echo Running bench $I on $Item with nodes "${NodeArray[$DCNum]}"
 	    echo "${NodeArray[$DCNum]}" > ./tmp
-	    scp ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
+	    scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
     	    ssh -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I &
 	done
     done
