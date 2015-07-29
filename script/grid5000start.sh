@@ -113,7 +113,7 @@ fi
 ssh root@$BenchNode /root/basho_bench1/basho_bench/script/makeRel.sh
 
 # Run the benchmark
-ssh root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel
+ssh root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount
 
 # # Get the results
 # for Node in `cat ~/benchnodelist`; do

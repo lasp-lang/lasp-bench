@@ -1,13 +1,14 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-	echo "Usage: numdcs nodesperdc"
+	echo "Usage: numdcs nodesperdc parallelbench numbenchnodesperdc"
 	exit
 fi
 
 NumDCs=$1
 NodesPerDC=$2
 BenchParallel=$3
+NumBenchNodes=$4
 
 cd /root/basho_bench1/basho_bench/
 AllNodes=`cat script/allnodes`
@@ -19,7 +20,7 @@ Mode="pb"
 Pid=$!
 ./script/changePartition.sh $NodesPerDC
 
-./script/runMultiDCBenchmark.sh "$AllNodes" antidote $NumDCs $NodesPerDC 1 $Mode $BenchParallel
+./script/runMultiDCBenchmark.sh "$AllNodes" antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $Mode $BenchParallel
 
 tar cvzf /root/test"$Id".tar /root/basho_bench"$Id"/basho_bench/tests
 

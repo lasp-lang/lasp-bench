@@ -1,7 +1,8 @@
 #!/bin/bash
 
 
-AllNodes=`head -$1 script/allnodes`
+#AllNodes=`head -$1 script/allnodes`
+AllNodes=$1
 
 ##Replace benchmark configuration to include nodes
 if [ $2 -eq 0 ]; then
