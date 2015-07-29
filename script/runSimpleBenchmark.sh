@@ -5,9 +5,9 @@
 AllNodes=$1
 Id=$3
 
-echo $AllNodes
-echo $2
-echo $Id
+echo All nodes: $AllNodes
+echo Type: $2
+echo Id: $Id
 
 cd  /root/basho_bench"$Id"/basho_bench/
 
