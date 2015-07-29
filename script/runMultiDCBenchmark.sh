@@ -55,5 +55,6 @@ for DCNum in $(seq 1 $NumberDC); do
 	done
     done
 done
+wait
 
 #./script/runSimpleBenchmark.sh $4 $BenchmarkType

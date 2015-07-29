@@ -22,6 +22,7 @@ Pid=$!
 
 ./script/runMultiDCBenchmark.sh "$AllNodes" antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $Mode $BenchParallel
 
+#This is not right
 tar cvzf /root/test"$Id".tar /root/basho_bench"$Id"/basho_bench/tests
 
 kill $Pid

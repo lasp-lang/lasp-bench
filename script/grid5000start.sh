@@ -102,12 +102,13 @@ else
 	    scp ~/benchnodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodesbench
 	done
     done
-    
-    # The second run only need to do a make clean
-    AllNodes1=`cat ~/nodelist`
-    Command1="cd ./antidote/ && make relclean"
-    ~/basho_bench/script/parallel_command.sh "$AllNodes1" "$Command1"	
+   
 fi
+
+# The second run only need to do a make clean
+AllNodes1=`cat ~/nodelist`
+Command1="cd ./antidote/ && make relclean"
+~/basho_bench/script/parallel_command.sh "$AllNodes1" "$Command1"	
 
 # Compile the code
 ssh root@$BenchNode /root/basho_bench1/basho_bench/script/makeRel.sh
