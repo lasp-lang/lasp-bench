@@ -18,7 +18,9 @@ echo Bench nodes $BenchNodes
 Mode="pb"
 ./script/stablizeTime.sh &
 Pid=$!
-./script/changePartition.sh $NodesPerDC
+
+RingSize=$(($NodesPerDC * 32))
+./script/changePartition.sh $RingSize
 
 ./script/runMultiDCBenchmark.sh "$AllNodes" antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $Mode $BenchParallel
 
