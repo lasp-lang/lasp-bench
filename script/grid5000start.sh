@@ -116,9 +116,11 @@ ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/s
 # Run the benchmark
 ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount
 
-# # Get the results
-# for Node in `cat ~/benchnodelist`; do
-#     for I in $(seq 1 $BenchParallel); do
-# 	scp root@$Node:/root/test$I$.tar ~/test"$Node"-"$I".tar
-#     done
-# done
+# Get the results
+Time=`date +"%Y-%m-%d-%s"`
+mkdir antidote_bench-"$Time"
+for Node in `cat ~/benchnodelist`; do
+    for I in $(seq 1 $BenchParallel); do
+ 	scp -o StrictHostKeyChecking=no root@$Node:/root/basho_bench"$I"/basho_bench/test.tar ~/antidote_bench-"$Time"/test"$Node"-"$I".tar
+    done
+done

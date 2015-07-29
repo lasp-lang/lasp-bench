@@ -32,5 +32,7 @@ echo "No loading phase..."
 echo "Benchmarking phase..."
 ./basho_bench $FileName
 
+tar cvzf ./test.tar tests
+
 echo "Time stabilize stopped.."
 kill $Pid
