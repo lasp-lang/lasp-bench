@@ -122,5 +122,8 @@ mkdir antidote_bench-"$Time"
 for Node in `cat ~/benchnodelist`; do
     for I in $(seq 1 $BenchParallel); do
  	scp -o StrictHostKeyChecking=no root@$Node:/root/basho_bench"$I"/basho_bench/test.tar ~/antidote_bench-"$Time"/test"$Node"-"$I".tar
+	echo test"$Node"-"$I" >> ~/antidote_bench-"$Time"/filenames
     done
 done
+
+./mergeResults.sh ~/antidote_bench-"$Time"/

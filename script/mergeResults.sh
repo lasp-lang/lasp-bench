@@ -1,0 +1,26 @@
+#!/bin/bash
+
+TestDirectory=$1
+
+cd $TestDirectory
+
+Files=`cat filenames`
+
+I=1
+for File in $Files; do
+    mkdir $File
+    tar -C $File -xvzf "$File".tar
+    TestDate[$I]=`ls -l "$File"/tests/current | awk -F "/" '{print $NF}' -`
+    #TestDate[$I]=$I
+    I=$(($I + 1))
+done
+
+I=1
+for File in $Files; do
+    echo ${TestDate[$I]}
+    AllFiles=""$File"/tests/"${TestDate[$I]}"/read_latencies.csv #"$AllFiles""
+    echo $AllFiles
+    I=$(($I + 1))
+done
+
+awk -f ../mergeResults.awk $AllFiles
