@@ -19,7 +19,8 @@ Mode="pb"
 ./script/stablizeTime.sh &
 Pid=$!
 
-RingSize=$(($NodesPerDC * 12))
+#RingSize=$(($NodesPerDC * 12))
+RingSize=256
 ./script/changePartition.sh $RingSize
 
 ./script/runMultiDCBenchmark.sh "$AllNodes" antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $Mode $BenchParallel
