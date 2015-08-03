@@ -126,4 +126,7 @@ for Node in `cat ~/benchnodelist`; do
     done
 done
 
-./mergeResults.sh ~/antidote_bench-"$Time"/
+cd ~
+./basho_bench/script/mergeResults.sh ~/antidote_bench-"$Time"/
+
+tar cvzf antidote_bench-"$Time".tar antidote_bench-"$Time"

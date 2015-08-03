@@ -15,12 +15,39 @@ for File in $Files; do
     I=$(($I + 1))
 done
 
+
+mkdir summary
+
+# Read latencies
+AllFiles=""
 I=1
 for File in $Files; do
     echo ${TestDate[$I]}
-    AllFiles=""$File"/tests/"${TestDate[$I]}"/read_latencies.csv #"$AllFiles""
+    AllFiles=""$File"/tests/"${TestDate[$I]}"/read_latencies.csv "$AllFiles""
     echo $AllFiles
     I=$(($I + 1))
 done
+awk -f ../mergeResults.awk $AllFiles > summary/read_latencies.csv
 
-awk -f ../mergeResults.awk $AllFiles
+# Append latencies
+AllFiles=""
+I=1
+for File in $Files; do
+    echo ${TestDate[$I]}
+    AllFiles=""$File"/tests/"${TestDate[$I]}"/append_latencies.csv "$AllFiles""
+    echo $AllFiles
+    I=$(($I + 1))
+done
+awk -f ../mergeResults.awk $AllFiles > summary/append_latencies.csv
+
+
+# Summary latencies
+AllFiles=""
+I=1
+for File in $Files; do
+    echo ${TestDate[$I]}
+    AllFiles=""$File"/tests/"${TestDate[$I]}"/summary.csv "$AllFiles""
+    echo $AllFiles
+    I=$(($I + 1))
+done
+awk -f ../mergeResultsSummary.awk $AllFiles > summary/summary.csv
