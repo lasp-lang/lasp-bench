@@ -27,7 +27,7 @@ for File in $Files; do
     echo $AllFiles
     I=$(($I + 1))
 done
-awk -f ../mergeResults.awk $AllFiles > summary/read_latencies.csv
+awk -f ../basho_bench/script/mergeResults.awk $AllFiles > summary/read_latencies.csv
 
 # Append latencies
 AllFiles=""
@@ -38,7 +38,7 @@ for File in $Files; do
     echo $AllFiles
     I=$(($I + 1))
 done
-awk -f ../mergeResults.awk $AllFiles > summary/append_latencies.csv
+awk -f ../basho_bench/script/mergeResults.awk $AllFiles > summary/append_latencies.csv
 
 
 # Summary latencies
@@ -50,4 +50,4 @@ for File in $Files; do
     echo $AllFiles
     I=$(($I + 1))
 done
-awk -f ../mergeResultsSummary.awk $AllFiles > summary/summary.csv
+awk -f ../basho_bench/script/mergeResultsSummary.awk $AllFiles > summary/summary.csv
