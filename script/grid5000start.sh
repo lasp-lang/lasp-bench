@@ -117,6 +117,7 @@ ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/s
 ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount
 
 # Get the results
+cd ~
 Time=`date +"%Y-%m-%d-%s"`
 mkdir antidote_bench-"$Time"
 for Node in `cat ~/benchnodelist`; do
@@ -126,7 +127,6 @@ for Node in `cat ~/benchnodelist`; do
     done
 done
 
-cd ~
 ./basho_bench/script/mergeResults.sh ~/antidote_bench-"$Time"/
 
 tar cvzf antidote_bench-"$Time".tar antidote_bench-"$Time"
