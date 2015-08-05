@@ -20,7 +20,7 @@ Mode="pb"
 Pid=$!
 
 #RingSize=$(($NodesPerDC * 12))
-RingSize=24
+RingSize=32
 ./script/changePartition.sh $RingSize
 
 ./script/runMultiDCBenchmark.sh "$AllNodes" antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $Mode $BenchParallel
