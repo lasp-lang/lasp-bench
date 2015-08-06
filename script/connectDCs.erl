@@ -131,6 +131,7 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts) ->
 	[Node|Rest] ->
 	    io:format("Connect node ~w to ~w ~n", [Node, OtherDCs]),
 	    lists:foldl(fun(DC, Acc) ->
+				io:format("Acc ~w ~n", [Acc]),
 				Ip = lists:nth(Acc, OtherIps),
 				Port = lists:nth(Acc, OtherPorts),
 				io:format("Connecting a dc ip ~w, port ~w ~n", [Ip,Port]),
