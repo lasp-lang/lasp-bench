@@ -133,6 +133,7 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts) ->
 	    lists:foldl(fun(DC, Acc) ->
 				Ip = lists:nth(Acc, OtherIps),
 				Port = lists:nth(Acc, OtherPorts),
+				io:format("Connecting a dc ip ~w, port ~w ~n", [Ip,Port]),
 				ok = rpc:call(Node, inter_dc_manager, add_dc,[{DC, {atom_to_list(Ip), Port}}]),
 				Acc + 1
 			end, 0, OtherDCs),
