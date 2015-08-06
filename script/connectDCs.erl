@@ -26,7 +26,6 @@ listenAndConnect(StringNodes) ->
     startListeners(DCInfo),
     connect_each(CookieNodes, DCPerRing, 1, DCInfo, HeadNodesIp, Ports).
 
-
 wait_ready_nodes([]) ->
     true;
 wait_ready_nodes([Node|Rest]) ->
