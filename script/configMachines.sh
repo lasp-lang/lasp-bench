@@ -16,7 +16,7 @@ echo All nodes "$AllNodes"
 
 File1="./antidote/rel/vars.config"
 File2="./antidote/rel/files/app.config"
-Command0="cd ./antidote/ && ./rel/antidote/bin/antidote stop && git stash && git fetch && git checkout $Branch && git pull"
+Command0="cd ./antidote/ && ./rel/antidote/bin/antidote stop && git stash && git fetch && git pull && git checkout $Branch && git pull"
 Command1="sed -i 's/127.0.0.1/localhost/g' $File1"
 Command2="sed -i 's/172.31.30.71/localhost/g' $File1"
 Command3="sed -i 's/127.0.0.1/localhost/g' $File2"
