@@ -1,6 +1,6 @@
 -module(connectDCs).
 
--export([listenAndConnect/1, startListener/1
+-export([listenAndConnect/1, startListener/1, connect/4
 	]).
 
 -define(LISTEN_PORT, 8091).

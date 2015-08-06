@@ -38,7 +38,8 @@ echo "Finished restarting"
 if [ $3 -eq 1 ]; then
 	echo "Connect DCs"
 	joinNodes "$AllNodes" $NodesPerDC
-    erl -pa script -name setter@localhost -setcookie $Cookie -run connectDCs listenAndConnect $Cookie $NodesPerDC $AllNodes -run init stop 
+	erl -compile script/connectDCs
+	erl -pa script -name setter@localhost -setcookie $Cookie -run connectDCs listenAndConnect $Cookie $NodesPerDC $AllNodes -run init stop 
 else
 	echo "Not connecting DCs"
 fi
