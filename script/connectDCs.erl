@@ -1,7 +1,7 @@
 -module(connectDCs).
 
--export([listenAndConnect/1, startListener/1,
-         connect/1]).
+-export([listenAndConnect/1, startListener/1, connect/5
+	]).
 
 -define(LISTEN_PORT, 8091).
 
@@ -12,29 +12,69 @@ listenAndConnect(StringNodes) ->
     Nodes = tl(tl(Temp)),
     io:format("Nodes ~w ~n", [Nodes]),
 
+    
     true = erlang:set_cookie(node(), Cookie),
     NumDCs = length(Nodes) div DCPerRing,
     io:format("NumDCs ~w ~n", [NumDCs]),
 
     CookieNodes = addCookie(Nodes, Cookie, []),
+    wait_ready_nodes(CookieNodes),
     HeadNodes = keepnth(CookieNodes, DCPerRing, 0, []), 
+    HeadNodesIp = keepnth(Nodes, DCPerRing, 0, []), 
     Ports = lists:seq(?LISTEN_PORT, ?LISTEN_PORT + NumDCs -1),
     DCInfo = addPort(HeadNodes, Ports, []),
-    startListeners(DCInfo),
-    connect_each(CookieNodes, DCPerRing, 1, DCInfo).
+    DCList = startListeners(DCInfo,[]),
+    connect_each(CookieNodes, DCPerRing, 1, DCInfo, HeadNodesIp, Ports, DCList).
 
-connect(NodeList) ->
-    [LocalSize|Rest]=NodeList,
-    {Nodes, Listeners} =lists:split(list_to_integer(LocalSize), Rest),
-    FullNodes = addCookie(Nodes, antidote, []),
-    Ports= lists:duplicate(length(Listeners), ?LISTEN_PORT),
-    ListenerAddrs = addPort(Listeners, Ports, []),
-    connect(FullNodes, ListenerAddrs).
+wait_ready_nodes([]) ->
+    true;
+wait_ready_nodes([Node|Rest]) ->
+    case check_ready(Node) of
+	true ->
+	    wait_ready_nodes(Rest);
+	false ->
+	    timer:sleep(100),
+	    wait_ready_nodes([Node|Rest])
+    end.
+
+
+check_ready(Node) ->
+    io:format("Checking if node ~w is ready ~n", [Node]),
+    case rpc:call(Node,clocksi_vnode,check_tables_ready,[]) of
+	true ->
+	    case rpc:call(Node,clocksi_readitem_fsm,check_servers_ready,[]) of
+		true ->
+		    case rpc:call(Node,materializer_vnode,check_tables_ready,[]) of
+			true ->
+			    io:format("Node ~w is ready! ~n", [Node]),
+			    true;
+			false ->
+			    io:format("Node ~w is not ready ~n", [Node]),
+			    false
+		    end;
+		false ->
+		    io:format("Checking if node ~w is ready ~n", [Node]),
+		    false
+	    end;
+	false ->
+	    io:format("Checking if node ~w is ready ~n", [Node]),
+	    false
+    end.
+
+
+%% connect(NodeList) ->
+%%     [LocalSize|Rest]=NodeList,
+%%     {Nodes, Listeners} =lists:split(list_to_integer(LocalSize), Rest),
+%%     FullNodes = addCookie(Nodes, antidote, []),
+%%     Ports= lists:duplicate(length(Listeners), ?LISTEN_PORT),
+%%     ListenerAddrs = addPort(Listeners, Ports, []),
+%%     connect(FullNodes, ListenerAddrs).
 
 
 startListener([Node]) ->
     {ok, DC} = rpc:call(Node, inter_dc_manager, start_receiver,[?LISTEN_PORT]),
-    io:format("Datacenter ~w ~n", [DC]).
+    io:format("Datacenter ~w ~n", [DC]),
+    DC.
 
 
 %%%%%%%%%%%%%%%%%%%%%%% Helper functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,32 +102,44 @@ keepnth([First|Rest], Length, AccNum, AccList) ->
 	_ -> keepnth(Rest, Length, AccNum+1, AccList)
     end.
 
-startListeners([]) ->
-    ok;
-startListeners([{Node, Port}|Rest]) ->
+startListeners([], Acc) ->
+    Acc;
+startListeners([{Node, Port}|Rest], Acc) ->
     {ok, DC} = rpc:call(Node, inter_dc_manager, start_receiver,[Port]),
-	io:format("Datacenter ~w ~n", [DC]),
-	startListeners(Rest).
+    io:format("Datacenter ~w ~n", [DC]),
+    startListeners(Rest, [DC | Acc]).
 
-connect_each([], _DCPerRing, _Acc, _AllDCs) ->
+connect_each([], _DCPerRing, _Acc, _AllDCs, _, _, _) ->
     ok;
-connect_each(Nodes, DCPerRing, Acc, AllDCs) ->
+connect_each(Nodes, DCPerRing, Acc, AllDCs, Allips, Allports, DCList) ->
     {DCNodes, Rest} = lists:split(DCPerRing, Nodes),
+    OtherDCList = DCList -- [list:nth(Acc, DCList)],
     OtherDCs = AllDCs -- [lists:nth(Acc, AllDCs)],
+    OtherIps = Allips -- [lists:nth(Acc, Allips)],
+    OtherPorts = Allports -- [lists:nth(Acc, Allports)],
     case OtherDCs of 
 	[] ->
 	    io:format("Empty dc, no need to connect!~n");
 	_ ->
-    	    connect(DCNodes, OtherDCs)
+    	    connect(DCNodes, OtherDCs, OtherIps, OtherPorts, OtherDCList)
     end,
-    connect_each(Rest, DCPerRing, Acc+1, AllDCs).
+    connect_each(Rest, DCPerRing, Acc+1, AllDCs, Allips, Allports, DCList).
 
-connect(Nodes, OtherDCs) ->
+connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList) ->
     case Nodes of
 	[] ->
 		ok;
 	[Node|Rest] ->
-	        io:format("Connect node ~w to ~w ~n", [Node, OtherDCs]),
-		ok = rpc:call(Node, inter_dc_manager, add_list_dcs,[OtherDCs]),
-		connect(Rest, OtherDCs)
+	    io:format("Connect node ~w to ~w ~n", [Node, OtherDCs]),
+	    lists:foldl(fun(_DC, Acc) ->
+				io:format("Acc ~w ~n", [Acc]),
+				Ip = lists:nth(Acc, OtherIps),
+				Port = lists:nth(Acc, OtherPorts),
+				OtherDC = lists:nth(Acc, OtherDCList),
+				io:format("Connecting a dc ip ~w, port ~w or ~w ~n", [Ip,Port,OtherDC]),
+				%% ok = rpc:call(Node, inter_dc_manager, add_dc,[{DC, {atom_to_list(Ip), Port}}]),
+				ok = rpc:call(Node, inter_dc_manager, add_dc,[OtherDC]),
+				Acc + 1
+			end, 1, OtherDCs),
+	    connect(Rest, OtherDCs, OtherIps, OtherPorts, OtherDCList)
     end.
