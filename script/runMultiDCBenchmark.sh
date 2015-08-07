@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-    echo "Usage: all_nodes, cookie, number_of_dcs, nodes_per_dc, bench_nodes_per_dc, connect_dc_or_not, erl|pb, bench_parallel"
+    echo "Usage: all_nodes, cookie, number_of_dcs, nodes_per_dc, bench_nodes_per_dc, connect_dc_or_not, erl|pb, bench_parallel gridJob startTime"
     exit
 else
     AllSystemNodes=$1
@@ -27,9 +27,14 @@ else
         exit
     fi
     BenchParallel=$8
+    GridJob=$9
+    Time=$10
 fi
 
-./script/stopNodes.sh "$AllSystemNodes" 
+echo Stopping nodes $AllSystemNodes
+./script/stopNodes.sh "$AllSystemNodes" >> logs/"$GridJob"/stop_nodes-"$Time"
+
+echo Deploying DCs
 ./script/deployMultiDCs.sh "$AllNodes" $Cookie $ConnectDCs $NodesPerDC
 
 cat script/allnodes > ./tmpnodelist
@@ -52,8 +57,9 @@ for DCNum in $(seq 1 $NumberDC); do
 	for I in $(seq 1 $BenchParallel); do
 	    echo Running bench $I on $Item with nodes "${NodeArray[$DCNum]}"
 	    echo "${NodeArray[$DCNum]}" > ./tmp
+	    echo scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
 	    scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
-    	    ssh -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I &
+    	    ssh -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I >> logs/"$GridJob"/runBench-"$Item"-"$I"-"$Time" &
 	done
     done
 done
