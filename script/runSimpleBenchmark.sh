@@ -22,8 +22,8 @@ else
 fi
 
 
-./script/stablizeTime.sh &
-Pid=$!
+#./script/stablizeTime.sh &
+#Pid=$!
 
 #LoadFile="loadfile.config"
 #./script/createLoadFile.sh $FileName $LoadFile
@@ -34,5 +34,5 @@ echo "Benchmarking phase..."
 
 tar cvzf ./test.tar tests
 
-echo "Time stabilize stopped.."
-kill $Pid
+#echo "Time stabilize stopped.."
+#kill $Pid

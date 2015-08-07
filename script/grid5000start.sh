@@ -40,7 +40,7 @@ if [ $DoDeploy -eq 1 ]; then
     # Connect to each cluster to deloy the nodes
     for I in $(seq 0 $((${#Clusters[*]} - 1))); do
 	echo Deploying cluster: ${Clusters[$I]}
-	ssh -o StrictHostKeyChecking=no ${Clusters[$I]} ~/basho_bench/script/grid5000start-createnodes.sh ${Clusters[$I]} $GridJob &
+	ssh -t -o StrictHostKeyChecking=no ${Clusters[$I]} ~/basho_bench/script/grid5000start-createnodes.sh ${Clusters[$I]} $GridJob &
 	#oargridstat -w -l $JobId | sed '/^$/d' > ~/machines
 	#awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
 	#kadeploy3 -f ~/machines-tmp -a ~/antidote_images/mywheezy-x64-base.env -k ~/.ssh/exp_key.pub
@@ -99,7 +99,7 @@ if [ $SecondRun -eq 0 ]; then
 
     echo Performins configMachines.sh on "$Branch"
     echo ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch
-    ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch $GridJob $Time
+    ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch $GridJob $Time
     
 else
     # Copy the allnodes file to the benchmark locations
@@ -124,12 +124,12 @@ Command1="cd ./antidote/ && make relclean"
 
 # Compile the code
 echo Performing make again in case the first time there was an error
-ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/makeRel.sh >> logs/"$GridJob"/make_rel-job"$Time"
+ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/makeRel.sh >> logs/"$GridJob"/make_rel-job"$Time"
 
 # Run the benchmark
 echo Running the test at $BenchNode
 echo ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount $GridJob $Time
-ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount
+ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount
 
 # Get the results
 echo Compiling the results

@@ -59,7 +59,7 @@ for DCNum in $(seq 1 $NumberDC); do
 	    echo "${NodeArray[$DCNum]}" > ./tmp
 	    echo scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
 	    scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
-    	    ssh -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I >> logs/"$GridJob"/runBench-"$Item"-"$I"-"$Time" &
+    	    ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I >> logs/"$GridJob"/runBench-"$Item"-"$I"-"$Time" &
 	done
     done
 done

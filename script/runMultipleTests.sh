@@ -20,6 +20,7 @@ BenchNodes=`cat script/allnodesbench`
 echo All nodes for muliptle tests: $AllNodes
 echo Bench nodes for multiple tests: $BenchNodes
 Mode="pb"
+echo Starting time stabalize
 ./script/stablizeTime.sh >> logs/$GridJob/stabalize_time-$Time &
 Pid=$!
 
@@ -30,6 +31,5 @@ RingSize=64
 
 ./script/runMultiDCBenchmark.sh "$AllNodes" antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $Mode $BenchParallel $GridJob $Time
 
-#This is not right
-
+echo Stabalize time stopped
 kill $Pid

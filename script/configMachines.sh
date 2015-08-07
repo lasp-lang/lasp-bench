@@ -28,23 +28,25 @@ Command4="cd ./antidote/ && rm -r deps && mkdir deps "
 Command5="cd ./antidote/ && make rel" 
 
 echo Running config commands
-echo ./script/parallel_command.sh "$AllNodes" "$Command0"	
+echo
+echo Performing: ./script/parallel_command.sh "$AllNodes" "$Command0"	
 ./script/parallel_command.sh "$AllNodes" "$Command0" >> logs/"$JobId"/config_machines-"$Time"
 
-echo ./script/parallel_command.sh "$AllNodes" "$Command0a"	
+echo Performing: ./script/parallel_command.sh "$AllNodes" "$Command0a"	
 ./script/parallel_command.sh "$AllNodes" "$Command0a" >> logs/"$JobId"/config_machines-"$Time"
 
-echo ./script/parallel_command.sh "$AllNodes" "$Command1"	
+echo Performing: ./script/parallel_command.sh "$AllNodes" "$Command1"	
 ./script/parallel_command.sh "$AllNodes" "$Command1" >> logs/"$JobId"/config_machines-"$Time"
 
-echo ./script/parallel_command.sh "$AllNodes" "$Command2"	
+echo Performing: ./script/parallel_command.sh "$AllNodes" "$Command2"	
 ./script/parallel_command.sh "$AllNodes" "$Command2" >> logs/"$JobId"/config_machines-"$Time"
 
-echo ./script/parallel_command.sh "$AllNodes" "$Command3"	
+echo Performing: ./script/parallel_command.sh "$AllNodes" "$Command3"	
 ./script/parallel_command.sh "$AllNodes" "$Command3" >> logs/"$JobId"/config_machines-"$Time"
 
-echo ./script/parallel_command.sh "$AllNodes" "$Command4"	
+echo Performing: ./script/parallel_command.sh "$AllNodes" "$Command4"	
 ./script/parallel_command.sh "$AllNodes" "$Command4" >> logs/"$JobId"/config_machines-"$Time"
 
-echo ./script/parallel_command.sh "$AllNodes" "$Command5"	
+echo Performing: ./script/parallel_command.sh "$AllNodes" "$Command5"	
 ./script/parallel_command.sh "$AllNodes" "$Command5" >> logs/"$JobId"/config_machines-"$Time"
+echo
