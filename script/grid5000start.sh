@@ -55,7 +55,7 @@ fi
 # Change node names to ips
 while read in; do dig +short "$in"; done < ~/nodelist > ~/nodelistip
 while read in; do dig +short "$in"; done < ~/benchnodelist > ~/benchnodelistip
-# BenchNode=`head -1 ~/benchnodelist`
+BenchNode=`head -1 ~/benchnodelist`
 
 # Calculate the number of DCs in case there is one that is just benchmark nodes
 # Otherwise all DCs should have the same number of nodes

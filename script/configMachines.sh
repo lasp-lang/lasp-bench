@@ -15,7 +15,7 @@ cd /root/basho_bench1/basho_bench/
 AllNodes=`cat /root/basho_bench1/basho_bench/script/allnodes`
 
 echo All nodes "$AllNodes"
-mkdir -p logs/"$GridJob"
+mkdir -p logs/"$JobId"
 
 File1="./antidote/rel/vars.config"
 File2="./antidote/rel/files/app.config"
