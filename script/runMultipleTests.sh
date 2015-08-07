@@ -25,8 +25,27 @@ echo Starting time stabalize
 Pid=$!
 
 #RingSize=$(($NodesPerDC * 12))
+
+if [ $NodesPerDC -lt 3 ]
+then
+    RingSize=32
+elif [ $NodesPerDC -lt 4 ]
+then
+    RingSize=64
+elif [ $NodesPerDC -lt 7 ]
+then
+    RingSize=128
+elif [ $NodesPerDC -lt 13 ]
+then
+    RingSize=256
+elif [ $NodesPerDC -lt 25 ]
+then
+    RingSize=512
+else
+    RingSize=1024
+fi
+
 echo Setting partition size to $RingSize
-RingSize=64
 ./script/changePartition.sh $RingSize >> logs/"$GridJob"/changePartition-"$Time"
 
 ./script/runMultiDCBenchmark.sh "$AllNodes" antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $Mode $BenchParallel $GridJob $Time

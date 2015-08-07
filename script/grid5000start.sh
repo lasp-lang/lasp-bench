@@ -146,5 +146,5 @@ done
 echo Merging the results
 ./basho_bench/script/mergeResults.sh ~/antidote_bench-"$Time"/
 
-echo Taring them
+echo Taring them to antidote_bench-"$Time".tar
 tar cvzf antidote_bench-"$Time".tar antidote_bench-"$Time" >> logs/"$GridJob"/tar_merged_job"$Time"
