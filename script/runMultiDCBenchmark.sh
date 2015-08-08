@@ -6,30 +6,30 @@ if [ $# -eq 0 ]; then
 else
     #AllSystemNodes=$1
     #SystemNodesArray=($AllSystemNodes)
-    Cookie=$2
-    NumberDC=$3
-    NodesPerDC=$4
-    BenchNodesPerDC=$5
+    Cookie=$1
+    NumberDC=$2
+    NodesPerDC=$3
+    BenchNodesPerDC=$4
     BenchNodes=`cat script/allnodesbench`
     NodesToUse=$((NumberDC * NodesPerDC))
     AllNodes=`cat script/allnodes`    
     # AllNodes=${SystemNodesArray[@]:0:$NodesToUse}
     # AllNodes=`echo ${AllNodes[@]}`
-    ConnectDCs=$6
+    ConnectDCs=$5
     echo "Using" $AllNodes ", will connect DCs:" $ConnectDCs
-    if [ "$7" = "erl" ]; then
+    if [ "$6" = "erl" ]; then
 	echo "Benchmark erl"
         BenchmarkType=0
-    elif [ "$7" = "pb" ]; then
+    elif [ "$6" = "pb" ]; then
 	echo "Benchmark pb"
         BenchmarkType=1
     else
         echo "Wrong benchmark type!"
         exit
     fi
-    BenchParallel=$8
-    GridJob=$9
-    Time=$10
+    BenchParallel=$7
+    GridJob=$8
+    Time=$9
 fi
 
 echo Stopping nodes

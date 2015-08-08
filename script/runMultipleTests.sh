@@ -48,7 +48,7 @@ fi
 echo Setting partition size to $RingSize
 ./script/changePartition.sh $RingSize >> logs/"$GridJob"/changePartition-"$Time"
 
-./script/runMultiDCBenchmark.sh nodes antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $Mode $BenchParallel $GridJob $Time
+./script/runMultiDCBenchmark.sh antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $Mode $BenchParallel $GridJob $Time
 
 echo Stabalize time stopped
 kill $Pid
