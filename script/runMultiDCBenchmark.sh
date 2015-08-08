@@ -55,10 +55,12 @@ for DCNum in $(seq 1 $NumberDC); do
     TmpArray=(${BenchNodeArray[$DCNum]})
     for Item in ${TmpArray[@]}; do
 	for I in $(seq 1 $BenchParallel); do
-	    echo Running bench $I on $Item with nodes "${NodeArray[$DCNum]}"
+	    echo Running bench $I on $Item with nodes
 	    echo "${NodeArray[$DCNum]}" > ./tmp
 	    echo scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
 	    scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
+    	    echo ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I
+	    echo for job $GridJob on time $Time
     	    ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I >> logs/"$GridJob"/runBench-"$Item"-"$I"-"$Time" &
 	done
     done

@@ -129,7 +129,7 @@ ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_benc
 # Run the benchmark
 echo Running the test at $BenchNode
 echo ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount $GridJob $Time
-ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount
+ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount $GridJob $Time
 
 # Get the results
 echo Compiling the results

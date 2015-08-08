@@ -21,7 +21,7 @@ echo All nodes for muliptle tests: $AllNodes
 echo Bench nodes for multiple tests: $BenchNodes
 Mode="pb"
 echo Starting time stabalize
-./script/stablizeTime.sh >> logs/$GridJob/stabalize_time-$Time &
+./script/stablizeTime.sh >> logs/"$GridJob"/stabalize_time-"$Time" &
 Pid=$!
 
 #RingSize=$(($NodesPerDC * 12))
