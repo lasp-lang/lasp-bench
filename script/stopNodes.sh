@@ -1,12 +1,13 @@
 #!/bin/bash
 
-if [ $# -eq 0 ]
-then
-	AllNodes=`cat script/allnodes`
-else
-	AllNodes=$1	
-fi
+#if [ $# -eq 0 ]
+#then
+#	AllNodes=`cat script/allnodes`
+#else
+#	AllNodes=$1	
+#fi
 
+AllNodes=`cat script/allnodes`
 echo "Stopping nodes:" $AllNodes
 
 Stop="antidote/rel/antidote/bin/antidote stop" 

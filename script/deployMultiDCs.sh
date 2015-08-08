@@ -30,7 +30,8 @@ function joinNodes {
 	echo "Ring transfer have finished..."
 }
 
-AllNodes=$1
+#AllNodes=$1
+AllNodes=`cat script/allnodes`
 Cookie=$2	
 NodesPerDC=$4
 ./script/startNodes.sh "$AllNodes"

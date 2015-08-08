@@ -4,16 +4,17 @@ if [ $# -eq 0 ]; then
     echo "Usage: all_nodes, cookie, number_of_dcs, nodes_per_dc, bench_nodes_per_dc, connect_dc_or_not, erl|pb, bench_parallel gridJob startTime"
     exit
 else
-    AllSystemNodes=$1
-    SystemNodesArray=($AllSystemNodes)
+    #AllSystemNodes=$1
+    #SystemNodesArray=($AllSystemNodes)
     Cookie=$2
     NumberDC=$3
     NodesPerDC=$4
     BenchNodesPerDC=$5
     BenchNodes=`cat script/allnodesbench`
     NodesToUse=$((NumberDC * NodesPerDC))
-    AllNodes=${SystemNodesArray[@]:0:$NodesToUse}
-    AllNodes=`echo ${AllNodes[@]}`
+    AllNodes=`cat script/allnodes`    
+    # AllNodes=${SystemNodesArray[@]:0:$NodesToUse}
+    # AllNodes=`echo ${AllNodes[@]}`
     ConnectDCs=$6
     echo "Using" $AllNodes ", will connect DCs:" $ConnectDCs
     if [ "$7" = "erl" ]; then
@@ -31,11 +32,11 @@ else
     Time=$10
 fi
 
-echo Stopping nodes $AllSystemNodes
-./script/stopNodes.sh "$AllSystemNodes" >> logs/"$GridJob"/stop_nodes-"$Time"
+echo Stopping nodes
+./script/stopNodes.sh  >> logs/"$GridJob"/stop_nodes-"$Time"
 
 echo Deploying DCs
-./script/deployMultiDCs.sh "$AllNodes" $Cookie $ConnectDCs $NodesPerDC
+./script/deployMultiDCs.sh nodes $Cookie $ConnectDCs $NodesPerDC
 
 cat script/allnodes > ./tmpnodelist
 cat script/allnodesbench > ./tmpnodelistbench
