@@ -12,7 +12,8 @@ for Node in $AllNodes
 do
     Node=\'$Node\',
     BenchConfig=$BenchConfig$Node
-    Thread=$((Thread+PerNodeNum))
+    #Thread=$((Thread+PerNodeNum))
+    Thread=20
 done
 BenchConfig=${BenchConfig::-1}"]}."
 echo $BenchConfig
