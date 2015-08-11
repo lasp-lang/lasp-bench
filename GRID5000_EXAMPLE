@@ -1,22 +1,79 @@
-The way to start a benchmark job:
+First you need to get an account on Grid5000:
+https://www.grid5000.fr/mediawiki/index.php/Grid5000:Get_an_account
 
-First you need to have the antidote image and env file in each site you want to run the experiment
+Initial setup for the first time:
+
+First you need benchmark images.
+Ask me for images if you need them or you can make them yourself by doing the following:
+Instructions for getting an images deploying them can be found here
+https://www.grid5000.fr/mediawiki/index.php/Deploy_environment-OAR2
+
+To configure an image you need to:
+1. Install erlang as described here https://github.com/SyncFree/antidote
+2. Install antidote in /root/antidote
+3. Install basho_bench (https://github.com/SyncFree/basho_bench) in /root/basho_bench[1-6]/basho_bench
+4. Put your benchmark key in the /root/.ssh folder
+5. Put a file named key that links to your key in the /root/ directory
+
+Now you need to have the antidote image and env file in each site you want to run the experiment
 ~/antidote_images/antidote_image_init.tgz
 ~/antidote_images/mywheezy-x64-base.env
-Ask me for images if you need them
 
-To get a reservation for example run, this gives an 30 min reservation with 1 site at rennes and one at lille:
+In ~/ make a file called key that links to your benchmar key
+
+Also in each site create a ~/basho_bench/script/ folder and place the following files it in:
+grid5000start.sh
+grid5000start-createnodes.sh
+parallel_command.sh
+mergeResults.awk
+mergeResults.sh
+mergeResultsSummary.awk
+
+Thats all for setup!!!
+
+
+
+Now how to run a benchmark:
+
+First you need to reserve some nodes (note there are rules for how many nodes you can reserve at a time, see the grid5000 website).
+
+his gives an 30 min reservation with 1 site at rennes and one at lille:
 oargridsub -t deploy -w '0:30:00' rennes:rdef="/nodes=1",lille:rdef="/nodes=1"
+
+The following command reserves 22 nodes in the suno cluster at the sophia site, and 22 nodes in the chinqchint cluster at the lille site, for 6 hours, with the reservation set to start at 20h 2015-07-26
 
 oargridsub -t deploy -w '6:00:00' -s '2015-07-26 20:00:00' sophia:rdef="/nodes=22":prop="cluster='suno'",lille:rdef="/nodes=22":prop="cluster='chinqchint'"
 
-Then run this from the frontend to deploy the nodes:
+If you wanted to start the reservation immediately remove the -s option.
 
-~/basho_scripts/grid5000start.sh
+Note that each site will be created into a DC.  For the example above you will have 2 DCs, lille and sophia.
 
-Then can ssh to the node that will be running basho bench.  On this node need to update the script/allnodes file with the names of the other nodes.
-(Should create a script to do this automatically).
-Then can run the benchmark as normal.
+
+Then run this from the frontend to deploy the nodes and run the benchmark:
+
+~/basho_scripts/grid5000start.sh JobId Branch Deploy SecondRun BenchNodes BenchInstances
+
+JobId:
+This is the id assigned to the reservation.  You can see information about the reservations by running oargridstat
+
+Branch:
+This is the git branch of antidote to benchmark.
+
+Deploy:
+This can be 1 or 0.  This should be 1 the first time you run the benchmark on a reservation and 0 for subsequent runs.  If it is 1, then the image will be loaded on the nodes.
+
+SecondRun:
+This can be 1 or 0.  When this is 1 the source code for antidote and basho_bench will be pulled from git and compiled.  It should be 0 every time the code should be compiled, for example when you changed something, or the number of benchmark nodes.  It should always be zero on the first run of a reservation.
+
+BenchNodes:
+This is how many nodes per DC will be running the basho_bench, the remaining will be antidote nodes.  For example if this was 6 in the reservation above, you would have 6 basho_bench nodes and 16 antidote nodes at each site.
+
+BenchInstances:
+This is a value 1 through 6.  It is the number of basho_bench instances that will be run per basho_bench node. Note that I put this here just because I noticed that a single instance of bash_bench wansn't using all resources on that node, but I didn't look into detail why this happens.
+
+
+An example first run might be:
+~/basho_bench/script/grid5000start.sh 53738 weak_meta_data 1 0 5 6
 
 
 
