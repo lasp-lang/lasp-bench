@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-	echo "Usage: numdcs nodesperdc parallelbench numbenchnodesperdc"
+	echo "Usage: numdcs nodesperdc parallelbench numbenchnodesperdc jobid time benchfile"
 	exit
 fi
 

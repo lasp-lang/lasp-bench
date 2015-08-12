@@ -51,7 +51,7 @@ Note that each site will be created into a DC.  For the example above you will h
 
 Then run this from the frontend to deploy the nodes and run the benchmark:
 
-~/basho_scripts/grid5000start.sh JobId Branch Deploy SecondRun BenchNodes BenchInstances
+~/basho_scripts/grid5000start.sh JobId Branch Deploy SecondRun BenchNodes BenchInstances BenchConfigFile
 
 JobId:
 This is the id assigned to the reservation.  You can see information about the reservations by running oargridstat
@@ -71,9 +71,12 @@ This is how many nodes per DC will be running the basho_bench, the remaining wil
 BenchInstances:
 This is a value 1 through 6.  It is the number of basho_bench instances that will be run per basho_bench node. Note that I put this here just because I noticed that a single instance of bash_bench wansn't using all resources on that node, but I didn't look into detail why this happens.
 
+BenchConfigFile:
+This is the name of the basho_bench configuration file for the benchmark in the examples directory.
+
 
 An example first run might be:
-~/basho_bench/script/grid5000start.sh 53738 weak_meta_data 1 0 5 6
+~/basho_bench/script/grid5000start.sh 53738 weak_meta_data 1 0 5 6 antidote_pb.config
 
 
 
