@@ -17,58 +17,68 @@ else
     # AllNodes=`echo ${AllNodes[@]}`
     ConnectDCs=$5
     echo "Using" $AllNodes ", will connect DCs:" $ConnectDCs
-    if [ "$6" = "erl" ]; then
-	echo "Benchmark erl"
-        BenchmarkType=0
-    elif [ "$6" = "pb" ]; then
-	echo "Benchmark pb"
-        BenchmarkType=1
-    else
-        echo "Wrong benchmark type!"
-        exit
-    fi
+    BenchmarkFile=$6
+    # if [ "$6" = "erl" ]; then
+    # 	echo "Benchmark erl"
+    #     BenchmarkType=0
+    # elif [ "$6" = "pb" ]; then
+    # 	echo "Benchmark pb"
+    #     BenchmarkType=1
+    # else
+    #     echo "Wrong benchmark type!"
+    #     exit
+    # fi
     BenchParallel=$7
     GridJob=$8
     Time=$9
 fi
 
-echo Stopping nodes
-./script/stopNodes.sh  >> logs/"$GridJob"/stop_nodes-"$Time"
+BenchmarkType=1
 
-echo Deploying DCs
-./script/deployMultiDCs.sh nodes $Cookie $ConnectDCs $NodesPerDC
+ReadsNumber=( 100 50 25 10 1 )
+WritesNumber=( 1 10 25 50 100 )
 
-cat script/allnodes > ./tmpnodelist
-cat script/allnodesbench > ./tmpnodelistbench
-for DCNum in $(seq 1 $NumberDC); do
-    NodeArray[$DCNum]=`head -$NodesPerDC tmpnodelist`
-    sed '1,'"$NodesPerDC"'d' tmpnodelist > tmp
-    cat tmp > tmpnodelist
+#loop for number of reads
+for ReadWrite in $(seq 0 4); do
+
+    echo Stopping nodes
+    ./script/stopNodes.sh  >> logs/"$GridJob"/stop_nodes-"$Time"
     
-    BenchNodeArray[$DCNum]=`head -$BenchNodesPerDC tmpnodelistbench`
-    sed '1,'"$BenchNodesPerDC"'d' tmpnodelistbench > tmp
-    cat tmp > tmpnodelistbench
-done
+    echo Deploying DCs
+    ./script/deployMultiDCs.sh nodes $Cookie $ConnectDCs $NodesPerDC
+    
+    cat script/allnodes > ./tmpnodelist
+    cat script/allnodesbench > ./tmpnodelistbench
+    for DCNum in $(seq 1 $NumberDC); do
+	NodeArray[$DCNum]=`head -$NodesPerDC tmpnodelist`
+	sed '1,'"$NodesPerDC"'d' tmpnodelist > tmp
+	cat tmp > tmpnodelist
+	
+	BenchNodeArray[$DCNum]=`head -$BenchNodesPerDC tmpnodelistbench`
+	sed '1,'"$BenchNodesPerDC"'d' tmpnodelistbench > tmp
+	cat tmp > tmpnodelistbench
+    done
 
-# Run the benchmarks in parallel
-# This is not a good way to do this, should be implemented inside basho bench
-for DCNum in $(seq 1 $NumberDC); do
-    TmpArray=(${BenchNodeArray[$DCNum]})
-    for Item in ${TmpArray[@]}; do
-	for I in $(seq 1 $BenchParallel); do
-	    echo Running bench $I on $Item with nodes
-	    echo "${NodeArray[$DCNum]}" > ./tmp
-	    echo scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
-	    scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
-    	    echo ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I
-	    echo for job $GridJob on time $Time
-    	    ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I >> logs/"$GridJob"/runBench-"$Item"-"$I"-"$Time" &
+    # Run the benchmarks in parallel
+    # This is not a good way to do this, should be implemented inside basho bench
+    for DCNum in $(seq 1 $NumberDC); do
+	TmpArray=(${BenchNodeArray[$DCNum]})
+	for Item in ${TmpArray[@]}; do
+	    for I in $(seq 1 $BenchParallel); do
+		echo Running bench $I on $Item with nodes
+		echo "${NodeArray[$DCNum]}" > ./tmp
+		echo scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
+		scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
+    		echo ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I $BenchmarkFile ${ReadsNumber[$ReadWrite]} ${WritesNumber[$ReadWrite]}
+
+		echo for job $GridJob on time $Time
+    		ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I $BenchmarkFile ${ReadsNumber[$ReadWrite]} ${WritesNumber[$ReadWrite]} >> logs/"$GridJob"/runBench-"$Item"-"$I"-"$Time"-Reads"${ReadsNumber[$ReadWrite]}" &
+	    done
 	done
     done
+    wait
+    
 done
-wait
-
-
 
 
 #./script/runSimpleBenchmark.sh $4 $BenchmarkType

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-    echo "Usage gridjobid branch dodeploy secondrun benchCount benchParallel"
+    echo "Usage gridjobid branch dodeploy secondrun benchCount benchParallel benchFile"
     exit
 fi
 
@@ -14,6 +14,7 @@ DoDeploy=$3
 SecondRun=$4
 BenchCount=$5
 BenchParallel=$6
+BenchFile=$7
 Clusters=(`oargridstat $1 | awk '/-->/ { print $1 }'`)
 # Reservations=(`oargridstat $1 | awk '/-->/ { print $3 }'`)
 # JobId=`oargridstat $1 | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
@@ -128,23 +129,34 @@ ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_benc
 
 # Run the benchmark
 echo Running the test at $BenchNode
-echo ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount $GridJob $Time
-ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount $GridJob $Time
+echo ssh -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount $GridJob $Time $BenchFile
+ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/runMultipleTests.sh $TotalDCs $Size $BenchParallel $BenchCount $GridJob $Time $BenchFile
 
 # Get the results
-echo Compiling the results
-cd ~
-mkdir antidote_bench-"$Time"
-for Node in `cat ~/benchnodelist`; do
-    for I in $(seq 1 $BenchParallel); do
- 	echo scp -o StrictHostKeyChecking=no root@$Node:/root/basho_bench"$I"/basho_bench/test.tar ~/antidote_bench-"$Time"/test"$Node"-"$I".tar
- 	scp -o StrictHostKeyChecking=no root@$Node:/root/basho_bench"$I"/basho_bench/test.tar ~/antidote_bench-"$Time"/test"$Node"-"$I".tar
-	echo test"$Node"-"$I" >> ~/antidote_bench-"$Time"/filenames
+
+Reads=( 100 50 25 10 1 )
+
+
+for ReadWrite in $(seq 0 4); do
+#tar cvzf ./test.tar tests-$FileName-$Reads
+
+    echo Compiling the results
+    cd ~
+    mkdir antidote_bench-"$Time"
+    for Node in `cat ~/benchnodelist`; do
+	for I in $(seq 1 $BenchParallel); do
+ 	    echo scp -o StrictHostKeyChecking=no root@$Node:/root/basho_bench"$I"/basho_bench/test-"$BenchFile"-"${Reads[$ReadWrite]}".tar ~/antidote_bench-"$Time"/test"$Node"-"$I"-"$BenchFile"-"${Reads[$ReadWrite]}".tar
+ 	    scp -o StrictHostKeyChecking=no root@$Node:/root/basho_bench"$I"/basho_bench/test-"$BenchFile"-"${Reads[$ReadWrite]}".tar ~/antidote_bench-"$Time"/test"$Node"-"$I"-"$BenchFile"-"${Reads[$ReadWrite]}".tar
+	    echo test"$Node"-"$I"-"$BenchFile"-"${Reads[$ReadWrite]}" >> ~/antidote_bench-"$Time"/filenames
+	done
     done
+
+    echo Merging the results
+    ./basho_bench/script/mergeResults.sh ~/antidote_bench-"$Time"/ "$BenchFile"-"${Reads[$ReadWrite]}"
+    
 done
 
-echo Merging the results
-./basho_bench/script/mergeResults.sh ~/antidote_bench-"$Time"/
+
 
 echo Taring them to antidote_bench-"$Time".tar
 tar cvzf antidote_bench-"$Time".tar antidote_bench-"$Time" >> logs/"$GridJob"/tar_merged_job"$Time"

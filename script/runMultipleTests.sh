@@ -11,6 +11,7 @@ BenchParallel=$3
 NumBenchNodes=$4
 GridJob=$5
 Time=$6
+BenchFile=$7
 
 cd /root/basho_bench1/basho_bench/
 mkdir -p logs/"$GridJob"
@@ -48,7 +49,7 @@ fi
 echo Setting partition size to $RingSize
 ./script/changePartition.sh $RingSize >> logs/"$GridJob"/changePartition-"$Time"
 
-./script/runMultiDCBenchmark.sh antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $Mode $BenchParallel $GridJob $Time
+./script/runMultiDCBenchmark.sh antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $BenchFile $BenchParallel $GridJob $Time
 
 echo Stabalize time stopped
 kill $Pid

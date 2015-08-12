@@ -3,22 +3,24 @@
 
 #AllNodes=`head -$1 script/allnodes`
 Id=$2
-
+File=$3
+Reads=$4
+Writes=$5
 cd  /root/basho_bench"$Id"/basho_bench/
 AllNodes=`cat script/runnodes`
 
 echo All nodes: $AllNodes
 echo Type: $1
 echo Id: $Id
-
+echo BenchmarkFile: $File
 
 ##Replace benchmark configuration to include nodes
 if [ $2 -eq 0 ]; then
-    FileName="examples/antidote.config"
-    ./script/changeErlConfig.sh "$AllNodes" $Cookie $FileName
+    FileName="examples/"$File
+    ./script/changeErlConfig.sh "$AllNodes" $Cookie $FileName $Reads $Writes
 else
-    FileName="examples/antidote_pb.config"
-    ./script/changePBConfig.sh "$AllNodes" antidote $FileName
+    FileName="examples/"$File
+    ./script/changePBConfig.sh "$AllNodes" antidote $FileName $Reads $Writes
 fi
 
 
@@ -32,7 +34,7 @@ echo "No loading phase..."
 echo "Benchmarking phase..."
 ./basho_bench $FileName
 
-tar cvzf ./test.tar tests
+tar cvzf ./test-"$File"-"$Reads".tar tests
 
 #echo "Time stabilize stopped.."
 #kill $Pid
