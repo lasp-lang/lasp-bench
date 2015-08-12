@@ -14,6 +14,9 @@ echo Type: $1
 echo Id: $Id
 echo BenchmarkFile: $File
 
+rm -rf ./tests
+mkdir tests
+
 ##Replace benchmark configuration to include nodes
 if [ $2 -eq 0 ]; then
     FileName="examples/"$File

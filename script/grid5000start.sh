@@ -134,20 +134,22 @@ ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_benc
 
 # Get the results
 
-Reads=( 100 50 25 10 1 )
+ReadsNumber=( 100 90 75 50 1 )
 
+echo Compiling the results
+cd ~
+mkdir antidote_bench-"$Time"
 
 for ReadWrite in $(seq 0 4); do
 #tar cvzf ./test.tar tests-$FileName-$Reads
 
-    echo Compiling the results
-    cd ~
-    mkdir antidote_bench-"$Time"
+    rm ~/antidote_bench-"$Time"/filenames
     for Node in `cat ~/benchnodelist`; do
 	for I in $(seq 1 $BenchParallel); do
  	    echo scp -o StrictHostKeyChecking=no root@$Node:/root/basho_bench"$I"/basho_bench/test-"$BenchFile"-"${Reads[$ReadWrite]}".tar ~/antidote_bench-"$Time"/test"$Node"-"$I"-"$BenchFile"-"${Reads[$ReadWrite]}".tar
  	    scp -o StrictHostKeyChecking=no root@$Node:/root/basho_bench"$I"/basho_bench/test-"$BenchFile"-"${Reads[$ReadWrite]}".tar ~/antidote_bench-"$Time"/test"$Node"-"$I"-"$BenchFile"-"${Reads[$ReadWrite]}".tar
 	    echo test"$Node"-"$I"-"$BenchFile"-"${Reads[$ReadWrite]}" >> ~/antidote_bench-"$Time"/filenames
+	    echo test"$Node"-"$I"-"$BenchFile"-"${Reads[$ReadWrite]}" >> ~/antidote_bench-"$Time"/allfilenames
 	done
     done
 
