@@ -35,7 +35,7 @@ fi
 
 BenchmarkType=1
 
-ReadsNumber=( 100 90 75 50 1 )
+ReadsNumber=( 10000 90 75 50 1 )
 WritesNumber=( 1 10 25 50 100 )
 
 #loop for number of reads

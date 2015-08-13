@@ -134,7 +134,7 @@ ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_benc
 
 # Get the results
 
-Reads=( 100 90 75 50 1 )
+Reads=( 10000 90 75 50 1 )
 
 echo Compiling the results
 cd ~
