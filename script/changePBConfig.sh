@@ -11,7 +11,7 @@ sed -i '/concurrent/d' $File
 ## {operations, [{append, 1}, {read, 100}]}.
 sed -i '/operations/d' $File
 #PerNodeNum=40
-Thread=40
+Thread=20
 BenchConfig="{antidote_pb_ips, ["
 for Node in $AllNodes
 do
