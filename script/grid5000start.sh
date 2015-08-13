@@ -134,11 +134,13 @@ ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_benc
 
 # Get the results
 
-ReadsNumber=( 100 90 75 50 1 )
+Reads=( 100 90 75 50 1 )
 
 echo Compiling the results
 cd ~
+
 mkdir antidote_bench-"$Time"
+touch ~/antidote_bench-"$Time"/filenames
 
 for ReadWrite in $(seq 0 4); do
 #tar cvzf ./test.tar tests-$FileName-$Reads
