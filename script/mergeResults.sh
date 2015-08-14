@@ -4,10 +4,12 @@ TestDirectory=$1
 TestName=$2
 
 NumNodes=`cat nodelist | wc -l`
+NumBenchNodes=`cat benchnodelist | wc -l`
 
 cd $TestDirectory
 
 echo $NumNodes > numNodes
+echo $NumBenchNodes > numBenchNodes
 
 Files=`cat filenames`
 
