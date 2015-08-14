@@ -1,10 +1,10 @@
 set term png 
-set output "write_latencies.png"
+set output "results/write_latencies.png"
 set title "Write Latencies"
-set xtics ("99.99" 1, "90" 2, "25" 3, "50" 4, "1" 5)
+set xtics ("99.99(.01)" 1, "90(10)" 2, "25(75)" 3, "50(50)" 4, "1(99)" 5)
 set tics out
 set logscale y
-set xlabel "Read (Percentage)"
+set xlabel "Percentage of Read(Update) Operations"
 set ylabel "Latency (ms)"
 plot "plots" using 1:2 title 'Minimum' with linespoints, \
 "plots" using 1:3 title 'Mean' with linespoints, \

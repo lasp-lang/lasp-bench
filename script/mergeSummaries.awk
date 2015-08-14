@@ -19,7 +19,7 @@ END {
 	a[i] = a[i] / max
 	if(i != 3)
 	    printf ", "
-	printf "%s",a[i]
+	printf "%s",a[i] / 10
     }
     print ""
 }
