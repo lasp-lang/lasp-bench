@@ -3,7 +3,11 @@
 TestDirectory=$1
 TestName=$2
 
+NumNodes=`cat nodelist | wc -l`
+
 cd $TestDirectory
+
+echo $NumNodes > numNodes
 
 Files=`cat filenames`
 
