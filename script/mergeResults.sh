@@ -3,13 +3,15 @@
 TestDirectory=$1
 TestName=$2
 
-NumNodes=`cat nodelist | wc -l`
-NumBenchNodes=`cat benchnodelist | wc -l`
+NumNodes=`cat ~/nodelist | wc -l`
+NumBenchNodes=`cat ~/benchnodelist | wc -l`
+NumDC=`cat ~/countDC`
 
 cd $TestDirectory
 
 echo $NumNodes > numNodes
 echo $NumBenchNodes > numBenchNodes
+echo $NumDC > numDCs
 
 Files=`cat filenames`
 

@@ -23,6 +23,7 @@ Clusters=(`oargridstat $1 | awk '/-->/ { print $1 }'`)
 # Filter out the names of the benchmark nodes and the computation nodes
 rm ~/nodelist
 rm ~/benchnodelist
+CountDC=0
 for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     echo ${Clusters[$I]}
     oargridstat -w -l $GridJob | sed '/^$/d' > ~/machines
@@ -30,7 +31,10 @@ for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp2
     head -"$BenchCount" ~/machines-tmp2 >> ~/benchnodelist
     sed '1,'"$BenchCount"'d' ~/machines-tmp2 >> ~/nodelist
+    CountDC=$(($CountDC + 1))
 done
+
+echo $CountDC > ~/countDC
 
 echo Benchmark nodes: `cat ~/benchnodelist`
 echo
