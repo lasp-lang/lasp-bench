@@ -98,6 +98,9 @@ Now from this folder run:
 (Note you should not include the tar extenstion as part of the input).
 
 
+NOTE: If you want to run multiple benchmarks on different reservations at the same time you can, but run them from different fronends as they may overwrite temporary files from eachother (note I should fix this)
+
+
 Some other notes:
 
 
