@@ -27,19 +27,19 @@ Pid=$!
 
 #RingSize=$(($NodesPerDC * 12))
 
-if [ $NodesPerDC -lt 3 ]
+if [ $NodesPerDC -lt 2 ]
 then
     RingSize=32
-elif [ $NodesPerDC -lt 4 ]
+elif [ $NodesPerDC -lt 3 ]
 then
     RingSize=64
-elif [ $NodesPerDC -lt 7 ]
+elif [ $NodesPerDC -lt 6 ]
 then
     RingSize=128
-elif [ $NodesPerDC -lt 13 ]
+elif [ $NodesPerDC -lt 12 ]
 then
     RingSize=256
-elif [ $NodesPerDC -lt 25 ]
+elif [ $NodesPerDC -lt 24 ]
 then
     RingSize=512
 else
