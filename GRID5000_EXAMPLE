@@ -37,7 +37,7 @@ Now how to run a benchmark:
 
 First you need to reserve some nodes (note there are rules for how many nodes you can reserve at a time, see the grid5000 website).
 
-his gives an 30 min reservation with 1 site at rennes and one at lille:
+This gives an 30 min reservation with 1 node at rennes and one at lille:
 oargridsub -t deploy -w '0:30:00' rennes:rdef="/nodes=1",lille:rdef="/nodes=1"
 
 The following command reserves 22 nodes in the suno cluster at the sophia site, and 22 nodes in the chinqchint cluster at the lille site, for 6 hours, with the reservation set to start at 20h 2015-07-26
@@ -46,13 +46,15 @@ oargridsub -t deploy -w '6:00:00' -s '2015-07-26 20:00:00' sophia:rdef="/nodes=2
 
 If you wanted to start the reservation immediately remove the -s option.
 
-Note that each site will be created into a DC.  For the example above you will have 2 DCs, lille and sophia.
+Note that each site will be created into a DC, for the example above you will have 2 DCs, lille and sophia.
+There is an exception, if you set the number of nodes for a certain site to be equal to the number of BenchNodes (see below), then a DC will not be created at this site and will only be a site running basho_bench.  Otherwise the reservation should reserve the same number of nodes per site.
 
 
 Then run this from the frontend to deploy the nodes and run the benchmark:
 
-~/basho_scripts/grid5000start.sh JobId Branch Deploy SecondRun BenchNodes BenchInstances BenchConfigFile
+~/basho_scripts/grid5000start.sh JobId Branch Deploy SecondRun AntidoteNodes BenchNodes BenchInstances BenchConfigFile
 
+The options are the following:
 JobId:
 This is the id assigned to the reservation.  You can see information about the reservations by running oargridstat
 
@@ -65,8 +67,11 @@ This can be 1 or 0.  This should be 1 the first time you run the benchmark on a 
 SecondRun:
 This can be 1 or 0.  When this is 1 the source code for antidote and basho_bench will be pulled from git and compiled.  It should be 0 every time the code should be compiled, for example when you changed something, or the number of benchmark nodes.  It should always be zero on the first run of a reservation.
 
+AntidoteNodes:
+This is how many nodes per DC will be running as part of the antidote cluster/ring in that DC.
+
 BenchNodes:
-This is how many nodes per DC will be running the basho_bench, the remaining will be antidote nodes.  For example if this was 6 in the reservation above, you would have 6 basho_bench nodes and 16 antidote nodes at each site.
+This is how many nodes per DC will be running the basho_bench.  The sum of AntidoteNodes and BenchNodes should be no greater than the number of nodes reserved per site (but can be less).
 
 BenchInstances:
 This is a value 1 through 6.  It is the number of basho_bench instances that will be run per basho_bench node. Note that I put this here just because I noticed that a single instance of bash_bench wansn't using all resources on that node, but I didn't look into detail why this happens.
@@ -80,7 +85,17 @@ An example first run might be:
 
 
 
+Watch the output for errors, likely the first time you didn't get the configuration completely correct (these instructions aren't super clear).
 
+The benchmark should take some time to run, it will run several tests with read(update) ratios of ("99.99(.01)", "99(1)", "90(10)", "75(25)", "50(50)", "1(99)")
+
+At the end you will get an message saying the name of the result file with all the results tarred up.
+
+Scp this file to your local machine in the basho_bench/ folder (of this git clone in which this readme exists).
+
+Now from this folder run:
+./script/makeGraph.sh result_file_name
+(Note you should not include the tar extenstion as part of the input).
 
 
 Some other notes:
