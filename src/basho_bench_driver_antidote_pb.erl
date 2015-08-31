@@ -31,7 +31,8 @@
                 time,
                 type_dict,
                 pb_pid,
-		        num_partitions,
+		num_partitions,
+		set_size,
                 pb_port,
                 target_node}).
 
@@ -52,6 +53,7 @@ new(Id) ->
     IPs = basho_bench_config:get(antidote_pb_ips),
     PbPort = basho_bench_config:get(antidote_pb_port),
     Types  = basho_bench_config:get(antidote_types),
+    SetSize = basho_bench_config:get(set_size),
     NumPartitions = length(IPs),
 
     %% Choose the node using our ID as a modulus
@@ -61,10 +63,11 @@ new(Id) ->
     {ok, Pid} = antidotec_pb_socket:start_link(TargetNode, PbPort),
     TypeDict = dict:from_list(Types),
     {ok, #state{time={1,1,1}, worker_id=Id,
-               pb_pid = Pid,
-	       num_partitions = NumPartitions,
-               type_dict = TypeDict, pb_port=PbPort,
-               target_node=TargetNode}}.
+		pb_pid = Pid,
+		set_size = SetSize,
+		num_partitions = NumPartitions,
+		type_dict = TypeDict, pb_port=PbPort,
+		target_node=TargetNode}}.
 
 %% @doc Read a key
 run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=Port, target_node=Node, type_dict=TypeDict}) ->
@@ -175,6 +178,7 @@ run(update, KeyGen, ValueGen,
                  pb_pid = Pid,
                  worker_id = Id,
                  pb_port=Port,
+		 set_size=SetSize,
                  target_node=Node}) ->
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
@@ -182,7 +186,7 @@ run(update, KeyGen, ValueGen,
     Type = get_key_type(KeyInt, TypeDict),
     Response =  case antidotec_pb_socket:get_crdt(Key, Type, Pid) of
                     {ok, CRDT} ->
-                        {Mod, Op, Param} = get_random_param(TypeDict, Type, ValueGen(), CRDT),
+                        {Mod, Op, Param} = get_random_param(TypeDict, Type, ValueGen(), CRDT, SetSize),
                         Obj = Mod:Op(Param,CRDT),
                         antidotec_pb_socket:store_crdt(Obj, Pid);
                     Other -> Other
@@ -226,7 +230,7 @@ get_random_param(Dict, Type, Value) ->
             {antidotec_set, lists:nth(Num, Params), Value}                     
     end.
 
-get_random_param(Dict, Type, Value, Obj) ->
+get_random_param(Dict, Type, Value, Obj, SetSize) ->
     Params = dict:fetch(Type, Dict),
     random:seed(now()),
     Num = random:uniform(length(Params)),
@@ -235,14 +239,20 @@ get_random_param(Dict, Type, Value, Obj) ->
            {antidotec_counter,lists:nth(Num, Params), 1};
         riak_dt_orset ->
             Set = antidotec_set:value(Obj),
-            Op = lists:nth(Num, Params),
-            case Op of 
+            %%Op = lists:nth(Num, Params),
+	    case sets:size(Set) =< SetSize of
+		true ->
+		    NewOp = add;
+		false ->
+		    NewOp = remove
+	    end,
+            case NewOp of 
                 remove ->
                     case sets:to_list(Set) of 
                         [] -> {antidotec_set, add, Value};                     
                         [H|_T] -> {antidotec_set, remove, H}
                     end;
                 _ ->
-                    {antidotec_set, Op, Value}
+                    {antidotec_set, NewOp, Value}
             end                      
     end.
