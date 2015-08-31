@@ -171,7 +171,7 @@ for ReadWrite in $(seq 0 5); do
     done
 
     echo Merging the results
-    ./basho_bench/script/mergeResults.sh ~/antidote_bench-"$Time"/ "$BenchFile"-"${Reads[$ReadWrite]}" $Branch
+    ./basho_bench/script/mergeResults.sh ~/antidote_bench-"$Time"/ "$BenchFile"-"${Reads[$ReadWrite]}" $Branch $BenchFile
     
 done
 
