@@ -6,13 +6,12 @@ File="./"$3
 Reads=$4
 Writes=$5
 
-
-if [ $File = "orset_pb.config" ]; then
-    Type = "set"
-elif [ $File = "antidote_pb.config" ]; then
-    Type = "counter"
+if [ $File = "./examples/orset_pb.config" ]; then
+    Type="set"
+elif [ $File = "./examples/antidote_pb.config" ]; then
+    Type="counter"
 else
-    Type = "counter"
+    Type="counter"
 fi
 
 
