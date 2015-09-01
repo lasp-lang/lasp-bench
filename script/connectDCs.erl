@@ -40,26 +40,33 @@ wait_ready_nodes([Node|Rest]) ->
 
 check_ready(Node) ->
     io:format("Checking if node ~w is ready ~n", [Node]),
-    case rpc:call(Node,clocksi_vnode,check_tables_ready,[]) of
-	true ->
-	    case rpc:call(Node,clocksi_readitem_fsm,check_servers_ready,[]) of
-		true ->
-		    case rpc:call(Node,materializer_vnode,check_tables_ready,[]) of
-			true ->
-			    io:format("Node ~w is ready! ~n", [Node]),
-			    true;
-			false ->
-			    io:format("Node ~w is not ready ~n", [Node]),
-			    false
-		    end;
-		false ->
-		    io:format("Checking if node ~w is ready ~n", [Node]),
-		    false
-	    end;
-	false ->
-	    io:format("Checking if node ~w is ready ~n", [Node]),
-	    false
+    try
+	case rpc:call(Node,clocksi_vnode,check_tables_ready,[]) of
+	    true ->
+		case rpc:call(Node,clocksi_readitem_fsm,check_servers_ready,[]) of
+		    true ->
+			case rpc:call(Node,materializer_vnode,check_tables_ready,[]) of
+			    true ->
+				io:format("Node ~w is ready! ~n", [Node]),
+				true;
+			    false ->
+				io:format("Node ~w is not ready ~n", [Node]),
+				false
+			end;
+		    false ->
+			io:format("Checking if node ~w is ready ~n", [Node]),
+			false
+		end;
+	    false ->
+		io:format("Checking if node ~w is ready ~n", [Node]),
+		false
+	end
+    catch
+        _:Reason ->
+	    io:error("RPC failed to check nodes ready so skipping this, reason: ~p", [Reason]),
+	    true
     end.
+
 
 
 %% connect(NodeList) ->
