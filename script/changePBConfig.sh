@@ -10,6 +10,8 @@ if [ $File = "./examples/orset_pb.config" ]; then
     Type="set"
 elif [ $File = "./examples/antidote_pb.config" ]; then
     Type="counter"
+elif [ $File = "./examples/single_key.config" ]; then
+    Type="set"
 else
     Type="counter"
 fi

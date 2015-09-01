@@ -5,12 +5,15 @@ TestName=$2
 Branch=$3
 BenchFile=$4
 
-if [ $BenchFile = "./examples/orset_pb.config" ]; then
+if [ $BenchFile = "orset_pb.config" ]; then
     Type="set"
     AppendFile="update_latencies.csv"
-elif [ $BenchFile = "./examples/antidote_pb.config" ]; then
+elif [ $BenchFile = "antidote_pb.config" ]; then
     Type="counter"
     AppendFile="append_latencies.csv"
+elif [ $BenchFile = "single_key.config" ]; then
+    Type="set"
+    AppendFile="update_latencies.csv"
 else
     Type="counter"
     AppendFile="append_latencies.csv"
