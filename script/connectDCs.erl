@@ -120,7 +120,7 @@ connect_each([], _DCPerRing, _Acc, _AllDCs, _, _, _) ->
     ok;
 connect_each(Nodes, DCPerRing, Acc, AllDCs, Allips, Allports, DCList) ->
     {DCNodes, Rest} = lists:split(DCPerRing, Nodes),
-    OtherDCList = DCList -- [list:nth(Acc, DCList)],
+    OtherDCList = DCList -- [lists:nth(Acc, DCList)],
     OtherDCs = AllDCs -- [lists:nth(Acc, AllDCs)],
     OtherIps = Allips -- [lists:nth(Acc, Allips)],
     OtherPorts = Allports -- [lists:nth(Acc, Allports)],
