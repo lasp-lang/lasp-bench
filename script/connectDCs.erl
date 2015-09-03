@@ -9,7 +9,7 @@ listenAndConnect(StringNodes) ->
     Temp = [list_to_atom(StringNode) || StringNode <- StringNodes],
     Cookie = hd(Temp),
     DCPerRing = list_to_integer(atom_to_list(hd(tl(Temp)))),
-    Branch = list_to_atom(hd(tl(tl(Temp)))),
+    Branch = hd(tl(tl(Temp)))),
     Nodes = tl(tl(tl(Temp))),
     io:format("Nodes ~w ~n", [Nodes]),
     io:format("Branch from erl ~w ~n", [Branch]),
