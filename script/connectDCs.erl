@@ -114,7 +114,7 @@ startListeners([], _Branch, Acc) ->
     Acc;
 startListeners([{Node, Port}|Rest], Branch, Acc) ->
     {ok, DC} = case Branch of
-		   pubsub_benchmark ->
+		   pubsub_bench ->
 		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
 		   _ ->
 		       rpc:call(Node, inter_dc_manager, start_receiver,[Port])
@@ -152,7 +152,7 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
 				io:format("Connecting a dc ip ~w, port ~w or ~w ~n", [Ip,Port,OtherDC]),
 				%% ok = rpc:call(Node, inter_dc_manager, add_dc,[{DC, {atom_to_list(Ip), Port}}]),
 				case Branch of
-				    pubsub_benchmark ->
+				    pubsub_bench ->
 					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
 				    _ ->
 					ok = rpc:call(Node, inter_dc_manager, add_dc,[OtherDC])
