@@ -1,6 +1,6 @@
 -module(connectDCs).
 
--export([listenAndConnect/1, startListener/1, connect/5
+-export([listenAndConnect/1, connect/6
 	]).
 
 -define(LISTEN_PORT, 8091).
@@ -10,8 +10,9 @@ listenAndConnect(StringNodes) ->
     Cookie = hd(Temp),
     DCPerRing = list_to_integer(atom_to_list(hd(tl(Temp)))),
     Nodes = tl(tl(Temp)),
+    Branch = tl(tl(tl(Temp))),
     io:format("Nodes ~w ~n", [Nodes]),
-
+    io:format("Branch from erl ~w ~n", [Branch]),
     
     true = erlang:set_cookie(node(), Cookie),
     NumDCs = length(Nodes) div DCPerRing,
@@ -24,7 +25,7 @@ listenAndConnect(StringNodes) ->
     Ports = lists:seq(?LISTEN_PORT, ?LISTEN_PORT + NumDCs -1),
     DCInfo = addPort(HeadNodes, Ports, []),
     DCList = startListeners(DCInfo,[]),
-    connect_each(CookieNodes, DCPerRing, 1, DCInfo, HeadNodesIp, Ports, DCList).
+    connect_each(CookieNodes, DCPerRing, 1, DCInfo, HeadNodesIp, Ports, DCList, Branch).
 
 wait_ready_nodes([]) ->
     true;
@@ -78,10 +79,10 @@ check_ready(Node) ->
 %%     connect(FullNodes, ListenerAddrs).
 
 
-startListener([Node]) ->
-    {ok, DC} = rpc:call(Node, inter_dc_manager, start_receiver,[?LISTEN_PORT]),
-    io:format("Datacenter ~w ~n", [DC]),
-    DC.
+%% startListener([Node]) ->
+%%     {ok, DC} = rpc:call(Node, inter_dc_manager, start_receiver,[?LISTEN_PORT]),
+%%     io:format("Datacenter ~w ~n", [DC]),
+%%     DC.
 
 
 %%%%%%%%%%%%%%%%%%%%%%% Helper functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -109,16 +110,21 @@ keepnth([First|Rest], Length, AccNum, AccList) ->
 	_ -> keepnth(Rest, Length, AccNum+1, AccList)
     end.
 
-startListeners([], Acc) ->
+startListeners([], _Branch, Acc) ->
     Acc;
-startListeners([{Node, Port}|Rest], Acc) ->
-    {ok, DC} = rpc:call(Node, inter_dc_manager, start_receiver,[Port]),
+startListeners([{Node, Port}|Rest], Branch, Acc) ->
+    {ok, DC} = case Branch of
+		   pubsub_benchmark ->
+		       {ok, DC1} = rpc:call(Node, inter_dc_manager, get_descriptor, []);
+		   _ ->
+		       {ok, DC2} = rpc:call(Node, inter_dc_manager, start_receiver,[Port])
+	       end,
     io:format("Datacenter ~w ~n", [DC]),
     startListeners(Rest, [DC | Acc]).
 
-connect_each([], _DCPerRing, _Acc, _AllDCs, _, _, _) ->
+connect_each([], _DCPerRing, _Acc, _AllDCs, _, _, _, _) ->
     ok;
-connect_each(Nodes, DCPerRing, Acc, AllDCs, Allips, Allports, DCList) ->
+connect_each(Nodes, DCPerRing, Acc, AllDCs, Allips, Allports, DCList, Branch) ->
     {DCNodes, Rest} = lists:split(DCPerRing, Nodes),
     OtherDCList = DCList -- [lists:nth(Acc, DCList)],
     OtherDCs = AllDCs -- [lists:nth(Acc, AllDCs)],
@@ -128,11 +134,11 @@ connect_each(Nodes, DCPerRing, Acc, AllDCs, Allips, Allports, DCList) ->
 	[] ->
 	    io:format("Empty dc, no need to connect!~n");
 	_ ->
-    	    connect(DCNodes, OtherDCs, OtherIps, OtherPorts, OtherDCList)
+    	    connect(DCNodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch)
     end,
-    connect_each(Rest, DCPerRing, Acc+1, AllDCs, Allips, Allports, DCList).
+    connect_each(Rest, DCPerRing, Acc+1, AllDCs, Allips, Allports, DCList, Branch).
 
-connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList) ->
+connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
     case Nodes of
 	[] ->
 		ok;
@@ -145,8 +151,13 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList) ->
 				OtherDC = lists:nth(Acc, OtherDCList),
 				io:format("Connecting a dc ip ~w, port ~w or ~w ~n", [Ip,Port,OtherDC]),
 				%% ok = rpc:call(Node, inter_dc_manager, add_dc,[{DC, {atom_to_list(Ip), Port}}]),
-				ok = rpc:call(Node, inter_dc_manager, add_dc,[OtherDC]),
+				{ok, DC} = case Branch of
+					       pubsub_benchmark ->
+						   ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
+					       _ ->
+						   ok = rpc:call(Node, inter_dc_manager, add_dc,[OtherDC])
+					   end,
 				Acc + 1
 			end, 1, OtherDCs),
-	    connect(Rest, OtherDCs, OtherIps, OtherPorts, OtherDCList)
+	    connect(Rest, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch)
     end.

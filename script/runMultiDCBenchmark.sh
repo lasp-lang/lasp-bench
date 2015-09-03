@@ -31,6 +31,7 @@ else
     BenchParallel=$7
     GridJob=$8
     Time=$9
+    Branch=`cat script/branch`
 fi
 
 BenchmarkType=1
@@ -45,7 +46,7 @@ for ReadWrite in $(seq 0 5); do
     ./script/stopNodes.sh  >> logs/"$GridJob"/stop_nodes-"$Time"
     
     echo Deploying DCs
-    ./script/deployMultiDCs.sh nodes $Cookie $ConnectDCs $NodesPerDC
+    ./script/deployMultiDCs.sh nodes $Cookie $ConnectDCs $NodesPerDC $Branch
     
     cat script/allnodes > ./tmpnodelist
     cat script/allnodesbench > ./tmpnodelistbench

@@ -38,12 +38,16 @@ for I in $(seq 0 $((${#Clusters[*]} - 1))); do
 done
 
 echo $CountDC > ~/countDC
+echo $Branch > ~/branch
 
 echo Benchmark nodes: `cat ~/benchnodelist`
 echo
 echo Compute nodes: `cat ~/nodelist`
 echo
 echo Full node list: `cat ~/fullnodelist`
+echo
+echo Branch to send: `cat ~/branch`
+echo
 
 if [ $DoDeploy -eq 1 ]; then
     # Connect to each cluster to deloy the nodes
@@ -104,7 +108,6 @@ if [ $SecondRun -eq 0 ]; then
     echo ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch
     ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch $GridJob $Time
 
-    
     # Copy the allnodes file to the benchmark locations
     echo all nodes are `cat ~/nodelistip`
     echo Performing SCPs
@@ -114,6 +117,8 @@ if [ $SecondRun -eq 0 ]; then
 	    scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
 	    echo scp ~/benchnodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodesbench
 	    scp ~/benchnodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodesbench
+	    echo scp ~/branch root@"$Node":/root/basho_bench"$I"/basho_bench/script/branch
+	    scp ~/branch root@"$Node":/root/basho_bench"$I"/basho_bench/script/branch
 	done
     done
     
@@ -127,6 +132,8 @@ else
 	    scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
 	    echo scp ~/benchnodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodesbench
 	    scp ~/benchnodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodesbench
+	    echo scp ~/branch root@"$Node":/root/basho_bench"$I"/basho_bench/script/branch
+	    scp ~/branch root@"$Node":/root/basho_bench"$I"/basho_bench/script/branch
 	done
     done
    

@@ -18,8 +18,10 @@ mkdir -p logs/"$GridJob"
 
 AllNodes=`cat script/allnodes`
 BenchNodes=`cat script/allnodesbench`
+Branch=`cat script/branch`
 echo All nodes for muliptle tests: $AllNodes
 echo Bench nodes for multiple tests: $BenchNodes
+echo Branch using: $Branch
 Mode="pb"
 echo Starting time stabalize
 ./script/stablizeTime.sh >> logs/"$GridJob"/stabalize_time-"$Time" &
