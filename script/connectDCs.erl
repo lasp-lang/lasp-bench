@@ -63,7 +63,7 @@ check_ready(Node) ->
 	end
     catch
         _:Reason ->
-	    io:error("RPC failed to check nodes ready so skipping this, reason: ~p", [Reason]),
+	    io:format(standard_error, "RPC failed to check nodes ready so skipping this, reason: ~p", [Reason]),
 	    true
     end.
 
