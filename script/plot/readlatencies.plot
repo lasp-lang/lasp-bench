@@ -1,6 +1,6 @@
 set term png 
-set output "results-1dcs-2nodes-2benchNodes/write_latencies.png"
-set title "Write-Latencies-1-DCs-2-Nodes-2-Bench-Nodes"
+set output "results-weak_meta_data-2dcs-2nodes-2benchNodes/write_latencies.png"
+set title "Write-Latencies-2-DCs-2-Nodes-2-Bench-Nodes-Branch-weak_meta_data"
 set xtics ("99.99(.01)" 1, "99(1)" 2, "90(10)" 3, "75(25)" 4, "50(50)" 5, "1(99)" 6)
 set tics out
 set logscale y
