@@ -42,11 +42,11 @@ wait_ready_nodes([Node|Rest]) ->
 check_ready(Node) ->
     io:format("Checking if node ~w is ready ~n", [Node]),
     try
-	case rpc:call(Node,clocksi_vnode,check_tables_ready,[]) of
+	case rpc:call(Node,clocksi_vnode,check_tables_ready,[],5000) of
 	    true ->
-		case rpc:call(Node,clocksi_readitem_fsm,check_servers_ready,[]) of
+		case rpc:call(Node,clocksi_readitem_fsm,check_servers_ready,[],5000) of
 		    true ->
-			case rpc:call(Node,materializer_vnode,check_tables_ready,[]) of
+			case rpc:call(Node,materializer_vnode,check_tables_ready,[],5000) of
 			    true ->
 				io:format("Node ~w is ready! ~n", [Node]),
 				true;
@@ -113,6 +113,7 @@ keepnth([First|Rest], Length, AccNum, AccList) ->
 startListeners([], _Branch, Acc) ->
     Acc;
 startListeners([{Node, Port}|Rest], Branch, Acc) ->
+    io:format("Getting descriptor"),
     {ok, DC} = case Branch of
 		   pubsub_bench ->
 		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
