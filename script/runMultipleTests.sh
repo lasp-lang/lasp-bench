@@ -31,21 +31,21 @@ Pid=$!
 
 if [ $NodesPerDC -lt 2 ]
 then
-    RingSize=32
+    RingSize=8
 elif [ $NodesPerDC -lt 3 ]
 then
-    RingSize=64
+    RingSize=16
 elif [ $NodesPerDC -lt 6 ]
 then
-    RingSize=128
+    RingSize=64
 elif [ $NodesPerDC -lt 12 ]
 then
-    RingSize=256
+    RingSize=128
 elif [ $NodesPerDC -lt 24 ]
 then
-    RingSize=512
+    RingSize=256
 else
-    RingSize=1024
+    RingSize=512
 fi
 
 echo Setting partition size to $RingSize
