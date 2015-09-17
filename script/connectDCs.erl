@@ -19,7 +19,17 @@ listenAndConnect(StringNodes) ->
     io:format("NumDCs ~w ~n", [NumDCs]),
 
     CookieNodes = addCookie(Nodes, Cookie, []),
-    wait_ready_nodes(CookieNodes),
+    IsPubSub = case Branch of
+		   pubsub_bench ->
+		       true;
+		   pubsub_bench_log ->
+		       true;
+		   pubsub_log_strong ->
+		       true;
+		   _ ->
+		       false
+	       end,
+    wait_ready_nodes(CookieNodes, IsPubSub),
     HeadNodes = keepnth(CookieNodes, DCPerRing, 0, []), 
     HeadNodesIp = keepnth(Nodes, DCPerRing, 0, []), 
     Ports = lists:seq(?LISTEN_PORT, ?LISTEN_PORT + NumDCs -1),
@@ -27,15 +37,24 @@ listenAndConnect(StringNodes) ->
     DCList = startListeners(DCInfo,Branch,[]),
     connect_each(CookieNodes, DCPerRing, 1, DCInfo, HeadNodesIp, Ports, DCList, Branch).
 
-wait_ready_nodes([]) ->
+wait_ready_nodes([], _IsPubSub) ->
     true;
-wait_ready_nodes([Node|Rest]) ->
+wait_ready_nodes([Node|Rest], IsPubSub) ->
     case check_ready(Node) of
 	true ->
-	    wait_ready_nodes(Rest);
+	    case IsPubSub of 
+		true ->
+		    wait_until_registered(Node, inter_dc_pub),
+		    wait_until_registered(Node, inter_dc_log_reader_response),
+		    wait_until_registered(Node, inter_dc_log_reader_query),
+		    wait_until_registered(Node, inter_dc_sub);
+		false ->
+		    wait_until_registered(Node, inter_dc_manager)
+	    end,
+	    wait_ready_nodes(Rest,IsPubSub);
 	false ->
 	    timer:sleep(100),
-	    wait_ready_nodes([Node|Rest])
+	    wait_ready_nodes([Node|Rest],IsPubSub)
     end.
 
 
@@ -169,4 +188,41 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
 				Acc + 1
 			end, 1, OtherDCs),
 	    connect(Rest, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch)
+    end.
+
+
+%% These functions are copied from https://github.com/basho/riak_test/blob/master/src/rt.erl
+
+% Waits until a certain registered name pops up on the remote node.
+wait_until_registered(Node, Name) ->
+    lager:info("Wait until ~p is up on ~p", [Name, Node]),
+
+    F = fun() ->
+                Registered = rpc:call(Node, erlang, registered, []),
+                lists:member(Name, Registered)
+        end,
+    case wait_until(F) of
+        ok ->
+            ok;
+        _ ->
+            io:format("The server with the name ~p on ~p is not coming up.",
+                       [Name, Node])
+    end.
+
+wait_until(Fun) when is_function(Fun) ->
+    MaxTime = 5000,
+    Delay = 1000,
+    Retry = MaxTime div Delay,
+    wait_until(Fun, Retry, Delay).
+
+wait_until(Fun, Retry, Delay) when Retry > 0 ->
+    Res = Fun(),
+    case Res of
+        true ->
+            ok;
+        _ when Retry == 1 ->
+            {fail, Res};
+        _ ->
+            timer:sleep(Delay),
+            wait_until(Fun, Retry-1, Delay)
     end.
