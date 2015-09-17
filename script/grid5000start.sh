@@ -186,3 +186,5 @@ done
 
 echo Taring them to antidote_bench-"$Time".tar
 tar cvzf antidote_bench-"$Time".tar antidote_bench-"$Time" >> logs/"$GridJob"/tar_merged_job"$Time"
+
+echo antidote_bench-"$Time".tar antidote_bench-"$Time" >> tarnames
