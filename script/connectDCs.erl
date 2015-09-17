@@ -195,7 +195,7 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
 
 % Waits until a certain registered name pops up on the remote node.
 wait_until_registered(Node, Name) ->
-    io:format("Wait until ~p is up on ~p", [Name, Node]),
+    io:format("Wait until ~p is up on ~p~n", [Name, Node]),
 
     F = fun() ->
                 Registered = rpc:call(Node, erlang, registered, []),
@@ -205,12 +205,12 @@ wait_until_registered(Node, Name) ->
         ok ->
             ok;
         _ ->
-            io:format("The server with the name ~p on ~p is not coming up.",
+            io:format("The server with the name ~p on ~p is not coming up.~n",
                        [Name, Node])
     end.
 
 wait_until(Fun) when is_function(Fun) ->
-    MaxTime = 5000,
+    MaxTime = 20000,
     Delay = 1000,
     Retry = MaxTime div Delay,
     wait_until(Fun, Retry, Delay).
