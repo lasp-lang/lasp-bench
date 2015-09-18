@@ -20,6 +20,8 @@ listenAndConnect(StringNodes) ->
 
     CookieNodes = addCookie(Nodes, Cookie, []),
     IsPubSub = case Branch of
+		   pubsub ->
+		       true;
 		   pubsub_bench ->
 		       true;
 		   pubsub_bench_log ->
@@ -134,6 +136,8 @@ startListeners([], _Branch, Acc) ->
 startListeners([{Node, Port}|Rest], Branch, Acc) ->
     io:format("Getting descriptor"),
     {ok, DC} = case Branch of
+		   pubsub ->
+		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
 		   pubsub_bench ->
 		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
 		   pubsub_bench_log ->
@@ -176,6 +180,8 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
 				io:format("Connecting a dc ip ~w, port ~w or ~w ~n", [Ip,Port,OtherDC]),
 				%% ok = rpc:call(Node, inter_dc_manager, add_dc,[{DC, {atom_to_list(Ip), Port}}]),
 				case Branch of
+				    pubsub ->
+					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
 				    pubsub_bench ->
 					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
 				    pubsub_bench_log ->
