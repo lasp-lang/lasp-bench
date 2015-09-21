@@ -22,6 +22,8 @@ listenAndConnect(StringNodes) ->
     IsPubSub = case Branch of
 		   pubsub ->
 		       true;
+		   pubsub_cert_disable ->
+		       true;
 		   pubsub_bench ->
 		       true;
 		   pubsub_bench_log ->
@@ -138,6 +140,8 @@ startListeners([{Node, Port}|Rest], Branch, Acc) ->
     {ok, DC} = case Branch of
 		   pubsub ->
 		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
+		   pubsub_cert_disable ->
+		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
 		   pubsub_bench ->
 		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
 		   pubsub_bench_log ->
@@ -181,6 +185,8 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
 				%% ok = rpc:call(Node, inter_dc_manager, add_dc,[{DC, {atom_to_list(Ip), Port}}]),
 				case Branch of
 				    pubsub ->
+					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
+				    pubsub_cert_disable ->
 					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
 				    pubsub_bench ->
 					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
