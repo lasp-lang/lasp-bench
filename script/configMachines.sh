@@ -26,7 +26,7 @@ Command1="sed -i 's/127.0.0.1/localhost/g' $File1"
 Command2="sed -i 's/172.31.30.71/localhost/g' $File1"
 Command3="sed -i 's/127.0.0.1/localhost/g' $File2"
 Command4="cd ./antidote/ && rm -r deps && mkdir deps "
-Command5="cd ./antidote/ && make rel" 
+Command5="cd ./antidote/ && make relnocert" 
 
 echo Running config commands
 echo
