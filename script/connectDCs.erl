@@ -19,18 +19,10 @@ listenAndConnect(StringNodes) ->
     io:format("NumDCs ~w ~n", [NumDCs]),
 
     CookieNodes = addCookie(Nodes, Cookie, []),
-    IsPubSub = case Branch of
-		   pubsub ->
+    IsPubSub = case re:run(atom_to_list(Branch),"pubsub") of
+		   {match, _} ->
 		       true;
-		   pubsub_cert_disable ->
-		       true;
-		   pubsub_bench ->
-		       true;
-		   pubsub_bench_log ->
-		       true;
-		   pubsub_log_strong ->
-		       true;
-		   _ ->
+		   nomatch ->
 		       false
 	       end,
     wait_ready_nodes(CookieNodes, IsPubSub),
@@ -137,18 +129,10 @@ startListeners([], _Branch, Acc) ->
     Acc;
 startListeners([{Node, Port}|Rest], Branch, Acc) ->
     io:format("Getting descriptor"),
-    {ok, DC} = case Branch of
-		   pubsub ->
+    {ok, DC} = case re:run(atom_to_list(Branch),"pubsub") of
+		   {match, _} ->
 		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
-		   pubsub_cert_disable ->
-		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
-		   pubsub_bench ->
-		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
-		   pubsub_bench_log ->
-		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
-		   pubsub_log_strong ->
-		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
-		   _ ->
+		   nomatch ->
 		       rpc:call(Node, inter_dc_manager, start_receiver,[Port])
 	       end,
     io:format("Datacenter ~w ~n", [DC]),
@@ -183,18 +167,10 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
 				OtherDC = lists:nth(Acc, OtherDCList),
 				io:format("Connecting a dc ip ~w, port ~w or ~w ~n", [Ip,Port,OtherDC]),
 				%% ok = rpc:call(Node, inter_dc_manager, add_dc,[{DC, {atom_to_list(Ip), Port}}]),
-				case Branch of
-				    pubsub ->
+				case re:run(atom_to_list(Branch),"pubsub") of
+				    {match, _} ->
 					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
-				    pubsub_cert_disable ->
-					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
-				    pubsub_bench ->
-					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
-				    pubsub_bench_log ->
-					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
-				    pubsub_log_strong ->
-					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
-				    _ ->
+				    nomatch ->
 					ok = rpc:call(Node, inter_dc_manager, add_dc,[OtherDC])
 				end,
 				Acc + 1
