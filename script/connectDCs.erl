@@ -31,7 +31,9 @@ listenAndConnect(StringNodes) ->
     Ports = lists:seq(?LISTEN_PORT, ?LISTEN_PORT + NumDCs -1),
     DCInfo = addPort(HeadNodes, Ports, []),
     DCList = startListeners(DCInfo,Branch,[]),
-    connect_each(CookieNodes, DCPerRing, 1, DCInfo, HeadNodesIp, Ports, DCList, Branch).
+    connect_each(CookieNodes, DCPerRing, 1, DCInfo, HeadNodesIp, Ports, DCList, Branch),
+    %% Sleep for some time to let the DCs stablize
+    timer:sleep(30000).
 
 wait_ready_nodes([], _IsPubSub) ->
     true;
