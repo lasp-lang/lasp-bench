@@ -171,7 +171,7 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
 				%% ok = rpc:call(Node, inter_dc_manager, add_dc,[{DC, {atom_to_list(Ip), Port}}]),
 				case re:run(atom_to_list(Branch),"pubsub") of
 				    {match, _} ->
-					ok = rpc:call(Node, inter_dc_manager, observe_dc,[OtherDC]);
+					ok = rpc:call(Node, inter_dc_manager, observe_dc_sync,[OtherDC]);
 				    nomatch ->
 					ok = rpc:call(Node, inter_dc_manager, add_dc,[OtherDC])
 				end,
