@@ -6,6 +6,8 @@ Id=$2
 File=$3
 Reads=$4
 Writes=$5
+NumDCs=$6
+NodesPerDC=$7
 cd  /root/basho_bench"$Id"/basho_bench/
 AllNodes=`cat script/runnodes`
 
@@ -23,7 +25,7 @@ if [ $2 -eq 0 ]; then
     ./script/changeErlConfig.sh "$AllNodes" $Cookie $FileName $Reads $Writes
 else
     FileName="examples/"$File
-    ./script/changePBConfig.sh "$AllNodes" antidote $FileName $Reads $Writes
+    ./script/changePBConfig.sh "$AllNodes" antidote $FileName $Reads $Writes $NumDCs $NodesPerDC
 fi
 
 

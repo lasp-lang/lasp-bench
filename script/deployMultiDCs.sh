@@ -35,13 +35,14 @@ AllNodes=`cat script/allnodes`
 Cookie=$2
 NodesPerDC=$4
 Branch=$5
+BenchmarkFile=$6
 ./script/startNodes.sh "$AllNodes"
 echo "Finished restarting"
 if [ $3 -eq 1 ]; then
 	echo "Connect DCs"
 	joinNodes "$AllNodes" $NodesPerDC
 	erlc script/connectDCs.erl
-	erl -pa script -name setter@localhost -setcookie $Cookie -run connectDCs listenAndConnect $Cookie $NodesPerDC $Branch $AllNodes -run init stop 
+	erl -pa script -name setter@localhost -setcookie $Cookie -run connectDCs listenAndConnect $Cookie $NodesPerDC $Branch $BenchmarkFile $AllNodes -run init stop 
 else
 	echo "Not connecting DCs"
 fi
