@@ -77,22 +77,24 @@ done
 while [ 1 -eq 1 ]; do
 
     sleep 5s
-    
+    AllFiles=""
     for DCNum in $(seq 1 $NumberDC); do
 	TmpArray=(${BenchNodeArray[$DCNum]})
 	for Item in ${TmpArray[@]}; do
 	    for I in $(seq 1 $BenchParallel); do
 		echo Collecting results $I on $Item
+		AllFiles="./"$I"a"$Item"summary.csv "$AllFiles""
 
-		scp -o StrictHostKeyChecking=no -i key root@"$Item":/root/basho_bench"$I"/basho_bench/results/current/summary.csv ./next.csv
-
-		echo awk -f ../basho_bench/script/mergeResults.awk $AllFiles > summary-"$TestName"/read_latencies.csv
-		awk -f ../basho_bench/script/mergeResults.awk read_latencies.csv next.csv > summary-"$TestName"/read_latencies.csv
-
-		
+		scp -o StrictHostKeyChecking=no -i key root@"$Item":/root/basho_bench"$I"/basho_bench/results/current/summary.csv ./"$I"a"$Item"summary.csv
 	    done
 	done
     done
+    echo awk -f ../basho_bench/script/mergeResults.awk $AllFiles > summary.csv
+    awk -f ../basho_bench/script/mergeResults.awk $AllFiles > summary.csv
+
+    echo awk -f ../basho_bench/script/demoSummary.awk summary.csv > summaryDemoValues
+    awk -f ../basho_bench/script/demoSummary.awk summary.csv > summaryDemoValues
+    # gnuplot ../basho_bench/script/plot/summaryDemo.plot
 
 done
 

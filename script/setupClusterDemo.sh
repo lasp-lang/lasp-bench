@@ -56,3 +56,8 @@ echo Setting partition size to $RingSize
 ./script/changePartition.sh $RingSize >> logs/"$GridJob"/changePartition-"$Time"
 
 ./script/runClusterDemo.sh antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $BenchFile $BenchParallel $GridJob $Time
+
+
+read -p "Press any key to start running the demo"
+
+./script/runGraphDemo.sh antidote $NumDCs $NodesPerDC $NumBenchNodes 1 $BenchFile $BenchParallel $GridJob $Time
