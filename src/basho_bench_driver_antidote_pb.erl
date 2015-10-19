@@ -70,25 +70,47 @@ new(Id) ->
 		target_node=TargetNode}}.
 
 %% @doc Read a key
-run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=Port, target_node=Node, type_dict=TypeDict}) ->
+run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=_Port, target_node=_Node, type_dict=_TypeDict}) ->
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
-    Type = get_key_type(KeyInt, TypeDict),
-    Response =  antidotec_pb_socket:get_crdt(Key, Type, Pid),
-    case Response of
-        {ok, _Value} ->
-            {ok, State};
-        {error,timeout} ->
-            lager:info("Timeout on client ~p",[Id]),
-            antidotec_pb_socket:stop(Pid),
-            {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
-            {error, timeout, State#state{pb_pid=NewPid}    };            
-        {error, Reason} ->
-            lager:error("Error: ~p",[Reason]),
-            {error, Reason, State};
-        {badrpc, Reason} ->
-            {error, Reason, State}
+    %% Type = get_key_type(KeyInt, TypeDict),
+
+    Bound_object = {Key, riak_dt_pncounter, <<"bucket">>},
+    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), {}) of
+	{ok, TxId} ->
+	    case antidotec_pb:read_objects(Pid, [Bound_object], TxId) of
+		{ok, [_Val]} ->		    
+		    case antidotec_pb:commit_transaction(Pid, TxId) of
+			{ok, _} ->
+			    {ok, State};
+			_ ->
+			    lager:info("Error read1 on client ~p",[Id]),
+			    {error, timeout, State}
+		    end;
+		_ ->
+		    lager:info("Error read2 on client ~p",[Id]),
+		    {error, timeout, State}
+	    end;
+	_ ->
+	    lager:info("Error read3 on client ~p",[Id]),
+	    {error, timeout, State}
     end;
+
+%% Response =  antidotec_pb_socket:get_crdt(Key, Type, Pid),
+    %% case Response of
+    %%     {ok, _Value} ->
+    %%         {ok, State};
+    %%     {error,timeout} ->
+    %%         lager:info("Timeout on client ~p",[Id]),
+    %%         antidotec_pb_socket:stop(Pid),
+    %%         {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
+    %%         {error, timeout, State#state{pb_pid=NewPid}    };            
+    %%     {error, Reason} ->
+    %%         lager:error("Error: ~p",[Reason]),
+    %%         {error, Reason, State};
+    %%     {badrpc, Reason} ->
+    %%         {error, Reason, State}
+    %% end;
 
 
 %% @doc Multikey txn 
@@ -142,35 +164,64 @@ run(append_multiple, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id
     end;
 
 %% @doc Write to a key
-run(append, KeyGen, ValueGen,
-    State=#state{type_dict=TypeDict,
+run(append, KeyGen, _ValueGen,
+    State=#state{type_dict=_TypeDict,
                  pb_pid = Pid,
                  worker_id = Id,
-                 pb_port=Port,
-                 target_node=Node}) ->
+                 pb_port=_Port,
+                 target_node=_Node}) ->
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
     %%TODO: Support for different data types
-    Type = get_key_type(KeyInt, TypeDict),
-    {Mod, Op, Param} = get_random_param(TypeDict, Type, ValueGen()),
-    Obj = Mod:Op(Param, Mod:new(Key)),
-    Response = antidotec_pb_socket:store_crdt(Obj, Pid),
-    case Response of
-        ok ->
-            {ok, State};
-        {ok, _Result} ->
-            {ok, State};
-        {error,timeout}->
-            lager:info("Timeout on client ~p",[Id]),
-            antidotec_pb_socket:stop(Pid),
-            {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
-            {error, timeout, State#state{pb_pid=NewPid}}; 
-        {error, Reason} ->
-            lager:error("Error: ~p",[Reason]),
-            {error, Reason, State};
-        {badrpc, Reason} ->
-            {error, Reason, State}
+    %% Type = get_key_type(KeyInt, TypeDict),
+    %% {Mod, Op, Param} = get_random_param(TypeDict, Type, ValueGen()),
+    %% Obj = Mod:Op(Param, Mod:new(Key)),
+    
+    Bucket = <<"bucket">>,
+    BObj = {Key, riak_dt_pncounter, Bucket},
+    Obj = antidotec_counter:new(),
+    Obj2 = antidotec_counter:increment(1, Obj),
+    
+    
+    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), {}) of
+	{ok, TxId} ->
+	    case antidotec_pb:update_objects(Pid,
+					     antidotec_counter:to_ops(BObj, Obj2),
+					     TxId) of
+		ok ->
+		    case antidotec_pb:commit_transaction(Pid, TxId) of
+			{ok, _} ->
+			    {ok, State};
+			_ ->
+			    lager:info("Error append1 on client ~p",[Id]),
+			    {error, timeout, State}
+		    end;
+		_ ->
+		    lager:info("Error read2 on client ~p",[Id]),
+			{error, timeout, State}
+	    end;
+	_ ->
+	    lager:info("Error read3 on client ~p",[Id]),
+	    {error, timeout, State}
     end;
+
+    %% Response = antidotec_pb_socket:store_crdt(Obj, Pid),
+    %% case Response of
+    %%     ok ->
+    %%         {ok, State};
+    %%     {ok, _Result} ->
+    %%         {ok, State};
+    %%     {error,timeout}->
+    %%         lager:info("Timeout on client ~p",[Id]),
+    %%         antidotec_pb_socket:stop(Pid),
+    %%         {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
+    %%         {error, timeout, State#state{pb_pid=NewPid}}; 
+    %%     {error, Reason} ->
+    %%         lager:error("Error: ~p",[Reason]),
+    %%         {error, Reason, State};
+    %%     {badrpc, Reason} ->
+    %%         {error, Reason, State}
+    %% end;
 
 
 run(update, KeyGen, ValueGen,
