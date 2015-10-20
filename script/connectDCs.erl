@@ -38,7 +38,7 @@ listenAndConnect(StringNodes) ->
     case IsPartial of
 	true ->
 	    ReplicationFactor = case re:run(atom_to_list(BenchmarkFile),"_rep") of
-				    {match, {Pos,_Len}} ->
+				    {match, [{Pos,_Len}]} ->
 					list_to_integer(string:substr(atom_to_list(BenchmarkFile),Pos+5,1));
 				    nomatch ->
 					NumDCs

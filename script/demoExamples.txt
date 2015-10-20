@@ -71,3 +71,16 @@ rpc:call(Node3, antidote, append, [key1, riak_dt_gcounter, {increment, ucl1}]),
 During partition check you see the update from site 1
 
 rpc:call(Node3, antidote, read,[key1, riak_dt_gcounter]),
+
+
+
+
+Running directly on antidote nodes to test:
+
+./antidote/rel/antidote/bin/antidote attach
+
+antidote:read(key1, riak_dt_gcounter),
+antidote:append(key1, riak_dt_gcounter, {increment, ucl1}),
+
+more ./antidote/rel/antidote/log/console.log
+tail -F ./antidote/rel/antidote/log/console.log
