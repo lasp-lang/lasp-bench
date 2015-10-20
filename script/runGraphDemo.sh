@@ -139,7 +139,7 @@ while [ 1 -eq 1 ]; do
 		echo Collecting append results $I on $Item
 		AllFiles="./"$I"a"$Item"write.csv "$AllFiles""
 
-		scp -o StrictHostKeyChecking=no -i key root@"$Item":/root/basho_bench"$I"/basho_bench/tests/current/"$AppendFile".csv ./"$I"a"$Item"write.csv
+		scp -o StrictHostKeyChecking=no -i key root@"$Item":/root/basho_bench"$I"/basho_bench/tests/current/"$AppendFile" ./"$I"a"$Item"write.csv
 	    done
 	done
     done
