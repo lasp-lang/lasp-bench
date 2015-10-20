@@ -9,8 +9,8 @@ set tics out
 set xlabel "Elapsed time (10s per tic)"
 set ylabel "Operations/Second"
 plot "summaryDemoValues" using 1:2 title 'Total' with linespoints, \
-"plots" using 1:3 title 'Successful' with linespoints, \
-"plots" using 1:4 title 'Error' with linespoints
+"summaryDemoValues" using 1:3 title 'Successful' with linespoints, \
+"summaryDemoValues" using 1:4 title 'Error' with linespoints
 
 pause 10
 reread
