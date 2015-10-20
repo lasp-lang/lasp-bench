@@ -54,6 +54,18 @@ fi
 
 ReadWrite=2
 
+cat script/allnodes > ./tmpnodelist
+cat script/allnodesbench > ./tmpnodelistbench
+for DCNum in $(seq 1 $NumberDC); do
+    NodeArray[$DCNum]=`head -$NodesPerDC tmpnodelist`
+    sed '1,'"$NodesPerDC"'d' tmpnodelist > tmp
+    cat tmp > tmpnodelist
+    
+    BenchNodeArray[$DCNum]=`head -$BenchNodesPerDC tmpnodelistbench`
+    sed '1,'"$BenchNodesPerDC"'d' tmpnodelistbench > tmp
+    cat tmp > tmpnodelistbench
+done
+
 # Run the benchmarks in parallel
 # This is not a good way to do this, should be implemented inside basho bench
 for DCNum in $(seq 1 $NumberDC); do
