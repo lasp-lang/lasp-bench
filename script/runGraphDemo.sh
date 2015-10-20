@@ -15,7 +15,7 @@ else
     # AllNodes=`echo ${AllNodes[@]}`
     ConnectDCs=$5
     echo "Using" $AllNodes ", will connect DCs:" $ConnectDCs
-    BenchmarkFile=$6
+    BenchFile=$6
     # if [ "$6" = "erl" ]; then
     # 	echo "Benchmark erl"
     #     BenchmarkType=0
