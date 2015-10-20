@@ -73,10 +73,10 @@ for DCNum in $(seq 1 $NumberDC); do
     for Item in ${TmpArray[@]}; do
 	for I in $(seq 1 $BenchParallel); do
 	    echo Running bench $I on $Item with nodes
-    	    echo ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmarkDemo.sh $I $BenchmarkFile ${ReadsNumber[$ReadWrite]}
+    	    echo ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmarkDemo.sh $I $BenchFile ${ReadsNumber[$ReadWrite]}
 
 	    echo for job $GridJob on time $Time
-    	    ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmarkDemo.sh $I $BenchmarkFile ${ReadsNumber[$ReadWrite]} >> logs/"$GridJob"/runBench-"$Item"-"$I"-"$Time"-Reads"${ReadsNumber[$ReadWrite]}" &
+    	    ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmarkDemo.sh $I $BenchFile ${ReadsNumber[$ReadWrite]} >> logs/"$GridJob"/runBench-"$Item"-"$I"-"$Time"-Reads"${ReadsNumber[$ReadWrite]}" &
 	done
     done
 done
@@ -95,7 +95,7 @@ while [ 1 -eq 1 ]; do
 		echo Collecting results $I on $Item
 		AllFiles="./"$I"a"$Item"summary.csv "$AllFiles""
 
-		scp -o StrictHostKeyChecking=no -i key root@"$Item":/root/basho_bench"$I"/basho_bench/results/current/summary.csv ./"$I"a"$Item"summary.csv
+		scp -o StrictHostKeyChecking=no -i key root@"$Item":/root/basho_bench"$I"/basho_bench/tests/current/summary.csv ./"$I"a"$Item"summary.csv
 	    done
 	done
     done
