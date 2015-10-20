@@ -116,7 +116,7 @@ while [ 1 -eq 1 ]; do
 	for Item in ${TmpArray[@]}; do
 	    for I in $(seq 1 $BenchParallel); do
 		echo Collecting read results $I on $Item
-		AllFiles="./"$I"a"$Item"read_latencies.csv "$AllFiles""
+		AllFiles="./"$I"a"$Item"read.csv "$AllFiles""
 
 		scp -o StrictHostKeyChecking=no -i key root@"$Item":/root/basho_bench"$I"/basho_bench/tests/current/read_latencies.csv ./"$I"a"$Item"read.csv
 	    done
@@ -137,9 +137,9 @@ while [ 1 -eq 1 ]; do
 	for Item in ${TmpArray[@]}; do
 	    for I in $(seq 1 $BenchParallel); do
 		echo Collecting append results $I on $Item
-		AllFiles="./"$I"a"$Item"summary.csv "$AllFiles""
+		AllFiles="./"$I"a"$Item"write.csv "$AllFiles""
 
-		scp -o StrictHostKeyChecking=no -i key root@"$Item":/root/basho_bench"$I"/basho_bench/tests/current/summary.csv ./"$I"a"$Item"write.csv
+		scp -o StrictHostKeyChecking=no -i key root@"$Item":/root/basho_bench"$I"/basho_bench/tests/current/"$AppendFile".csv ./"$I"a"$Item"write.csv
 	    done
 	done
     done
