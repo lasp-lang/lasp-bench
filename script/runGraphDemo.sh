@@ -73,19 +73,17 @@ for DCNum in $(seq 1 $NumberDC); do
     for Item in ${TmpArray[@]}; do
 	for I in $(seq 1 $BenchParallel); do
 	    echo Running bench $I on $Item with nodes
-	    echo "${NodeArray[$DCNum]}" > ./tmp
-	    echo scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
-	    scp -o StrictHostKeyChecking=no -i key ./tmp root@"$Item":/root/basho_bench"$I"/basho_bench/script/runnodes
-    	    echo ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I $BenchmarkFile ${ReadsNumber[$ReadWrite]} ${WritesNumber[$ReadWrite]}
+    	    echo ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmarkDemo.sh $I $BenchmarkFile ${ReadsNumber[$ReadWrite]}
 
 	    echo for job $GridJob on time $Time
-    	    ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmark.sh $BenchmarkType $I $BenchmarkFile ${ReadsNumber[$ReadWrite]} ${WritesNumber[$ReadWrite]} >> logs/"$GridJob"/runBench-"$Item"-"$I"-"$Time"-Reads"${ReadsNumber[$ReadWrite]}" &
+    	    ssh -t -o StrictHostKeyChecking=no -i key root@$Item /root/basho_bench"$I"/basho_bench/script/runSimpleBenchmarkDemo.sh $I $BenchmarkFile ${ReadsNumber[$ReadWrite]} >> logs/"$GridJob"/runBench-"$Item"-"$I"-"$Time"-Reads"${ReadsNumber[$ReadWrite]}" &
 	done
     done
 done
 
+sleep 20s
 
-
+echo Starting the results calculation
 while [ 1 -eq 1 ]; do
 
     sleep 5s
