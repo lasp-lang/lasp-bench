@@ -346,7 +346,7 @@ connect_partial(Nodes, OtherDCs, DcNum) ->
 setReplicationFunction(DcList,NumDcs,ReplicationFactor) ->
     Function = create_biased_key_function(ReplicationFactor,NumDcs),
     lists:foldl(fun(Dc,Id) ->
-			ok = rpc:call(Dc,inter_dc_manager,set_replication_fun,[Function,Id]),
+			ok = rpc:call(Dc,inter_dc_manager,set_replication_fun,[Function,Id,ReplicationFactor,NumDcs]),
 			Id + 1
 		end, 0, DcList).
 
