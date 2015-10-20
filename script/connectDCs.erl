@@ -209,7 +209,7 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
     case Nodes of
 	[] ->
 		ok;
-	[Node|Rest] ->
+	[Node|_Rest] ->
 	    io:format("Connect node ~w to ~w ~n", [Node, OtherDCs]),
 	    lists:foldl(fun(_DC, Acc) ->
 				io:format("Acc ~w ~n", [Acc]),
@@ -225,8 +225,8 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
 					ok = rpc:call(Node, inter_dc_manager, add_dc,[OtherDC])
 				end,
 				Acc + 1
-			end, 1, OtherDCs),
-	    connect(Rest, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch)
+			end, 1, OtherDCs)
+	    %% connect(Rest, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch)
     end.
 
 
