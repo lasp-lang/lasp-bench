@@ -45,7 +45,7 @@ echo Stopping nodes
 ./script/stopNodes.sh  >> logs/"$GridJob"/stop_nodes-"$Time"
 
 echo Deploying DCs
-./script/deployMultiDCs.sh nodes $Cookie $ConnectDCs $NodesPerDC $Branch
+./script/deployMultiDCs.sh nodes $Cookie $ConnectDCs $NodesPerDC $Branch $BenchmarkFile
     
 cat script/allnodes > ./tmpnodelist
 cat script/allnodesbench > ./tmpnodelistbench
