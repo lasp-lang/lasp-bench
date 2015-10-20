@@ -186,7 +186,7 @@ startListeners([{Node, Port}|Rest], Branch, Acc) ->
 		       rpc:call(Node, inter_dc_manager, start_receiver,[Port])
 	       end,
     io:format("Datacenter ~w ~n", [DC]),
-    startListeners(Rest, Branch, [DC | Acc]).
+    startListeners(Rest, Branch, Acc ++ [DC]).
 
 
 connect_each([], _DCPerRing, _Acc, _AllDCs, _, _, _, _) ->
