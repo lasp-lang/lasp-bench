@@ -2,7 +2,7 @@ set multiplot layout 2,2 rowsfirst
 
 #set term png 
 # set output "results-pubsub_weak_meta_data-2dcs-4nodes-2benchNodes/write_latencies.png"
- set title "Append Latencies"
+ set title "Update Latencies"
 #set xtics ("99.99(.01)" 1, "99(1)" 2, "90(10)" 3, "75(25)" 4, "50(50)" 5, "1(99)" 6)
 #set xrange [0:10]
 set tics out

@@ -4,9 +4,11 @@ Commands to run from bench site1:
 erl -name 'democlient1@127.0.0.1' -setcookie antidote
 
 Node1 = 'antidote@suno-25.sophia.grid5000.fr',
-rpc:call(Node1, antidote, read,[key1, riak_dt_gcounter]),
-rpc:call(Node1, antidote, append, [key1, riak_dt_gcounter, {increment, ucl1}]),
-rpc:call(Node1, antidote, read,[key1, riak_dt_gcounter])
+
+Node1 = 'antidote@sol-9.sophia.grid5000.fr',
+rpc:call(Node1, antidote, read,[1, riak_dt_gcounter]),
+rpc:call(Node1, antidote, append, [1, riak_dt_gcounter, {increment, ucl1}]),
+rpc:call(Node1, antidote, read,[1, riak_dt_gcounter])
 
 Simulate partition
 
@@ -14,8 +16,8 @@ ok = rpc:call(Node1, inter_dc_manager, stop_receiver, []),
 
 Append on first node
 
-rpc:call(Node1, antidote, append, [key1, riak_dt_gcounter, {increment, ucl1}]),
-rpc:call(Node1, antidote, read,[key1, riak_dt_gcounter])
+rpc:call(Node1, antidote, append, [1, riak_dt_gcounter, {increment, ucl1}]),
+rpc:call(Node1, antidote, read,[1, riak_dt_gcounter])
 
 
 Repair partition
@@ -35,6 +37,8 @@ Commands to run from site2:
 erl -name 'democlient2@127.0.0.1' -setcookie antidote
 
 Node2 = 'antidote@griffon-67.nancy.grid5000.fr',
+
+Node2 = 'antidote@graphene-63.nancy.grid5000.fr'
 rpc:call(Node2, antidote, read,[key1, riak_dt_gcounter]),
 rpc:call(Node2, antidote, append, [key1, riak_dt_gcounter, {increment, ucl1}]),
 rpc:call(Node2, antidote, read,[key1, riak_dt_gcounter])
