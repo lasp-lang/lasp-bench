@@ -38,7 +38,7 @@ listenAndConnect(StringNodes) ->
     case IsPartial of
 	true ->
 	    ReplicationFactor = case re:run(atom_to_list(BenchmarkFile),"_rep") of
-				    {match, {Pos,_Len}} ->
+				    {match, [{Pos,_Len}]} ->
 					list_to_integer(string:substr(atom_to_list(BenchmarkFile),Pos+5,1));
 				    nomatch ->
 					NumDCs
@@ -186,7 +186,7 @@ startListeners([{Node, Port}|Rest], Branch, Acc) ->
 		       rpc:call(Node, inter_dc_manager, start_receiver,[Port])
 	       end,
     io:format("Datacenter ~w ~n", [DC]),
-    startListeners(Rest, Branch, [DC | Acc]).
+    startListeners(Rest, Branch, Acc ++ [DC]).
 
 
 connect_each([], _DCPerRing, _Acc, _AllDCs, _, _, _, _) ->
@@ -209,7 +209,7 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
     case Nodes of
 	[] ->
 		ok;
-	[Node|Rest] ->
+	[Node|_Rest] ->
 	    io:format("Connect node ~w to ~w ~n", [Node, OtherDCs]),
 	    lists:foldl(fun(_DC, Acc) ->
 				io:format("Acc ~w ~n", [Acc]),
@@ -225,8 +225,8 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
 					ok = rpc:call(Node, inter_dc_manager, add_dc,[OtherDC])
 				end,
 				Acc + 1
-			end, 1, OtherDCs),
-	    connect(Rest, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch)
+			end, 1, OtherDCs)
+	    %% connect(Rest, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch)
     end.
 
 
@@ -346,7 +346,7 @@ connect_partial(Nodes, OtherDCs, DcNum) ->
 setReplicationFunction(DcList,NumDcs,ReplicationFactor) ->
     Function = create_biased_key_function(ReplicationFactor,NumDcs),
     lists:foldl(fun(Dc,Id) ->
-			ok = rpc:call(Dc,inter_dc_manager,set_replication_fun,[Function,Id]),
+			ok = rpc:call(Dc,inter_dc_manager,set_replication_fun,[Function,Id,ReplicationFactor,NumDcs]),
 			Id + 1
 		end, 0, DcList).
 
