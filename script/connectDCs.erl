@@ -51,7 +51,8 @@ listenAndConnect(StringNodes) ->
 	    {DCInfoIds,_} = add_ids(DCInfo),
 	    connect_each_partial(CookieNodes, DCPerRing, 1, DCInfoIds),
 	    startSenders(HeadNodes),
-	    startPerNodeConnection(CookieNodes),
+	    %%startPerNodeConnection(CookieNodes),
+	    startPerNodeConnection(HeadNodes),
 	    setReplicationFunction(HeadNodes,NumDCs,ReplicationFactor);
 	false ->
 	    Ports =  lists:seq(?LISTEN_PORT, ?LISTEN_PORT + NumDCs -1),
