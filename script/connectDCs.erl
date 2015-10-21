@@ -3,7 +3,7 @@
 -export([listenAndConnect/1, connect/6
 	]).
 
--define(LISTEN_PORT, 8091).
+-define(LISTEN_PORT, 8311).
 
 listenAndConnect(StringNodes) -> 
     Temp = [list_to_atom(StringNode) || StringNode <- StringNodes],
