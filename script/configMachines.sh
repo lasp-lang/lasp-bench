@@ -30,6 +30,7 @@ Command5="cd ./antidote/ && make relnocert"
 
 echo Running config commands
 echo
+
 echo Performing: ./script/parallel_command.sh "$AllNodes" "$Command0"	
 ./script/parallel_command.sh "$AllNodes" "$Command0" >> logs/"$JobId"/config_machines-"$Time"
 
