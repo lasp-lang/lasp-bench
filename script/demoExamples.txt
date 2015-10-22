@@ -103,8 +103,8 @@ inter_dc_manager:simulate_partitions(false).
 
 
 
-antidote:read(key1, riak_dt_gcounter),
-antidote:append(key1, riak_dt_gcounter, {increment, ucl1}),
+antidote:read(1, riak_dt_gcounter),
+antidote:append(1, riak_dt_gcounter, {increment, ucl1}),
 
 more ./antidote/rel/antidote/log/console.log
 tail -F ./antidote/rel/antidote/log/console.log
