@@ -86,7 +86,8 @@ wait_ready_nodes([Node|Rest], IsPubSub, IsPartial) ->
 		false ->
 		    case IsPartial of
 			true ->
-			    wait_until_registered(Node, meta_data_sender);
+			    %% wait_until_registered(Node, meta_data_sender);
+			    ok;
 			false ->
 			    wait_until_registered(Node, inter_dc_manager)
 		    end
