@@ -12,7 +12,8 @@ Reservation=$2
 #echo reservation: $2
 
 #oargridstat -w -l $Reservation | sed '/^$/d' > ~/machines
-oarstat -j $Reservation -p | oarprint core -P host -f - ~/machines
+oarstat -j $Reservation -p | oarprint core -P host -f - > ~/atmp
+awk < ~/atmp '!seen[$0]++' > ~/machines
 
 awk < ~/machines '/'"$Cluster"'/ { print $1 }' > ~/machines-tmp
 
