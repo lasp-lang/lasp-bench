@@ -50,7 +50,7 @@ listenAndConnect(StringNodes) ->
 	    startListening(HeadNodes,Ports,1),
 	    {DCInfoIds,_} = add_ids(DCInfo),
 	    connect_each_partial(CookieNodes, DCPerRing, 1, DCInfoIds),
-	    timer:sleep(30000).
+	    timer:sleep(30000),
 	    startSenders(HeadNodes),
 	    %%startPerNodeConnection(CookieNodes),
 	    startPerNodeConnection(HeadNodes),
