@@ -100,6 +100,8 @@ if [ $SecondRun -eq 0 ]; then
     echo First copying the node list to "$BenchNode"
     echo scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodes
     scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodes
+    echo scp ~/basho_bench/script/configProxy.sh root@"$BenchNode":/root/basho_bench1/basho_bench/script/
+    scp ~/basho_bench/script/configProxy.sh root@"$BenchNode":/root/basho_bench1/basho_bench/script/
     echo ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configProxy.sh
     ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/configProxy.sh
 
