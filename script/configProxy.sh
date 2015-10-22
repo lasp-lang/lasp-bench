@@ -1,6 +1,7 @@
 #!/bin/bash
 
 cd /root/basho_bench1/basho_bench/
+mkdir logs
 
 AllNodes=`cat /root/basho_bench1/basho_bench/script/allnodes`
 echo All nodes "$AllNodes"

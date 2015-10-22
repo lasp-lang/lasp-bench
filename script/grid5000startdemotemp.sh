@@ -121,7 +121,7 @@ if [ $SecondRun -eq 0 ]; then
 
     for I in $(seq 1 $BenchParallel); do
 	echo Checking out 
-	Command0="cd ./basho_bench"$I"/basho_bench/ && rm ./configProxy.sh && git stash && git fetch && git checkout grid5000 && git pull && rm -rf ./deps/* && make all"
+	Command0="cd ./basho_bench"$I"/basho_bench/ && rm -f ./script/configProxy.sh && git stash && git fetch && git checkout grid5000 && git pull && rm -rf ./deps/* && make all"
 	~/basho_bench/script/parallel_command.sh "$AllNodes" "$Command0" >> logs/"$GridJob"/basho_bench-compile-job"$Time"
     done
 
