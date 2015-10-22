@@ -31,7 +31,8 @@ rm ~/benchnodelist
 rm ~/fullnodelist
 rm ~/machines
 for I in $(seq 0 $((${#Jobs[*]} - 1))); do
-    oarstat -j "${Jobs[$I]}" -p | oarprint core -P host -f - >> machines
+    # oarstat -j "${Jobs[$I]}" -p | oarprint core -P host -f - >> machines
+    ssh -o StrictHostKeyChecking=no ${Clusters[$I]} ~/basho_bench/script/get_machines.sh ${Clusters[$I]} ${Jobs[$I]} >> machines
     # awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines
 done
 
