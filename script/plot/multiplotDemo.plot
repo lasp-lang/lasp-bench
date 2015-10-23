@@ -7,6 +7,8 @@ set multiplot layout 2,2 rowsfirst
 #set xrange [0:10]
 set tics out
 set logscale y
+#set key font ",18"
+#set tics font ", 18"
 set xlabel "Elapsed time (10s per tic)"
 set ylabel "Latency (ms)"
 plot "writeDemoValues" using 1:2 title 'Minimum' with linespoints, \
@@ -24,6 +26,8 @@ plot "writeDemoValues" using 1:2 title 'Minimum' with linespoints, \
 #set xrange [0:10]
 set tics out
 set logscale y
+#set key font ",18"
+#set tics font ", 38"
 set xlabel "Elapsed time (10s per tic)"
 set ylabel "Latency (ms)"
 plot "readDemoValues" using 1:2 title 'Minimum' with linespoints, \
@@ -42,6 +46,8 @@ plot "readDemoValues" using 1:2 title 'Minimum' with linespoints, \
 #set xrange [0:10]
 set tics out
 set nologscale y
+#set key font ", 18"
+#set tics font ", 18"
 set xlabel "Elapsed time (10s per tic)"
 set ylabel "Operations/Second"
 plot "summaryDemoValues" using 1:2 title 'Total' with linespoints, \
