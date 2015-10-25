@@ -129,6 +129,28 @@ rpc:call(ServerLille, antidote, read,[1, riak_dt_gcounter])
 rpc:call(ServerLille, antidote, append, [1, riak_dt_gcounter, {increment, ucl1}])
 
 
+antidote:append(2, crdt_orset, {{remove, grenoble}, ucl5}).
+antidote:append(2, crdt_orset, {{add, sophia}, ucl6}).
+
+
+antidote:append(2, crdt_orset, {{add, new_nancy}, ucl8}).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -144,10 +166,8 @@ antidote:append(2, crdt_orset, {{add, grenoble}, ucl3}).
 
 
 antidote:append(2, crdt_orset, {{remove, sophia}, ucl4}).
-antidote:append(2, crdt_orset, {{remove, grenoble}, ucl5}).
-antidote:append(2, crdt_orset, {{add, sophia}, ucl6}).
 
 
-antidote:append(2, crdt_orset, {{remove, sophia}, ucl7}).
-antidote:append(2, crdt_orset, {{add, new_nancy}, ucl8}).
+antidote:append(2, crdt_orset, {{remove, nancy}, ucl7}).
+
 
