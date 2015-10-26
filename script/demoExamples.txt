@@ -134,7 +134,7 @@ antidote:append(2, crdt_orset, {{add, sophia}, ucl6}).
 
 
 antidote:append(2, crdt_orset, {{add, new_nancy}, ucl8}).
-
+lager:set_loglevel(lager_console_backend, error).
 
 
 
@@ -159,7 +159,7 @@ antidote:read(2, crdt_orset).
 
 antidote:append(2, crdt_orset, {{add, sophia}, ucl1}).
 
-antidote:append(2, crdt_orset, {{add, nancy}, ucl2}).
+antidote:append(2, crdt_orset, {{add, lyon}, ucl2}).
 
 antidote:append(2, crdt_orset, {{add, grenoble}, ucl3}).
 
@@ -168,6 +168,6 @@ antidote:append(2, crdt_orset, {{add, grenoble}, ucl3}).
 antidote:append(2, crdt_orset, {{remove, sophia}, ucl4}).
 
 
-antidote:append(2, crdt_orset, {{remove, nancy}, ucl7}).
+antidote:append(2, crdt_orset, {{remove, lyon}, ucl7}).
 
 
