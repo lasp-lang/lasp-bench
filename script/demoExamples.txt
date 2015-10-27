@@ -171,3 +171,20 @@ antidote:append(2, crdt_orset, {{remove, sophia}, ucl4}).
 antidote:append(2, crdt_orset, {{remove, lyon}, ucl7}).
 
 
+
+
+
+
+antidote:read(2, crdt_orset).
+
+antidote:append(2, crdt_orset, {{add, dev1}, ucl1}).
+
+antidote:append(2, crdt_orset, {{add, dev2}, ucl2}).
+
+antidote:append(2, crdt_orset, {{add, dev3}, ucl3}).
+
+
+antidote:append(2, crdt_orset, {{remove, dev1}, ucl4}).
+
+
+antidote:append(2, crdt_orset, {{remove, dev2}, ucl7}).
