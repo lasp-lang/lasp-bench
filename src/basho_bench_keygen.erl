@@ -37,12 +37,13 @@
 %% ====================================================================
 
 
-new({biased_partial, MaxKey, ReplicationFactor, PercentageExternal}, Id) ->
-    Nodes = length(basho_bench_config:get(antidote_pb_ips)),
+new({biased_partial, MaxKey, ReplicationFactor, PercentageExternal}, _Id) ->
+    %% Nodes = length(basho_bench_config:get(antidote_pb_ips)),
     NumDcs = basho_bench_config:get(antidote_pb_num_dcs),
-    NodesPerDc = basho_bench_config:get(antidote_pb_nodes_per_dc),
-    NodeId = Id rem Nodes +1,
-    IdDc = ((NodeId - 1) div NodesPerDc) +1,
+    %% NodesPerDc = basho_bench_config:get(antidote_pb_nodes_per_dc),
+    %% NodeId = Id rem Nodes +1,
+    %% IdDc = ((NodeId - 1) div NodesPerDc) +1,
+    IdDc = basho_bench_config:get(antidote_pb_dc_id),
     KeySpace = MaxKey div NumDcs,
     RangeHere = ReplicationFactor,
     MinHere = case IdDc - (ReplicationFactor - 1) of

@@ -7,6 +7,7 @@ Reads=$4
 Writes=$5
 NumDCs=$6
 NodesPerDC=$7
+DcId=$8
 
 if [ $File = "./examples/orset_pb.config" ]; then
     Type="set"
@@ -45,5 +46,7 @@ fi
 
 sed -i '/antidote_pb_num_dcs/d' $File 
 sed -i '/antidote_pb_nodes_per_dc/d' $File
+sed -i '/antidote_pb_dc_id/d' $File
 sed -i "7i {antidote_pb_num_dcs, $NumDCs}." $File
 sed -i "8i {antidote_pb_nodes_per_dc, $NodesPerDC}." $File
+sed -i "9i {antidote_pb_dc_id, $DcId}." $File
