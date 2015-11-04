@@ -134,7 +134,7 @@ antidote:append(2, crdt_orset, {{add, sophia}, ucl6}).
 
 
 antidote:append(2, crdt_orset, {{add, new_nancy}, ucl8}).
-lager:set_loglevel(lager_console_backend, error).
+lager:set_loglevel(lager_console_backend, info).
 
 
 
