@@ -76,7 +76,7 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=
     %% Type = get_key_type(KeyInt, TypeDict),
 
     Bound_object = {Key, riak_dt_pncounter, <<"bucket">>},
-    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), {}) of
+    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, true}]) of
 	{ok, TxId} ->
 	    case antidotec_pb:read_objects(Pid, [Bound_object], TxId) of
 		{ok, [_Val]} ->		    
@@ -87,8 +87,8 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=
 			    lager:info("Error read1 on client ~p",[Id]),
 			    {error, timeout, State}
 		    end;
-		_ ->
-		    lager:info("Error read2 on client ~p",[Id]),
+		Error ->
+		    lager:info("Error read2 on client ~p : ~p",[Id, Error]),
 		    {error, timeout, State}
 	    end;
 	_ ->
@@ -183,7 +183,7 @@ run(append, KeyGen, _ValueGen,
     Obj2 = antidotec_counter:increment(1, Obj),
     
     
-    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), {}) of
+    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, true}]) of
 	{ok, TxId} ->
 	    case antidotec_pb:update_objects(Pid,
 					     antidotec_counter:to_ops(BObj, Obj2),
@@ -192,17 +192,16 @@ run(append, KeyGen, _ValueGen,
 		    case antidotec_pb:commit_transaction(Pid, TxId) of
 			{ok, _} ->
 			    {ok, State};
-			_ ->
-			    lager:info("Error append1 on client ~p",[Id]),
-			    {error, timeout, State}
+			Error ->
+			    {error, Error, State}
 		    end;
-		_ ->
-		    lager:info("Error read2 on client ~p",[Id]),
-			{error, timeout, State}
+		Error ->
+		    lager:info("Error append2 on client ~p : ~p",[Id, Error]),
+                    {error, Error, State}
 	    end;
-	_ ->
-	    lager:info("Error read3 on client ~p",[Id]),
-	    {error, timeout, State}
+        Error ->
+	    lager:info("Error append3 on client ~p",[Id]),
+	    {error, Error, State}
     end;
 
     %% Response = antidotec_pb_socket:store_crdt(Obj, Pid),
