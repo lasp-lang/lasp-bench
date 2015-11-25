@@ -82,7 +82,7 @@ for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     # echo ${Clusters[$I]}
     DCSize=`grep -o ${Clusters[$I]} ~/nodelist | wc -l`
     if [ $DCSize -ne 0 ]; then
-	Size=$DCSize
+	Size=$(($DCSize / $DcsPerCluster))
 	TotalDCs=$(($TotalDCs + 1))
     fi
 done
