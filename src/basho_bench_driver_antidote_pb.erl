@@ -114,24 +114,36 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=
 
 
 %% @doc Multikey txn 
-run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=Port, target_node=Node, type_dict=TypeDict}) ->
+run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=_Port, target_node=_Node, type_dict=TypeDict}) ->
     KeyInt = KeyGen(),
     KeyList = lists:seq(KeyInt, KeyInt+NumPart-1), 
     KeyTypeList = get_list_key_type(KeyList, TypeDict, []),
-    Response =  antidotec_pb_socket:snapshot_get_crdts(KeyTypeList, Pid),
-    case Response of
-        {ok, _, _} ->
-    	    run(append, KeyGen, ValueGen, State);
-        {error,timeout} ->
-            lager:info("Timeout on client ~p",[Id]),
-            antidotec_pb_socket:stop(Pid),
-            {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
-            {error, timeout, State#state{pb_pid=NewPid}    };            
-        {error, Reason} ->
-            lager:error("Error: ~p",[Reason]),
-            {error, Reason, State};
-        {badrpc, Reason} ->
-            {error, Reason, State}
+    Bucket = <<"bucket">>,
+    ObjectList = lists:map( fun({Key, Type}) ->
+                                    {Key, Type, Bucket}
+                            end,
+                            KeyTypeList
+                          ),
+    %% Snapshot read a list of objects
+    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, true}]) of
+	{ok, TxId} ->
+	    case antidotec_pb:read_objects(Pid, ObjectList, TxId) of
+		{ok, [_Val]} ->		    
+		    case antidotec_pb:commit_transaction(Pid, TxId) of
+			{ok, _} ->
+                            %% append one object
+                            run(append, KeyGen, ValueGen, State);
+			_ ->
+			    lager:info("Error read1 on client ~p",[Id]),
+			    {error, timeout, State}
+		    end;
+		Error ->
+		    lager:info("Error read2 on client ~p : ~p",[Id, Error]),
+		    {error, timeout, State}
+	    end;
+	_ ->
+	    lager:info("Error read3 on client ~p",[Id]),
+	    {error, timeout, State}
     end;
     
 
