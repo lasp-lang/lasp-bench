@@ -15,7 +15,8 @@ SecondRun=$4
 ComputeCount=$5
 BenchCount=$6
 BenchParallel=$7
-BenchFile=$8
+DcsPerCluster=$8
+BenchFile=$9
 Clusters=(`oargridstat $1 | awk '/-->/ { print $1 }'`)
 # Reservations=(`oargridstat $1 | awk '/-->/ { print $3 }'`)
 # JobId=`oargridstat $1 | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
@@ -83,6 +84,7 @@ for I in $(seq 0 $((${#Clusters[*]} - 1))); do
 	TotalDCs=$(($TotalDCs + 1))
     fi
 done
+TotalDCs=$(($TotalDCs * $DcsPerCluster))
 echo Nodes per DC: $Size
 echo Number of DCs: $TotalDCs
 
