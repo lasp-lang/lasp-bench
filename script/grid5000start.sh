@@ -21,6 +21,8 @@ Clusters=(`oargridstat $1 | awk '/-->/ { print $1 }'`)
 # Reservations=(`oargridstat $1 | awk '/-->/ { print $3 }'`)
 # JobId=`oargridstat $1 | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
 
+BenchCount2=$(($BenchCount * $DcsPerCluster))
+ComputeCount2=$(($ComputeCount * $DcsPerCluster))
 
 # Filter out the names of the benchmark nodes and the computation nodes
 rm ~/nodelist
@@ -33,8 +35,8 @@ for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
     awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp2
     awk < ~/machines-tmp '!seen[$0]++' >> ~/fullnodelist
-    head -"$BenchCount" ~/machines-tmp2 >> ~/benchnodelist
-    sed '1,'"$BenchCount"'d' ~/machines-tmp2 | head -"$ComputeCount" >> ~/nodelist
+    head -"$BenchCount2" ~/machines-tmp2 >> ~/benchnodelist
+    sed '1,'"$BenchCount2"'d' ~/machines-tmp2 | head -"$ComputeCount2" >> ~/nodelist
     CountDC=$(($CountDC + 1))
 done
 
