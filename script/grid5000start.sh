@@ -1,23 +1,25 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-    echo "Usage gridjobid branch dodeploy secondrun computeCount benchCount benchParallel benchFile"
+    echo "Usage configlefile whit lines gridjobid branch dodeploy secondrun computeCount benchCount benchParallel dcspercluster benchBranch benchFile"
     exit
 fi
 
 # Wait some time to be sure the reservations have started
 # sleep 60s
 
-GridJob=$1
-Branch=$2
-DoDeploy=$3
-SecondRun=$4
-ComputeCount=$5
-BenchCount=$6
-BenchParallel=$7
-DcsPerCluster=$8
-GridBranch=$9
-BenchFile=$10
+IFS=$'\r\n' GLOBIGNORE='*' :; Config=($(cat $1))
+
+GridJob=${Config[0]}
+Branch=${Config[1]}
+DoDeploy=${Config[2]}
+SecondRun=${Config[3]}
+ComputeCount=${Config[4]}
+BenchCount=${Config[5]}
+BenchParallel=${Config[6]}
+DcsPerCluster=${Config[7]}
+GridBranch=${Config[8]}
+BenchFile=${Config[9]}
 Clusters=(`oargridstat $1 | awk '/-->/ { print $1 }'`)
 # Reservations=(`oargridstat $1 | awk '/-->/ { print $3 }'`)
 # JobId=`oargridstat $1 | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
