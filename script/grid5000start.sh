@@ -20,7 +20,7 @@ BenchParallel=${Config[6]}
 DcsPerCluster=${Config[7]}
 GridBranch=${Config[8]}
 BenchFile=${Config[9]}
-Clusters=(`oargridstat $GridJob | awk '/-->/ { print $GridJob }'`)
+Clusters=(`oargridstat $GridJob | awk '/-->/ { print $1 }'`)
 # Reservations=(`oargridstat $1 | awk '/-->/ { print $3 }'`)
 # JobId=`oargridstat $1 | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
 
@@ -35,7 +35,7 @@ CountDC=0
 for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     echo ${Clusters[$I]}
     oargridstat -w -l $GridJob | sed '/^$/d' > ~/machines
-    awk < ~/machines '/'"${Clusters[$I]}"'/ { print '"$GridJob"' }' > ~/machines-tmp
+    awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
     awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp2
     awk < ~/machines-tmp '!seen[$0]++' >> ~/fullnodelist
     head -"$BenchCount2" ~/machines-tmp2 >> ~/benchnodelist
