@@ -8,7 +8,7 @@ fi
 # Wait some time to be sure the reservations have started
 # sleep 60s
 
-GridJob=$1
+JobFile=$1
 Branch=$2
 DoDeploy=$3
 SecondRun=$4
@@ -16,19 +16,30 @@ ComputeCount=$5
 BenchCount=$6
 BenchParallel=$7
 BenchFile=$8
-Clusters=(`oargridstat $1 | awk '/-->/ { print $1 }'`)
+# Clusters=(`oargridstat $1 | awk '/-->/ { print $1 }'`)
 # Reservations=(`oargridstat $1 | awk '/-->/ { print $3 }'`)
 # JobId=`oargridstat $1 | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
 
+Clusters=(`cat clusters`)
+Jobs=(`cat jobs`)
+
+GridJob=${Jobs[0]}
 
 # Filter out the names of the benchmark nodes and the computation nodes
 rm ~/nodelist
 rm ~/benchnodelist
 rm ~/fullnodelist
+rm ~/machines
+for I in $(seq 0 $((${#Jobs[*]} - 1))); do
+    # oarstat -j "${Jobs[$I]}" -p | oarprint core -P host -f - >> machines
+    ssh -o StrictHostKeyChecking=no ${Clusters[$I]} ~/basho_bench/script/get_machines.sh ${Clusters[$I]} ${Jobs[$I]} >> machines
+    # awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines
+done
+
 CountDC=0
 for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     echo ${Clusters[$I]}
-    oargridstat -w -l $GridJob | sed '/^$/d' > ~/machines
+    # oargridstat -w -l $GridJob | sed '/^$/d' > ~/machines
     awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
     awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp2
     awk < ~/machines-tmp '!seen[$0]++' >> ~/fullnodelist
@@ -53,7 +64,7 @@ if [ $DoDeploy -eq 1 ]; then
     # Connect to each cluster to deloy the nodes
     for I in $(seq 0 $((${#Clusters[*]} - 1))); do
 	echo Deploying cluster: ${Clusters[$I]}
-	ssh -t -o StrictHostKeyChecking=no ${Clusters[$I]} ~/basho_bench/script/grid5000start-createnodes.sh ${Clusters[$I]} $GridJob &
+	ssh -t -o StrictHostKeyChecking=no ${Clusters[$I]} ~/basho_bench/script/grid5000start-createnodestemp.sh ${Clusters[$I]} ${Jobs[$I]} &
 	#oargridstat -w -l $JobId | sed '/^$/d' > ~/machines
 	#awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
 	#kadeploy3 -f ~/machines-tmp -a ~/antidote_images/mywheezy-x64-base.env -k ~/.ssh/exp_key.pub
@@ -110,7 +121,7 @@ if [ $SecondRun -eq 0 ]; then
 
     for I in $(seq 1 $BenchParallel); do
 	echo Checking out 
-	Command0="cd ./basho_bench"$I"/basho_bench/  && rm -f ./script/configProxy.sh && git stash && git fetch && git checkout grid5000 && git pull && rm -rf ./deps/* && make all"
+	Command0="cd ./basho_bench"$I"/basho_bench/ && rm -f ./script/configProxy.sh && git stash && git fetch && git checkout grid5000 && git pull && rm -rf ./deps/* && make all"
 	~/basho_bench/script/parallel_command.sh "$AllNodes" "$Command0" >> logs/"$GridJob"/basho_bench-compile-job"$Time"
     done
 

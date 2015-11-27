@@ -35,6 +35,61 @@
 %% ====================================================================
 %% API
 %% ====================================================================
+
+
+new({biased_partial, MaxKey, ReplicationFactor, PercentageExternal}, _Id) ->
+    %% Nodes = length(basho_bench_config:get(antidote_pb_ips)),
+    NumDcs = basho_bench_config:get(antidote_pb_num_dcs),
+    %% NodesPerDc = basho_bench_config:get(antidote_pb_nodes_per_dc),
+    %% NodeId = Id rem Nodes +1,
+    %% IdDc = ((NodeId - 1) div NodesPerDc) +1,
+    IdDc = basho_bench_config:get(antidote_pb_dc_id),
+    KeySpace = MaxKey div NumDcs,
+    RangeHere = ReplicationFactor,
+    MinHere = case IdDc - (ReplicationFactor - 1) of
+		  Val when Val < 1 ->
+		      NumDcs - Val;
+		  Val2 ->
+		      Val2
+	      end,
+    MinNotHere = case (IdDc + 1) rem NumDcs of
+		     0 ->
+			 NumDcs;
+		     Oth ->
+			 Oth
+		 end,
+    
+    %% MinNotHere = case (IdDc + ReplicationFactor) rem (NumDcs) of
+    %% 		     0 ->
+    %% 			 NumDcs;
+    %% 		     Oth ->
+    %% 			 Oth
+    %% 		 end,
+    RangeNotHere = case NumDcs - ReplicationFactor of
+		       0 ->
+			   1;
+		       Oth2 ->
+			   Oth2
+		   end,
+    fun() -> DcNum = case random:uniform() > PercentageExternal of
+			 false ->
+			     case (MinNotHere + (random:uniform(RangeNotHere)-1)) rem (NumDcs) of
+				 0 ->
+				     NumDcs;
+				 Other ->
+				     Other
+			     end;
+			 true ->
+			     case (MinHere + (random:uniform(RangeHere)-1)) rem (NumDcs) of
+				 0 ->
+				     NumDcs;
+				 Other ->
+				     Other
+			     end
+		     end,
+	     (((random:uniform(KeySpace)) * NumDcs) + (DcNum))
+    end;
+		    
 new({int_to_bin, InputGen}, Id) ->
     ?WARN("The int_to_bin key generator wrapper is deprecated, please use the "
           "int_to_bin_bigendian or int_to_bin_littleendian wrapper instead\n",

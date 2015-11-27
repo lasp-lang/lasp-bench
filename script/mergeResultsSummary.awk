@@ -20,16 +20,19 @@ END {
 	for (i = 1; i <= 5; i++) {
 	    if(i != 1)
 		printf ", "
-	    switch (i) {
-	    case 1:
+	    if(i == 1 || i == 2) {
 		a[l, i] = a[l, i] / filecount
-		break
-	    case 2:
-		a[l, i] = a[l, i] / filecount
-		break
-	    default:
-		break
 	    }
+	    # switch (i) {
+	    # case 1:
+	    # 	a[l, i] = a[l, i] / filecount
+	    # 	break
+	    # case 2:
+	    # 	a[l, i] = a[l, i] / filecount
+	    # 	break
+	    # default:
+	    # 	break
+	    # }
 	    printf "%s",a[l, i]
 	}
 	print ""

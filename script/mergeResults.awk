@@ -20,37 +20,40 @@ END {
 	for (i = 1; i <= 11; i++) {
 	    if(i != 1)
 		printf ", "
-	    switch (i) {
-	    case 1:
+	    if(i >=1 && i <= 10) {
 		a[l, i] = a[l, i] / filecount
-		break
-	    case 2:
-		a[l, i] = a[l, i] / filecount
-		break
-	    case 4:
-		a[l, i] = a[l, i] / filecount
-		break
-	    case 5:
-		a[l, i] = a[l, i] / filecount
-		break
-	    case 6:
-		a[l, i] = a[l, i] / filecount
-		break
-	    case 7:
-		a[l, i] = a[l, i] / filecount
-		break
-	    case 8:
-		a[l, i] = a[l, i] / filecount
-		break
-	    case 9:
-		a[l, i] = a[l, i] / filecount
-		break
-	    case 10:
-		a[l, i] = a[l, i] / filecount
-		break
-	    default:
-		break
 	    }
+	    # switch (i) {
+	    # case 1:
+	    # 	a[l, i] = a[l, i] / filecount
+	    # 	break
+	    # case 2:
+	    # 	a[l, i] = a[l, i] / filecount
+	    # 	break
+	    # case 4:
+	    # 	a[l, i] = a[l, i] / filecount
+	    # 	break
+	    # case 5:
+	    # 	a[l, i] = a[l, i] / filecount
+	    # 	break
+	    # case 6:
+	    # 	a[l, i] = a[l, i] / filecount
+	    # 	break
+	    # case 7:
+	    # 	a[l, i] = a[l, i] / filecount
+	    # 	break
+	    # case 8:
+	    # 	a[l, i] = a[l, i] / filecount
+	    # 	break
+	    # case 9:
+	    # 	a[l, i] = a[l, i] / filecount
+	    # 	break
+	    # case 10:
+	    # 	a[l, i] = a[l, i] / filecount
+	    # 	break
+	    # default:
+	    # 	break
+	    # }
 	    printf "%s",a[l, i]
 	}
 	print ""

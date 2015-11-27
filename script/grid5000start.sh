@@ -15,11 +15,14 @@ SecondRun=$4
 ComputeCount=$5
 BenchCount=$6
 BenchParallel=$7
-BenchFile=$8
+DcsPerCluster=$8
+BenchFile=$9
 Clusters=(`oargridstat $1 | awk '/-->/ { print $1 }'`)
 # Reservations=(`oargridstat $1 | awk '/-->/ { print $3 }'`)
 # JobId=`oargridstat $1 | awk '/Reservation/ { print $3 }' | grep -o '[0-9]*'`
 
+BenchCount2=$(($BenchCount * $DcsPerCluster))
+ComputeCount2=$(($ComputeCount * $DcsPerCluster))
 
 # Filter out the names of the benchmark nodes and the computation nodes
 rm ~/nodelist
@@ -32,8 +35,8 @@ for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
     awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp2
     awk < ~/machines-tmp '!seen[$0]++' >> ~/fullnodelist
-    head -"$BenchCount" ~/machines-tmp2 >> ~/benchnodelist
-    sed '1,'"$BenchCount"'d' ~/machines-tmp2 | head -"$ComputeCount" >> ~/nodelist
+    head -"$BenchCount2" ~/machines-tmp2 >> ~/benchnodelist
+    sed '1,'"$BenchCount2"'d' ~/machines-tmp2 | head -"$ComputeCount2" >> ~/nodelist
     CountDC=$(($CountDC + 1))
 done
 
@@ -79,10 +82,11 @@ for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     # echo ${Clusters[$I]}
     DCSize=`grep -o ${Clusters[$I]} ~/nodelist | wc -l`
     if [ $DCSize -ne 0 ]; then
-	Size=$DCSize
+	Size=$(($DCSize / $DcsPerCluster))
 	TotalDCs=$(($TotalDCs + 1))
     fi
 done
+TotalDCs=$(($TotalDCs * $DcsPerCluster))
 echo Nodes per DC: $Size
 echo Number of DCs: $TotalDCs
 
@@ -95,9 +99,20 @@ if [ $SecondRun -eq 0 ]; then
     # AllNodes=`cat ~/benchnodelist`
     # Will compile both antidoe and basho bench on all nodes in case the number changes in a later experiment
     AllNodes=`cat ~/fullnodelist`
+
+    echo Perform configProxy.sh on "$BenchNode"
+    echo First copying the node list to "$BenchNode"
+    echo scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodes
+    scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodes
+    echo scp ~/basho_bench/script/configProxy.sh root@"$BenchNode":/root/basho_bench1/basho_bench/script/
+    scp ~/basho_bench/script/configProxy.sh root@"$BenchNode":/root/basho_bench1/basho_bench/script/
+    echo ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configProxy.sh
+    ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/configProxy.sh
+
+
     for I in $(seq 1 $BenchParallel); do
 	echo Checking out 
-	Command0="cd ./basho_bench"$I"/basho_bench/ && git stash && git fetch && git checkout grid5000 && git pull && rm -rf ./deps/* && make all"
+	Command0="cd ./basho_bench"$I"/basho_bench/  && rm -f ./script/configProxy.sh && git stash && git fetch && git checkout grid5000 && git pull && rm -rf ./deps/* && make all"
 	~/basho_bench/script/parallel_command.sh "$AllNodes" "$Command0" >> logs/"$GridJob"/basho_bench-compile-job"$Time"
     done
 

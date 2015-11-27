@@ -1,0 +1,190 @@
+Commands to run from bench site1:
+
+
+erl -name 'democlient1@127.0.0.1' -setcookie antidote
+
+Node1 = 'antidote@suno-25.sophia.grid5000.fr',
+
+Node1 = 'antidote@sol-9.sophia.grid5000.fr',
+rpc:call(Node1, antidote, read,[1, riak_dt_gcounter]),
+rpc:call(Node1, antidote, append, [1, riak_dt_gcounter, {increment, ucl1}]),
+rpc:call(Node1, antidote, read,[1, riak_dt_gcounter])
+
+Simulate partition
+
+ok = rpc:call(Node1, inter_dc_manager, stop_receiver, []),
+
+Append on first node
+
+rpc:call(Node1, antidote, append, [1, riak_dt_gcounter, {increment, ucl1}]),
+rpc:call(Node2, antidote, read,[1, riak_dt_gcounter])
+
+
+Repair partition
+
+{ok, _} = rpc:call(Node2, inter_dc_manager, start_receiver, [Port3]),
+
+
+
+
+
+
+
+
+
+Commands to run from site2:
+
+erl -name 'democlient2@127.0.0.1' -setcookie antidote
+
+Node2 = 'antidote@griffon-67.nancy.grid5000.fr',
+
+Node2 = 'antidote@graphene-63.nancy.grid5000.fr'
+rpc:call(Node2, antidote, read,[key1, riak_dt_gcounter]),
+rpc:call(Node2, antidote, append, [key1, riak_dt_gcounter, {increment, ucl1}]),
+rpc:call(Node2, antidote, read,[key1, riak_dt_gcounter])
+
+
+Simulate partition
+
+ok = rpc:call(Node2, inter_dc_manager, stop_receiver, []),
+
+rpc:call(Node2, antidote, read,[key1, riak_dt_gcounter])
+
+
+
+Repair partition
+
+{ok, _} = rpc:call(Node2, inter_dc_manager, start_receiver, [Port3]),
+
+
+
+
+
+
+
+
+Commands to run from site3:
+
+erl -name 'democlient3@127.0.0.1' -setcookie antidote
+
+Node3 = 'antidote@griffon-67.nancy.grid5000.fr',
+rpc:call(Node3, antidote, read,[key1, riak_dt_gcounter]),
+rpc:call(Node3, antidote, append, [key1, riak_dt_gcounter, {increment, ucl1}]),
+
+
+During partition check you see the update from site 1
+
+rpc:call(Node3, antidote, read,[key1, riak_dt_gcounter]),
+
+
+
+
+Running directly on antidote nodes to test:
+
+
+sudo apt-get install iftop
+
+
+./antidote/rel/antidote/bin/antidote attach
+
+
+{ok,Ring} = riak_core_ring_manager:get_my_ring().
+riak_core_ring:all_members(Ring).
+
+
+
+
+inter_dc_manager:simulate_partitions(true).
+
+
+inter_dc_manager:simulate_partitions(false).
+
+
+
+
+
+antidote:read(1, riak_dt_gcounter),
+antidote:append(1, riak_dt_gcounter, {increment, ucl1}),
+
+more ./antidote/rel/antidote/log/console.log
+tail -F ./antidote/rel/antidote/log/console.log
+
+
+
+The nodes
+
+
+
+ServerSophia='antidote@172.16.130.41'.
+ServerLyon='antidote@172.16.48.3'.
+ServerLille='antidote@172.16.33.19'.
+
+rpc:call(ServerSophia, antidote, read,[1, riak_dt_gcounter])
+rpc:call(ServerSophia, antidote, append, [1, riak_dt_gcounter, {increment, ucl1}])
+
+rpc:call(ServerLyon, antidote, read,[1, riak_dt_gcounter])
+rpc:call(ServerLyon, antidote, append, [1, riak_dt_gcounter, {increment, ucl1}])
+
+rpc:call(ServerLille, antidote, read,[1, riak_dt_gcounter])
+rpc:call(ServerLille, antidote, append, [1, riak_dt_gcounter, {increment, ucl1}])
+
+
+antidote:append(2, crdt_orset, {{remove, grenoble}, ucl5}).
+antidote:append(2, crdt_orset, {{add, sophia}, ucl6}).
+
+
+antidote:append(2, crdt_orset, {{add, new_nancy}, ucl8}).
+lager:set_loglevel(lager_console_backend, info).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+antidote:read(2, crdt_orset).
+
+antidote:append(2, crdt_orset, {{add, sophia}, ucl1}).
+
+antidote:append(2, crdt_orset, {{add, lyon}, ucl2}).
+
+antidote:append(2, crdt_orset, {{add, grenoble}, ucl3}).
+
+
+
+antidote:append(2, crdt_orset, {{remove, sophia}, ucl4}).
+
+
+antidote:append(2, crdt_orset, {{remove, lyon}, ucl7}).
+
+
+
+
+
+
+antidote:read(2, crdt_orset).
+
+antidote:append(2, crdt_orset, {{add, dev1}, ucl1}).
+
+antidote:append(2, crdt_orset, {{add, dev2}, ucl2}).
+
+antidote:append(2, crdt_orset, {{add, dev3}, ucl3}).
+
+
+antidote:append(2, crdt_orset, {{remove, dev1}, ucl4}).
+
+
+antidote:append(2, crdt_orset, {{remove, dev2}, ucl7}).
