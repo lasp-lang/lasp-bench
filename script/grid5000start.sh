@@ -35,7 +35,7 @@ CountDC=0
 for I in $(seq 0 $((${#Clusters[*]} - 1))); do
     echo ${Clusters[$I]}
     oargridstat -w -l $GridJob | sed '/^$/d' > ~/machines
-    awk < ~/machines '/'"${Clusters[$I]}"'/ { print $GridJob }' > ~/machines-tmp
+    awk < ~/machines '/'"${Clusters[$I]}"'/ { print '"$GridJob"' }' > ~/machines-tmp
     awk < ~/machines-tmp '!seen[$0]++' > ~/machines-tmp2
     awk < ~/machines-tmp '!seen[$0]++' >> ~/fullnodelist
     head -"$BenchCount2" ~/machines-tmp2 >> ~/benchnodelist
