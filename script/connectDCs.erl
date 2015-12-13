@@ -24,7 +24,7 @@ listenAndConnect(StringNodes) ->
 		   {match, _} ->
 		       true;
 		   nomatch ->
-		       false
+		       true
 	       end,
     IsPartial = case re:run(atom_to_list(Branch),"partial") of
 		    {match, _} ->
@@ -186,7 +186,8 @@ startListeners([{Node, Port}|Rest], Branch, Acc) ->
 		   {match, _} ->
 		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
 		   nomatch ->
-		       rpc:call(Node, inter_dc_manager, start_receiver,[Port])
+		       rpc:call(Node, inter_dc_manager, get_descriptor, [])
+		       %%rpc:call(Node, inter_dc_manager, start_receiver,[Port])
 	       end,
     io:format("Datacenter ~w ~n", [DC]),
     startListeners(Rest, Branch, Acc ++ [DC]).
@@ -225,7 +226,8 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
 				    {match, _} ->
 					ok = rpc:call(Node, inter_dc_manager, observe_dc_sync,[OtherDC]);
 				    nomatch ->
-					ok = rpc:call(Node, inter_dc_manager, add_dc,[OtherDC])
+					ok = rpc:call(Node, inter_dc_manager, observe_dc_sync,[OtherDC])
+					%%ok = rpc:call(Node, inter_dc_manager, add_dc,[OtherDC])
 				end,
 				Acc + 1
 			end, 1, OtherDCs)
