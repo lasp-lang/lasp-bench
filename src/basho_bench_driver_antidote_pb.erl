@@ -34,7 +34,8 @@
 		num_partitions,
 		set_size,
                 pb_port,
-                target_node}).
+                target_node,
+                measure_staleness}).
 
 %% ====================================================================
 %% API
@@ -55,6 +56,7 @@ new(Id) ->
     Types  = basho_bench_config:get(antidote_types),
     SetSize = basho_bench_config:get(set_size),
     NumPartitions = length(IPs),
+    MeasureStaleness = basho_bench_config:get(staleness),
 
     %% Choose the node using our ID as a modulus
     TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
@@ -67,21 +69,26 @@ new(Id) ->
 		set_size = SetSize,
 		num_partitions = NumPartitions,
 		type_dict = TypeDict, pb_port=PbPort,
-		target_node=TargetNode}}.
+		target_node=TargetNode,
+                measure_staleness=MeasureStaleness}}.
 
 %% @doc Read a key
-run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=_Port, target_node=_Node, type_dict=_TypeDict}) ->
+run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
+                                          pb_port=_Port, target_node=_Node,
+                                          type_dict=_TypeDict,
+                                          measure_staleness=MS}) ->
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
     %% Type = get_key_type(KeyInt, TypeDict),
-
+    StartTime = now_microsec(), %% For staleness calc
     Bound_object = {Key, riak_dt_pncounter, <<"bucket">>},
     case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, true}]) of
 	{ok, TxId} ->
 	    case antidotec_pb:read_objects(Pid, [Bound_object], TxId) of
 		{ok, [_Val]} ->		    
 		    case antidotec_pb:commit_transaction(Pid, TxId) of
-			{ok, _} ->
+			{ok, CT} ->
+                            report_staleness(MS, CT, StartTime),
 			    {ok, State};
 			_ ->
 			    lager:info("Error read1 on client ~p",[Id]),
@@ -95,23 +102,6 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=
 	    lager:info("Error read3 on client ~p",[Id]),
 	    {error, timeout, State}
     end;
-
-%% Response =  antidotec_pb_socket:get_crdt(Key, Type, Pid),
-    %% case Response of
-    %%     {ok, _Value} ->
-    %%         {ok, State};
-    %%     {error,timeout} ->
-    %%         lager:info("Timeout on client ~p",[Id]),
-    %%         antidotec_pb_socket:stop(Pid),
-    %%         {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
-    %%         {error, timeout, State#state{pb_pid=NewPid}    };            
-    %%     {error, Reason} ->
-    %%         lager:error("Error: ~p",[Reason]),
-    %%         {error, Reason, State};
-    %%     {badrpc, Reason} ->
-    %%         {error, Reason, State}
-    %% end;
-
 
 %% @doc Multikey txn 
 run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=_Port, target_node=_Node, type_dict=TypeDict}) ->
@@ -181,7 +171,8 @@ run(append, KeyGen, _ValueGen,
                  pb_pid = Pid,
                  worker_id = Id,
                  pb_port=_Port,
-                 target_node=_Node}) ->
+                 target_node=_Node,
+                 measure_staleness=MS}) ->
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
     %%TODO: Support for different data types
@@ -194,7 +185,7 @@ run(append, KeyGen, _ValueGen,
     Obj = antidotec_counter:new(),
     Obj2 = antidotec_counter:increment(1, Obj),
     
-    
+    StartTime=now_microsec(), %% For staleness   
     case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, true}]) of
 	{ok, TxId} ->
 	    case antidotec_pb:update_objects(Pid,
@@ -202,8 +193,9 @@ run(append, KeyGen, _ValueGen,
 					     TxId) of
 		ok ->
 		    case antidotec_pb:commit_transaction(Pid, TxId) of
-			{ok, _} ->
-			    {ok, State};
+			{ok, CT} ->
+                            report_staleness(MS, CT, StartTime),
+                            {ok, State};
 			Error ->
 			    {error, Error, State}
 		    end;
@@ -215,25 +207,6 @@ run(append, KeyGen, _ValueGen,
 	    lager:info("Error append3 on client ~p",[Id]),
 	    {error, Error, State}
     end;
-
-    %% Response = antidotec_pb_socket:store_crdt(Obj, Pid),
-    %% case Response of
-    %%     ok ->
-    %%         {ok, State};
-    %%     {ok, _Result} ->
-    %%         {ok, State};
-    %%     {error,timeout}->
-    %%         lager:info("Timeout on client ~p",[Id]),
-    %%         antidotec_pb_socket:stop(Pid),
-    %%         {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
-    %%         {error, timeout, State#state{pb_pid=NewPid}}; 
-    %%     {error, Reason} ->
-    %%         lager:error("Error: ~p",[Reason]),
-    %%         {error, Reason, State};
-    %%     {badrpc, Reason} ->
-    %%         {error, Reason, State}
-    %% end;
-
 
 run(update, KeyGen, ValueGen,
     State=#state{type_dict=TypeDict,
@@ -318,3 +291,27 @@ get_random_param(Dict, Type, Value, Obj, SetSize) ->
                     {antidotec_set, NewOp, Value}
             end                      
     end.
+
+report_staleness(true, CT, CurTime) ->
+    SS = binary_to_term(CT), %% Binary to dict
+    %% Here it is assumed the stable snapshot has entries for all remote DCs
+    SSL = lists:keysort(1, dict:to_list(SS)),
+    Staleness = lists:map(fun({_Dc, Time}) ->
+                                  max(1, CurTime - Time) %% it should be max(0, ..), but 0 is causing some crash in stats generation
+                          end, SSL),
+    HistName = atom_to_list(staleness),
+    report_staleness_rec(Staleness, HistName, 1);
+
+report_staleness(_,_,_) ->
+     ok.
+
+report_staleness_rec([],_,_) -> ok;
+report_staleness_rec([H|T], HistName, Iter) ->
+    Op=list_to_atom(string:concat(HistName, integer_to_list(Iter))),
+    folsom_metrics:notify({latencies, {Op, Op}}, H),
+    folsom_metrics:notify({units, {Op, Op}}, {inc, 1}),
+    report_staleness_rec(T, HistName, Iter+1).
+
+now_microsec() ->    
+    {MegaSecs, Secs, MicroSecs} = os:timestamp(),
+    (MegaSecs * 1000000 + Secs) * 1000000 + MicroSecs.                                                  
