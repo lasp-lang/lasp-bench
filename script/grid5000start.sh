@@ -46,6 +46,8 @@ done
 echo $CountDC > ~/countDC
 echo $Branch > ~/branch
 
+cat ~/benchnodelist ~/nodelist > ~/fullnodelist
+
 echo Benchmark nodes: `cat ~/benchnodelist`
 echo
 echo Compute nodes: `cat ~/nodelist`
