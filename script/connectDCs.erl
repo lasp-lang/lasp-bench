@@ -180,7 +180,7 @@ keepnth([First|Rest], Length, AccNum, AccList) ->
 
 startListeners([], _Branch, Acc) ->
     Acc;
-startListeners([{Node, Port}|Rest], Branch, Acc) ->
+startListeners([{Node, _Port}|Rest], Branch, Acc) ->
     io:format("Getting descriptor"),
     {ok, DC} = case re:run(atom_to_list(Branch),"pubsub") of
 		   {match, _} ->
@@ -228,7 +228,7 @@ connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
 					ok = rpc:call(Node, inter_dc_manager,  add_network_delays, [[{OtherDC,50}]]);
 				    nomatch ->
 					ok = rpc:call(Node, inter_dc_manager, observe_dc_sync,[OtherDC]),
-					ok = rpc:call(Node, inter_dc_manager,  add_network_delays, [[{OtherDC,50}]]);
+					ok = rpc:call(Node, inter_dc_manager,  add_network_delays, [[{OtherDC,50}]])
 					%%ok = rpc:call(Node, inter_dc_manager, add_dc,[OtherDC])
 				end,
 				Acc + 1
