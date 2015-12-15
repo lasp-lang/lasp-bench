@@ -119,25 +119,6 @@ ping_each([Node | Rest], Acc) ->
             ping_each(Rest, Acc)
     end.
 
-% Generate NumOps of operations in a list. Mode 0 means
-% read; mode 1 means only update
-generate_list_of_ops(0, _Mode, _Dict, Acc) ->
-    Acc;
-generate_list_of_ops(NumOps, Mode, Dict, Acc) ->
-    case Mode of
-	0 ->
-	    random:seed(now()),
-	    Key = random:uniform(2000),
-	    Type = get_key_type(Key, Dict),
-	    generate_list_of_ops(NumOps-1, Mode, Dict, [{read, Key,Type}|Acc]);
-	1 ->
-	    random:seed(now()),
-	    Key = random:uniform(2000),
-	    Type = get_key_type(Key, Dict),
-	    {Type, Param} = get_random_param(Dict, Type, 5, 10),
-	    generate_list_of_ops(NumOps-1, Mode, Dict, [{update, Key,Type, Param}|Acc])
-    end.
-
 get_key_type(Key, Dict) ->
     Keys = dict:fetch_keys(Dict),
     RanNum = Key rem length(Keys),
