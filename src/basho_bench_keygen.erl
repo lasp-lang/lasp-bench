@@ -147,6 +147,9 @@ new({uniform_int, StartKey, NumKeys}, _Id)
 new({pareto_int, MaxKey}, _Id)
   when is_integer(MaxKey), MaxKey > 0 ->
     pareto(trunc(MaxKey * 0.2), ?PARETO_SHAPE);
+new({dc_bias, NumDCs, DcId, NodesPerDC, MaxKey}, _Id) ->
+    Max = MaxKey * NodesPerDC,
+    bias(NumDCs, DcId, Max, trunc(Max * 0.2), ?PARETO_SHAPE);
 new({truncated_pareto_int, MaxKey}, Id) ->
     Pareto = new({pareto_int, MaxKey}, Id),
     fun() -> erlang:min(MaxKey, Pareto()) end;
@@ -207,6 +210,18 @@ pareto(Mean, Shape) ->
             U = 1 - random:uniform(),
             trunc((math:pow(U, S1) - 1) * S2)
     end.
+
+
+bias(NumDCs, DcId, Max, Mean, Shape) ->
+    DcRange = (Max div NumDCs) * (1 - DcId),
+    S1 = (-1 / Shape),
+    S2 = Mean * (Shape - 1),
+    fun() ->
+            U = 1 - random:uniform(),
+            Key1 = erlang:min(Max, trunc((math:pow(U, S1) - 1) * S2)),
+	    (Key1 + DcRange) rem Max
+    end.
+    
 
 
 sequential_int_generator(Ref, MaxValue, Id, DisableProgress) ->

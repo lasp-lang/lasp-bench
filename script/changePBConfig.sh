@@ -44,6 +44,9 @@ else
     sed -i "6i {operations, [{update, $Writes}, {read, $Reads}]}." $File
 fi
 
+sed -i '/key_generator/d' $File
+sed -i "3i {key_generator, {dc_bias, $NumDCs, $DcId, $NodesPerDC, 10000}}."
+
 sed -i '/antidote_pb_num_dcs/d' $File 
 sed -i '/antidote_pb_nodes_per_dc/d' $File
 sed -i '/antidote_pb_dc_id/d' $File
