@@ -19,7 +19,7 @@
 %% under the License.
 %%
 %% -------------------------------------------------------------------
--module(basho_bench_driver_antidote).
+-module(basho_bench_driver_antidote_staleness).
 
 -export([new/1,
          run/4]).
@@ -83,30 +83,6 @@ run(read, KeyGen, _ValueGen, State=#state{node=Node, type_dict=TypeDict}) ->
     case Response of
         {ok, _Value} ->
             report_staleness(Node),
-            {ok, State};
-        {error, Reason} ->
-            {error, Reason, State};
-        {badrpc, Reason} ->
-            {error, Reason, State}
-    end;
-
-run(multiread, _KeyGen, _ValueGen, State=#state{node=Node, type_dict=TypeDict}) ->
-    Ops = generate_list_of_ops(100, 0, TypeDict, []),
-    Response = rpc:call(Node, antidote, clocksi_execute_tx, [Ops]),
-    case Response of
-        {ok, _Value} ->
-            {ok, State};
-        {error, Reason} ->
-            {error, Reason, State};
-        {badrpc, Reason} ->
-            {error, Reason, State}
-    end;
-
-run(multiupdate, _KeyGen, _ValueGen, State=#state{node=Node, type_dict=TypeDict}) ->
-    Ops = generate_list_of_ops(10, 1, TypeDict, []),
-    Response = rpc:call(Node, antidote, clocksi_execute_tx, [Ops]),
-    case Response of
-        {ok, _Value} ->
             {ok, State};
         {error, Reason} ->
             {error, Reason, State};
@@ -189,6 +165,7 @@ get_random_param(Dict, Type, Actor, Value) ->
 report_staleness(Node) ->
     CurTime = now_microsec(),
     {ok, SS} = rpc:call(Node, vectorclock, get_stable_snapshot, []),
+    %% Here it is assumed the stable snapshot has entries for all remote DCs
     SSL = lists:keysort(1, dict:to_list(SS)),
     Staleness = lists:map(fun({_Dc, Time}) ->
                                   max(0, CurTime - Time)
