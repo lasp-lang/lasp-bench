@@ -82,7 +82,8 @@ wait_ready_nodes([Node|Rest], IsPubSub, IsPartial) ->
 		    wait_until_registered(Node, inter_dc_pub),
 		    wait_until_registered(Node, inter_dc_log_reader_response),
 		    wait_until_registered(Node, inter_dc_log_reader_query),
-		    wait_until_registered(Node, inter_dc_sub);
+		    wait_until_registered(Node, inter_dc_sub),
+		    rpc:call(Node, inter_dc_manager, start_bg_processes, [stable]);
 		false ->
 		    case IsPartial of
 			true ->
