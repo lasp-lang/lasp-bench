@@ -10,4 +10,5 @@ fi
 echo "Starting nodes:" $AllNodes
 
 Start="antidote/rel/antidote/bin/antidote start"
-./script/command_to_all.sh "$AllNodes" "$Start" 
+#./script/command_to_all.sh "$AllNodes" "$Start" 
+./script/parallel_command.sh "$AllNodes" "$Start" 
