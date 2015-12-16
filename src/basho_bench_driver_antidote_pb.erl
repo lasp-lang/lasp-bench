@@ -31,8 +31,11 @@
                 time,
                 type_dict,
                 pb_pid,
-		num_partitions,
-		set_size,
+		        num_partitions,
+		        set_size,
+                commit_time,
+                num_reads,
+                num_updates,
                 pb_port,
                 target_node,
                 measure_staleness}).
@@ -55,6 +58,8 @@ new(Id) ->
     PbPort = basho_bench_config:get(antidote_pb_port),
     Types  = basho_bench_config:get(antidote_types),
     SetSize = basho_bench_config:get(set_size),
+    NumUpdates  = basho_bench_config:get(num_updates),
+    NumReads = basho_bench_config:get(num_reads),
     NumPartitions = length(IPs),
     MeasureStaleness = basho_bench_config:get(staleness),
 
@@ -69,27 +74,30 @@ new(Id) ->
 		set_size = SetSize,
 		num_partitions = NumPartitions,
 		type_dict = TypeDict, pb_port=PbPort,
-		target_node=TargetNode,
-                measure_staleness=MeasureStaleness}}.
+		target_node=TargetNode, commit_time=ignore,
+        num_reads=NumReads, num_updates=NumUpdates,
+        measure_staleness=MeasureStaleness}}.
 
 %% @doc Read a key
 run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
                                           pb_port=_Port, target_node=_Node,
-                                          type_dict=_TypeDict,
+                                          type_dict=_TypeDict, commit_time=OldCommitTime,
                                           measure_staleness=MS}) ->
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
     %% Type = get_key_type(KeyInt, TypeDict),
     StartTime = now_microsec(), %% For staleness calc
-    Bound_object = {Key, riak_dt_pncounter, <<"bucket">>},
-    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, true}]) of
+    %Bound_object = {Key, riak_dt_pncounter, <<"bucket">>},
+    Bound_object = {Key, riak_dt_lwwreg, <<"bucket">>},
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
 	{ok, TxId} ->
 	    case antidotec_pb:read_objects(Pid, [Bound_object], TxId) of
 		{ok, [_Val]} ->		    
 		    case antidotec_pb:commit_transaction(Pid, TxId) of
 			{ok, CT} ->
                             report_staleness(MS, CT, StartTime),
-			    {ok, State};
+                NewCT = binary_to_term(CT),
+			    {ok, State#state{commit_time=NewCT}};
 			_ ->
 			    lager:info("Error read1 on client ~p",[Id]),
 			    {error, timeout, State}
@@ -101,6 +109,33 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
 	_ ->
 	    lager:info("Error read3 on client ~p",[Id]),
 	    {error, timeout, State}
+    end;
+
+%% @doc Read a key
+run(read_txn, _KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=_Port, target_node=_Node, num_reads=NumReads,
+        commit_time=OldCommitTime}) ->
+    IntKeys = k_unique_numes(NumReads, 1000),
+    BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
+
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+    {ok, TxId} ->
+        case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
+        {ok, _} ->
+            case antidotec_pb:commit_transaction(Pid, TxId) of
+            {ok, BCommitTime} ->
+                CommitTime = binary_to_term(BCommitTime),
+                {ok, State#state{commit_time=CommitTime}};
+            _ ->
+                lager:info("Error read1 on client ~p",[Id]),
+                {error, timeout, State}
+            end;
+        Error ->
+            lager:info("Error read2 on client ~p : ~p",[Id, Error]),
+            {error, timeout, State}
+        end;
+    _ ->
+        lager:info("Error read3 on client ~p",[Id]),
+        {error, timeout, State}
     end;
 
 %% @doc Multikey txn 
@@ -172,30 +207,29 @@ run(append, KeyGen, _ValueGen,
                  worker_id = Id,
                  pb_port=_Port,
                  target_node=_Node,
+                 commit_time=OldCommitTime,
                  measure_staleness=MS}) ->
-    KeyInt = KeyGen(),
-    Key = list_to_binary(integer_to_list(KeyInt)),
     %%TODO: Support for different data types
     %% Type = get_key_type(KeyInt, TypeDict),
     %% {Mod, Op, Param} = get_random_param(TypeDict, Type, ValueGen()),
     %% Obj = Mod:Op(Param, Mod:new(Key)),
     
-    Bucket = <<"bucket">>,
-    BObj = {Key, riak_dt_pncounter, Bucket},
-    Obj = antidotec_counter:new(),
-    Obj2 = antidotec_counter:increment(1, Obj),
+    IntKey = KeyGen(),
+    BKey = list_to_binary(integer_to_list(IntKey)),
+    BObj = {{BKey, riak_dt_lwwreg, <<"bucket">>}, assign, random_string(10)},
     
     StartTime=now_microsec(), %% For staleness   
-    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, true}]) of
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
 	{ok, TxId} ->
 	    case antidotec_pb:update_objects(Pid,
-					     antidotec_counter:to_ops(BObj, Obj2),
+                           [BObj],
 					     TxId) of
 		ok ->
 		    case antidotec_pb:commit_transaction(Pid, TxId) of
-			{ok, CT} ->
-                            report_staleness(MS, CT, StartTime),
-                            {ok, State};
+			{ok, BCT} ->
+                report_staleness(MS, BCT, StartTime),
+                CT = binary_to_term(BCT),
+                {ok, State#state{commit_time=CT}};
 			Error ->
 			    {error, Error, State}
 		    end;
@@ -206,6 +240,39 @@ run(append, KeyGen, _ValueGen,
         Error ->
 	    lager:info("Error append3 on client ~p",[Id]),
 	    {error, Error, State}
+    end;
+
+run(append_txn, _KeyGen, _ValueGen,
+    State=#state{type_dict=_TypeDict,
+                 pb_pid = Pid,
+                 worker_id = Id,
+                 pb_port=_Port,
+                 num_updates=NumUpdates,
+                 commit_time=OldCommitTime,
+                 target_node=_Node}) ->
+    IntKeys = k_unique_numes(NumUpdates, 1000),
+    BKeys = [list_to_binary(integer_to_list(K)) || K <- IntKeys],
+    BObjs = [{{K, riak_dt_lwwreg, <<"bucket">>},
+            assign, random_string(10)} || K <- BKeys ],
+
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+    {ok, TxId} ->
+        case antidotec_pb:update_objects(Pid, BObjs, TxId) of
+        ok ->
+            case antidotec_pb:commit_transaction(Pid, TxId) of
+            {ok, BCommitTime} ->
+                CommitTime = binary_to_term(BCommitTime),
+                {ok, State#state{commit_time=CommitTime}};
+            Error ->
+                {error, Error, State}
+            end;
+        Error ->
+            lager:info("Error append2 on client ~p : ~p",[Id, Error]),
+                    {error, Error, State}
+        end;
+        Error ->
+        lager:info("Error append3 on client ~p",[Id]),
+        {error, Error, State}
     end;
 
 run(update, KeyGen, ValueGen,
@@ -275,12 +342,12 @@ get_random_param(Dict, Type, Value, Obj, SetSize) ->
         riak_dt_orset ->
             Set = antidotec_set:value(Obj),
             %%Op = lists:nth(Num, Params),
-	    case sets:size(Set) =< SetSize of
-		true ->
-		    NewOp = add;
-		false ->
-		    NewOp = remove
-	    end,
+	    NewOp = case sets:size(Set) =< SetSize of
+                true ->
+                    add;
+                false ->
+                    remove
+                end,
             case NewOp of 
                 remove ->
                     case sets:to_list(Set) of 
@@ -315,3 +382,26 @@ report_staleness_rec([H|T], HistName, Iter) ->
 now_microsec() ->    
     {MegaSecs, Secs, MicroSecs} = os:timestamp(),
     (MegaSecs * 1000000 + Secs) * 1000000 + MicroSecs.                                                  
+
+k_unique_numes(Num, Range) ->
+    Seq = lists:seq(1, Num),
+    S = lists:foldl(fun(_, Set) ->
+                N = uninum(Range, Set),
+                 sets:add_element(N, Set)
+                end, sets:new(), Seq),
+    sets:to_list(S).
+
+uninum(Range, Set) ->
+    R = random:uniform(Range),
+    case sets:is_element(R, Set) of
+        true ->
+            uninum(Range, Set);
+        false ->
+            R
+    end.
+
+random_string(Len) ->
+    Chrs = list_to_tuple("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"),
+    ChrsSize = size(Chrs),
+    F = fun(_, R) -> [element(random:uniform(ChrsSize), Chrs) | R] end,
+    lists:foldl(F, "", lists:seq(1, Len)).
