@@ -54,7 +54,7 @@ new(Id) ->
     end,
 
     IPs = basho_bench_config:get(antidote_pb_ips),
-    PbPort = basho_bench_config:get(antidote_pb_port),
+    PbPorts = basho_bench_config:get(antidote_pb_port),
     Types  = basho_bench_config:get(antidote_types),
     SetSize = basho_bench_config:get(set_size),
     NumReads  = basho_bench_config:get(num_reads),
@@ -63,16 +63,17 @@ new(Id) ->
 
     %% Choose the node using our ID as a modulus
     TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
+    TargetPort = lists:nth((Id rem length(PbPorts)+1), PbPorts),
     ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
 
-    {ok, Pid} = antidotec_pb_socket:start_link(TargetNode, PbPort),
+    {ok, Pid} = antidotec_pb_socket:start_link(TargetNode, TargetPort),
     TypeDict = dict:from_list(Types),
     {ok, #state{time={1,1,1}, worker_id=Id,
 		pb_pid = Pid,
 		set_size = SetSize,
         deps=dict:new(),
 		num_partitions = NumPartitions,
-		type_dict = TypeDict, pb_port=PbPort,
+		type_dict = TypeDict, pb_port=TargetPort,
         num_reads = NumReads, num_updates= NumUpdates,
 		target_node=TargetNode}}.
 
@@ -89,6 +90,7 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=
 		    case antidotec_pb:commit_transaction(Pid, TxId) of
 			{ok, BDeps} ->
                 Deps = binary_to_term(BDeps),
+                %lager:info("Deps are ~w", [Deps]),
 			    {ok, State#state{deps=merge_deps(Deps, OldDeps)}};
 			_ ->
 			    lager:info("Error read1 on client ~p",[Id]),
@@ -116,6 +118,7 @@ run(read_txn, _KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_
             case antidotec_pb:commit_transaction(Pid, TxId) of
             {ok, BDeps} ->
                 Deps = binary_to_term(BDeps),
+                %lager:info("Deps are ~w", [Deps]),
                 {ok, State#state{deps=merge_deps(Deps, OldDeps)}};
             _ ->
                 lager:info("Error read1 on client ~p",[Id]),
@@ -215,13 +218,14 @@ run(append, KeyGen, _ValueGen,
                  pb_pid = Pid,
                  worker_id = Id,
                  pb_port=_Port,
+                 deps=Deps,
                  target_node=_Node}) ->
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
     
     BObj = {{Key, riak_dt_lwwreg, <<"bucket">>}, assign, random_string(10)},
     
-    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, true}]) of
+    case antidotec_pb:start_transaction(Pid, term_to_binary(dict:to_list(Deps)), [{static, true}]) of
 	{ok, TxId} ->
 	    case antidotec_pb:update_objects(Pid, [BObj], TxId) of
 		ok ->
@@ -229,6 +233,7 @@ run(append, KeyGen, _ValueGen,
 			{ok, BTS} ->
                 TS = binary_to_term(BTS),
                 NewDeps = [{Key, TS}], 
+                %lager:info("NewDeps are ~w, updated ~w, put ~w", [NewDeps, Key, Deps]),
 			    {ok, State#state{deps=dict:from_list(NewDeps)}};
 			Error ->
 			    {error, Error, State}
@@ -248,6 +253,7 @@ run(append_txn, _KeyGen, _ValueGen,
                  pb_pid = Pid,
                  worker_id = Id,
                  pb_port=_Port,
+                 deps=Deps,
                  num_updates=NumUpdates,
                  target_node=_Node}) ->
     IntKeys = k_unique_numes(NumUpdates, 1000),
@@ -255,7 +261,7 @@ run(append_txn, _KeyGen, _ValueGen,
     BObjs = [{{K, riak_dt_lwwreg, <<"bucket">>}, 
             assign, random_string(10)} || K <- BKeys ],
 
-    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, true}]) of
+    case antidotec_pb:start_transaction(Pid, term_to_binary(dict:to_list(Deps)), [{static, true}]) of
     {ok, TxId} ->
         case antidotec_pb:update_objects(Pid, BObjs, TxId) of
         ok ->
@@ -263,6 +269,7 @@ run(append_txn, _KeyGen, _ValueGen,
             {ok, BTS} ->
                 TS = binary_to_term(BTS),
                 NewDeps = [{Key, TS} || Key <- BKeys ],
+                %lager:info("NewDeps are ~w, updated ~p, put ~w", [NewDeps, IntKeys, Deps]),
                 {ok, State#state{deps=dict:from_list(NewDeps)}};
             Error ->
                 {error, Error, State}
