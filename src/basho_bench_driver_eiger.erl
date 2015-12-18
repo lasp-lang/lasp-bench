@@ -370,13 +370,18 @@ get_random_param(Dict, Type, Value, Obj, SetSize) ->
 
 merge_deps(NewDeps, OldDeps) ->
     lists:foldl(fun({Key, TS}, Dict) ->
-                case dict:find(Key, Dict) of
-                    error ->
-                        dict:store(Key, TS, Dict);
-                    {ok, TS} ->
+                case TS of 
+                    {ignore, 0} ->
                         Dict;
                     _ ->
-                        dict:store(Key, TS, Dict)
+                        case dict:find(Key, Dict) of
+                            error ->
+                                dict:store(Key, TS, Dict);
+                            {ok, TS} ->
+                                Dict;
+                            _ ->
+                                dict:store(Key, TS, Dict)
+                        end
                 end end, OldDeps, NewDeps).
 
 k_unique_numes(Num, Range) ->
