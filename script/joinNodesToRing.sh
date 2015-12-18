@@ -12,6 +12,8 @@ else
     echo "Joinig "$Others " to "$First
 fi
 
+sleep 30
+
 Join="antidote/rel/antidote/bin/antidote-admin cluster join antidote@$First"
 Plan="antidote/rel/antidote/bin/antidote-admin cluster plan"
 Commit="antidote/rel/antidote/bin/antidote-admin cluster commit"
