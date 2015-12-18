@@ -20,7 +20,7 @@ ConfigFile=$1
 #     ~/basho_bench/script/grid5000start.sh $1
 # done
 
-for nodes in 12 6 3
+for nodes in 6 3
 do
     dcs=3
     benchnodes=$(($nodes / 3))
@@ -31,4 +31,5 @@ do
     cat $1
     echo
     ~/basho_bench/script/grid5000start.sh $1
+    sed -i '3s/.*/0/' $1
 done
