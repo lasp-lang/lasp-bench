@@ -17,7 +17,10 @@ sleep 30
 Join="antidote/rel/antidote/bin/antidote-admin cluster join antidote@$First"
 Plan="antidote/rel/antidote/bin/antidote-admin cluster plan"
 Commit="antidote/rel/antidote/bin/antidote-admin cluster commit"
-./script/command_to_all.sh "$Others" "$Join"
+./script/command_to_all_slow.sh "$Others" "$Join"
+
+sleep 60
+
 ./script/command_to_all.sh "$First" "$Plan"
 ./script/command_to_all.sh "$First" "$Commit"
 
