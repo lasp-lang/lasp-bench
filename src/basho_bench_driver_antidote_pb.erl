@@ -149,6 +149,7 @@ run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id =
                             end,
                             KeyTypeList
                           ),
+    %% io:format("Object len ~w~n", [length(ObjectList)]),
     %% Snapshot read a list of objects
     case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, true}]) of
 	{ok, TxId} ->
@@ -157,7 +158,8 @@ run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id =
 		    case antidotec_pb:commit_transaction(Pid, TxId) of
 			{ok, _} ->
                             %% append one object
-                            run(append, KeyGen, ValueGen, State);
+                            %% run(append, KeyGen, ValueGen, State);
+			    ok;
 			_ ->
 			    lager:info("Error read1 on client ~p",[Id]),
 			    {error, timeout, State}
