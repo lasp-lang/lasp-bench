@@ -143,6 +143,7 @@ run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id =
     KeyInt = KeyGen(),
     KeyList = lists:seq(KeyInt, KeyInt+NumPart-1), 
     KeyTypeList = get_list_key_type(KeyList, TypeDict, []),
+  %  lager:info("KeyType: ~w", [KeyTypeList]),
     Bucket = <<"bucket">>,
     ObjectList = lists:map( fun({Key, Type}) ->
                                     {Key, Type, Bucket}
@@ -153,17 +154,28 @@ run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id =
     %% Snapshot read a list of objects
     case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, true}]) of
 	{ok, TxId} ->
+  %      lager:info("ObjectList=~w", [ObjectList]),
 	    case antidotec_pb:read_objects(Pid, ObjectList, TxId) of
-		{ok, [_Val]} ->		    
-		    case antidotec_pb:commit_transaction(Pid, TxId) of
-			{ok, _} ->
+		{ok, _Val} ->
+            BKey = list_to_binary(integer_to_list(KeyInt)),
+            BObj = {{BKey, riak_dt_lwwreg, <<"bucket">>}, assign, random_string(10)},
+            case antidotec_pb:update_objects(Pid,
+                [BObj],
+                TxId) of
+                ok ->
+                    case antidotec_pb:commit_transaction(Pid, TxId) of
+                        {ok, _} ->
                             %% append one object
                             %% run(append, KeyGen, ValueGen, State);
-			    ok;
-			_ ->
-			    lager:info("Error read1 on client ~p",[Id]),
-			    {error, timeout, State}
-		    end;
+                            {ok, State};
+                        _ ->
+                            lager:info("Error read1 on client ~p",[Id]),
+                            {error, timeout, State}
+                    end;
+                Error ->
+                    lager:info("Error updating on client ~p : ~p",[Id, Error]),
+                    {error, timeout, State}
+            end;
 		Error ->
 		    lager:info("Error read2 on client ~p : ~p",[Id, Error]),
 		    {error, timeout, State}
@@ -171,6 +183,57 @@ run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id =
 	_ ->
 	    lager:info("Error read3 on client ~p",[Id]),
 	    {error, timeout, State}
+    end;
+
+%% @doc Read and write from and to every vnode
+run(read_all_write_all, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=_Port, target_node=_Node, type_dict=TypeDict}) ->
+    KeyInt = KeyGen(),
+    KeyList = lists:seq(KeyInt, KeyInt+NumPart-1),
+    KeyTypeList = get_list_key_type(KeyList, TypeDict, []),
+    %  lager:info("KeyType: ~w", [KeyTypeList]),
+    Bucket = <<"bucket">>,
+    ObjectList = lists:map( fun({Key, Type}) ->
+        {Key, Type, Bucket}
+                            end,
+        KeyTypeList
+    ),
+    ObjectUpdateList = lists:map( fun({Key, Type}) ->
+        %ToDo: add case here for different types, this only works for lww_reg
+        {{Key, Type, Bucket}, assign, random_string(10)}
+                                  end,
+        KeyTypeList
+    ),
+  %io:format("~nList of updates ~w~n", [ObjectUpdateList]),
+    %% Snapshot read a list of objects
+    case antidotec_pb:start_transaction(Pid, term_to_binary(ignore), [{static, false}]) of
+        {ok, TxId} ->
+            %      lager:info("ObjectList=~w", [ObjectList]),
+            case antidotec_pb:read_objects(Pid, ObjectList, TxId) of
+                {ok, _Val} ->
+                    case antidotec_pb:update_objects(Pid,
+                        ObjectUpdateList,
+                        TxId) of
+                        ok ->
+                            case antidotec_pb:commit_transaction(Pid, TxId) of
+                                {ok, _} ->
+                                    %% append one object
+                                    %% run(append, KeyGen, ValueGen, State);
+                                    {ok, State};
+                                Error ->
+                                    lager:info("Error read1 on client ~p, ~p",[Id, Error]),
+                                    {error, timeout, State}
+                            end;
+                        Error ->
+                            lager:info("Error updating on client ~p : ~p",[Id, Error]),
+                            {error, timeout, State}
+                    end;
+                Error ->
+                    lager:info("Error read2 on client ~p : ~p",[Id, Error]),
+                    {error, timeout, State}
+            end;
+        _ ->
+            lager:info("Error read3 on client ~p",[Id]),
+            {error, timeout, State}
     end;
     
 
