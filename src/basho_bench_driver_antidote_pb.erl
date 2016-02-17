@@ -60,7 +60,7 @@ new(Id) ->
     SetSize = basho_bench_config:get(set_size),
     NumUpdates  = basho_bench_config:get(num_updates),
     NumReads = basho_bench_config:get(num_reads),
-    NumPartitions = length(IPs),
+    NumPartitions = basho_bench_config:get(num_vnodes),
     MeasureStaleness = basho_bench_config:get(staleness),
 
     %% Choose the node using our ID as a modulus
