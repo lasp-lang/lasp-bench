@@ -98,6 +98,11 @@ echo Number of DCs: $TotalDCs
 Time=`date +"%Y-%m-%d-%s"`
 mkdir -p logs/"$GridJob"
 
+echo Copying the experiment key to "$BenchNode"
+echo scp ~/key root@"$BenchNode":/root/basho_bench1/basho_bench/
+scp ~/key root@"$BenchNode":/root/basho_bench1/basho_bench/
+
+
 if [ $SecondRun -eq 0 ]; then
     # The first run should download and update all code files
     echo The first run
@@ -105,6 +110,7 @@ if [ $SecondRun -eq 0 ]; then
     # Will compile both antidoe and basho bench on all nodes in case the number changes in a later experiment
     AllNodes=`cat ~/fullnodelist`
 
+  
     echo Perform configProxy.sh on "$BenchNode"
     echo First copying the node list to "$BenchNode"
     echo scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodes
