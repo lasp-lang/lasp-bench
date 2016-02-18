@@ -1,3 +1,14 @@
+ssh sophia
+cp -r ../tcrain/public/* ./
+ln ./.ssh/id_rsa key
+ln ./.ssh/id_rsa.pub ./.ssh/exp_key
+oargridsub -t deploy -w '2:00:00' sophia:rdef="/nodes=2" -v
+
+edit 
+
+
+
+
 First you need to get an account on Grid5000:
 https://www.grid5000.fr/mediawiki/index.php/Grid5000:Get_an_account
 

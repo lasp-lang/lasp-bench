@@ -11,6 +11,16 @@ Command01="sed -i '/export https_proxy/d' ~/.bashrc"
 Command02="sed -i '10i export https_proxy=https://proxy.sophia.grid5000.fr:3128/' ~/.bashrc"
 Command03="sed -i '10i export http_proxy=http://proxy.sophia.grid5000.fr:3128/' ~/.bashrc"
 
+# echo Copying experiment keys
+# for node in $AllNodes
+#do
+#   scp -t -o ConnectTimeout=3 -o StrictHostKeyChecking=no -t key root@"$node":~/basho_bench1/basho_bench/ -i key ${command/localhost/$node}
+#   scp -t -o ConnectTimeout=3 -o StrictHostKeyChecking=no -t key root@"$node":~/basho_bench2/basho_bench/ -i key ${command/localhost/$node}
+#   scp -t -o ConnectTimeout=3 -o StrictHostKeyChecking=no -t key root@"$node":~/basho_bench3/basho_bench/ -i key ${command/localhost/$node}
+#   scp -t -o ConnectTimeout=3 -o StrictHostKeyChecking=no -t key root@"$node":~/basho_bench4/basho_bench/ -i key ${command/localhost/$node}
+#done
+
+
 echo Running proxy config
 echo
 
