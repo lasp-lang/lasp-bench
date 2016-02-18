@@ -220,19 +220,19 @@ run(read_all_write_all, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id =
                                     %% run(append, KeyGen, ValueGen, State);
                                     {ok, State};
                                 Error ->
-                                    lager:info("Error read1 on client ~p, ~p",[Id, Error]),
+                                    %lager:info("Error read1 on client ~p, ~p",[Id, Error]),
                                     {error, timeout, State}
                             end;
                         Error ->
-                            lager:info("Error updating on client ~p : ~p",[Id, Error]),
+                            %lager:info("Error updating on client ~p : ~p",[Id, Error]),
                             {error, timeout, State}
                     end;
                 Error ->
-                    lager:info("Error read2 on client ~p : ~p",[Id, Error]),
+                    %lager:info("Error read2 on client ~p : ~p",[Id, Error]),
                     {error, timeout, State}
             end;
         _ ->
-            lager:info("Error read3 on client ~p",[Id]),
+            %lager:info("Error read3 on client ~p",[Id]),
             {error, timeout, State}
     end;
     
