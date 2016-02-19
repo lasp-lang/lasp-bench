@@ -1,10 +1,52 @@
+First connect to grid5000
+ssh access.grid5000.fr
+
+the connect to sophia
 ssh sophia
-cp -r ../tcrain/public/* ./
+
+then copy the necessary files to your home directory
+cp -r ../tcrain/public/* ~/
+
+Link your ssh key that will be used for the experiments
 ln ./.ssh/id_rsa key
+
+Link your public key
 ln ./.ssh/id_rsa.pub ./.ssh/exp_key
+
+Reserve some nodes
 oargridsub -t deploy -w '2:00:00' sophia:rdef="/nodes=2" -v
 
-edit 
+This will reply something like:
+[OAR_GRIDSUB] [lille] Reservation success on sophia : batchId = 1507949
+[OAR_GRIDSUB] Grid reservation id = 54894
+
+Now you need to edit the config file for this experiment, so here are the contents that I will have for this experiment in the file ./basho_bench/script/testconfig (I described in a previous email what each line does):
+54894
+master
+1
+0
+1
+1
+4
+1
+grid5000newpb
+antidote_pb.config
+
+Now you should be able to run the experiment
+./basho_bench/script/grid5000start.sh ./basho_bench/script/testconfig
+
+
+
+Hopefully if there are no errors, once it finishes it will give you the name of a tar file.  You need to download this file to your local computer to compile the results.  I do this from the basho bench folder on my local computer:
+cd ~/basho_bench
+scp tcrain@access.grid5000.fr:~/sophia/antidote_bench-2016-01-29-1454081924.tar ./
+
+Then to compile the results you run:
+./script/makeGraph.sh antidote_bench-2016-01-29-1454081924
+
+Now you will have a folder with all the results.
+In this example it is in the folder called antidote_bench-2016-01-29-1454081924/results-pubsub_weak_meta_data-2dcs-8nodes-2benchNodes
+
 
 
 
