@@ -152,7 +152,7 @@ run(read_txn, _KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_
 
 
 %% @doc Multikey txn 
-run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=_Port, target_node=_Node, type_dict=TypeDict}) ->
+run(readall_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=_Port, target_node=_Node, type_dict=TypeDict}) ->
     KeyInt = KeyGen(),
     KeyList = lists:seq(KeyInt, KeyInt+NumPart-1), 
     KeyTypeList = get_list_key_type(KeyList, TypeDict, []),

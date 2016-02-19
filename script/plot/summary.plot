@@ -1,6 +1,6 @@
 set term png 
-set output "results-weak_meta_data-2dcs-2nodes-2benchNodes/summary_overall.png"
-set title "Throughput-2-DCs-2-Nodes-2-Bench-Nodes-Branch-weak_meta_data"
+set output "results-CONS_nocert-1dcs-3nodes-3benchNodes/summary_overall.png"
+set title "Throughput-1-DCs-3-Nodes-3-Bench-Nodes-Branch-CONS_nocert"
 set xtics ("99.99(.01)" 1, "99(1)" 2, "90(10)" 3, "75(25)" 4, "50(50)" 5, "1(99)" 6)
 #set xtics rotate by 90 right
 set tics out
