@@ -20,16 +20,51 @@ ConfigFile=$1
 #     ~/basho_bench/script/grid5000start.sh $1
 # done
 
-for nodes in 6 3
+for dcs in 1 2 4 8 10
 do
-    dcs=3
-    benchnodes=$(($nodes / 3))
-    sed -i '5s/.*/'$nodes'/' $1
-    sed -i '6s/.*/'$benchnodes'/' $1
-    sed -i '8s/.*/'$dcs'/' $1
-    echo new config
-    cat $1
-    echo
-    ~/basho_bench/script/grid5000start.sh $1
-    sed -i '3s/.*/0/' $1
+    for nodes in 4 8
+    do
+	benchnodes=$(($nodes / 4))
+	sed -i '5s/.*/'$nodes'/' $1
+	sed -i '6s/.*/'$benchnodes'/' $1
+	sed -i '8s/.*/'$dcs'/' $1
+	echo new config
+	cat $1
+	echo
+	~/basho_bench/script/grid5000start.sh $1
+	sed -i '3s/.*/0/' $1
+    done
+done
+
+
+for dcs in 1 2
+do
+    for nodes in 40
+    do
+	benchnodes=$(($nodes / 4))
+	sed -i '5s/.*/'$nodes'/' $1
+	sed -i '6s/.*/'$benchnodes'/' $1
+	sed -i '8s/.*/'$dcs'/' $1
+	echo new config
+	cat $1
+	echo
+	~/basho_bench/script/grid5000start.sh $1
+	sed -i '3s/.*/0/' $1
+    done
+done
+
+for dcs in 1 2 4
+do
+    for nodes in 20
+    do
+	benchnodes=$(($nodes / 4))
+	sed -i '5s/.*/'$nodes'/' $1
+	sed -i '6s/.*/'$benchnodes'/' $1
+	sed -i '8s/.*/'$dcs'/' $1
+	echo new config
+	cat $1
+	echo
+	~/basho_bench/script/grid5000start.sh $1
+	sed -i '3s/.*/0/' $1
+    done
 done
