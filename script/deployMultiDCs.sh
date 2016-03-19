@@ -42,7 +42,7 @@ if [ $3 -eq 1 ]; then
 	echo "Connect DCs"
 	joinNodes "$AllNodes" $NodesPerDC
 	erlc script/connectDCs.erl
-	erl -deatached -pa script -name setter@localhost -setcookie $Cookie -run connectDCs listenAndConnect $Cookie $NodesPerDC $Branch $BenchmarkFile $AllNodes -run init stop 
+	erl -pa script -name setter@localhost -setcookie $Cookie -run connectDCs listenAndConnect $Cookie $NodesPerDC $Branch $BenchmarkFile $AllNodes -run init stop 
 else
 	echo "Not connecting DCs"
 fi
