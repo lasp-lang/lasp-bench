@@ -27,6 +27,14 @@ sed -i '/operations/d' $File
 PerNodeNum=5
 #Thread=20
 
+if [ $NodesPerDC -gt 8 ]; then
+    PerNodeNum=2
+fi
+if [ $NodesPerDC -gt 20 ]; then
+    PerNodeNum=1
+fi
+
+
 BenchConfig="{antidote_pb_ips, ["
 for Node in $AllNodes
 do
@@ -38,10 +46,6 @@ BenchConfig=${BenchConfig::-1}"]}."
 echo $BenchConfig
 echo "$BenchConfig" >> $File
 sed -i "5i {concurrent, $Thread}." $File
-
-if [ $NodesPerDC -gt 8 ]; then
-    Thread=$NodesPerDC
-fi
 
 if [ $Type = "counter" ]; then
     sed -i "6i {operations, [{append, $Writes}, {read, $Reads}]}." $File
