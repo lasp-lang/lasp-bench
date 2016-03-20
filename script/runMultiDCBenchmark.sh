@@ -42,23 +42,27 @@ WritesNumber=( 1 1 10 25 50 100 )
 #loop for number of reads
 for ReadWrite in $(seq 0 5); do
 
-    echo Stopping nodes
-    ./script/stopNodes.sh  >> logs/"$GridJob"/stop_nodes-"$Time"
+    # Only deploy on first run, otherwise keeps dcs up
+    if [ $ReadWrite -eq 0 ]; then
+
+	echo Stopping nodes
+	./script/stopNodes.sh  >> logs/"$GridJob"/stop_nodes-"$Time"
     
-    echo Deploying DCs
-    ./script/deployMultiDCs.sh nodes $Cookie $ConnectDCs $NodesPerDC $Branch $BenchmarkFile
+	echo Deploying DCs
+	./script/deployMultiDCs.sh nodes $Cookie $ConnectDCs $NodesPerDC $Branch $BenchmarkFile
     
-    cat script/allnodes > ./tmpnodelist
-    cat script/allnodesbench > ./tmpnodelistbench
-    for DCNum in $(seq 1 $NumberDC); do
-	NodeArray[$DCNum]=`head -$NodesPerDC tmpnodelist`
-	sed '1,'"$NodesPerDC"'d' tmpnodelist > tmp
-	cat tmp > tmpnodelist
-	
-	BenchNodeArray[$DCNum]=`head -$BenchNodesPerDC tmpnodelistbench`
-	sed '1,'"$BenchNodesPerDC"'d' tmpnodelistbench > tmp
-	cat tmp > tmpnodelistbench
-    done
+	cat script/allnodes > ./tmpnodelist
+	cat script/allnodesbench > ./tmpnodelistbench
+	for DCNum in $(seq 1 $NumberDC); do
+	    NodeArray[$DCNum]=`head -$NodesPerDC tmpnodelist`
+	    sed '1,'"$NodesPerDC"'d' tmpnodelist > tmp
+	    cat tmp > tmpnodelist
+	    
+	    BenchNodeArray[$DCNum]=`head -$BenchNodesPerDC tmpnodelistbench`
+	    sed '1,'"$BenchNodesPerDC"'d' tmpnodelistbench > tmp
+	    cat tmp > tmpnodelistbench
+	done
+    fi
 
     # Run the benchmarks in parallel
     # This is not a good way to do this, should be implemented inside basho bench
@@ -79,6 +83,8 @@ for ReadWrite in $(seq 0 5); do
     done
     wait
     
+    echo Sleeping a minute duing runs
+    sleep 60
 done
 
 
