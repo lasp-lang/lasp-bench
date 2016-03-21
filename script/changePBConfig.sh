@@ -28,7 +28,7 @@ PerNodeNum=5
 #Thread=20
 
 if [ $NodesPerDC -gt 8 ]; then
-    PerNodeNum=2
+    PerNodeNum=10
 fi
 if [ $NodesPerDC -gt 20 ]; then
     PerNodeNum=1
