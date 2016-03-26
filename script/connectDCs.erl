@@ -33,7 +33,10 @@ listenAndConnect(StringNodes) ->
 			false
 		end,
     wait_ready_nodes(CookieNodes, IsPubSub, IsPartial),
-    HeadNodes = keepnth(CookieNodes, DCPerRing, 0, []), 
+    HeadNodes = keepnth(CookieNodes, DCPerRing, 0, []),
+    lists:foreach(fun(ANode) ->
+			  rpc:call(ANode, inter_dc_manager, start_bg_processes, [stable])
+		  end, HeadNodes),
     HeadNodesIp = keepnth(Nodes, DCPerRing, 0, []), 
     case IsPartial of
 	true ->
@@ -84,8 +87,7 @@ wait_ready_nodes([Node|Rest], IsPubSub, IsPartial) ->
 		    wait_until_registered(Node, inter_dc_log_reader_query),
 		    wait_until_registered(Node, inter_dc_sub),
 		    wait_until_registered(Node, meta_data_sender_sup),
-		    wait_until_registered(Node, meta_data_manager_sup),
-		    rpc:call(Node, inter_dc_manager, start_bg_processes, [stable]);
+		    wait_until_registered(Node, meta_data_manager_sup);
 		false ->
 		    case IsPartial of
 			true ->
