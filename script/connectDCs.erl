@@ -109,18 +109,12 @@ check_ready(Node) ->
     try
 	case rpc:call(Node,clocksi_vnode,check_tables_ready,[]) of
 	    true ->
-		case rpc:call(Node,clocksi_readitem_fsm,check_servers_ready,[]) of
+		case rpc:call(Node,materializer_vnode,check_tables_ready,[]) of
 		    true ->
-			case rpc:call(Node,materializer_vnode,check_tables_ready,[]) of
-			    true ->
-				io:format("Node ~w is ready! ~n", [Node]),
-				true;
-			    false ->
-				io:format("Node ~w is not ready ~n", [Node]),
-				false
-			end;
+			io:format("Node ~w is ready! ~n", [Node]),
+			true;
 		    false ->
-			io:format("Checking if node ~w is ready ~n", [Node]),
+			io:format("Node ~w is not ready ~n", [Node]),
 			false
 		end;
 	    false ->
