@@ -11,7 +11,7 @@ Link your ssh key that will be used for the experiments
 ln ./.ssh/id_rsa key
 
 Link your public key
-ln ./.ssh/id_rsa.pub ./.ssh/exp_key
+ln ./.ssh/id_rsa.pub ./.ssh/exp_key.pub
 
 Reserve some nodes
 oargridsub -t deploy -w '2:00:00' sophia:rdef="/nodes=2" -v
