@@ -32,7 +32,13 @@ listenAndConnect(StringNodes) ->
 		    nomatch ->
 			false
 		end,
-    wait_ready_nodes(CookieNodes, IsPubSub, IsPartial),
+    IsEC = case re:run(atom_to_list(Branch),"Eventually") of
+	       {match, _} ->
+		   true;
+	       nomatch ->
+		   false
+	   end,
+    wait_ready_nodes(CookieNodes, IsPubSub, IsPartial,IsEC),
     HeadNodes = keepnth(CookieNodes, DCPerRing, 0, []),
     lists:foreach(fun(ANode) ->
 			  rpc:call(ANode, inter_dc_manager, start_bg_processes, [stable])
@@ -75,10 +81,10 @@ createPorts(StartInt,NumDcs,Remainder,Acc) ->
     createPorts(StartInt + NumDcs + 1, NumDcs, Remainder - 1, NewAcc).
 
 
-wait_ready_nodes([], _IsPubSub, _IsPartial) ->
+wait_ready_nodes([], _IsPubSub, _IsPartial, _IsEC) ->
     true;
-wait_ready_nodes([Node|Rest], IsPubSub, IsPartial) ->
-    case check_ready(Node) of
+wait_ready_nodes([Node|Rest], IsPubSub, IsPartial, IsEC) ->
+    case check_ready(Node,IsEC) of
 	true ->
 	    case IsPubSub of 
 		true ->
@@ -86,8 +92,13 @@ wait_ready_nodes([Node|Rest], IsPubSub, IsPartial) ->
 		    wait_until_registered(Node, inter_dc_log_reader_response),
 		    wait_until_registered(Node, inter_dc_log_reader_query),
 		    wait_until_registered(Node, inter_dc_sub),
-		    wait_until_registered(Node, meta_data_sender_sup),
-		    wait_until_registered(Node, meta_data_manager_sup);
+		    case IsEC of
+			false ->
+			    wait_until_registered(Node, meta_data_sender_sup),
+			    wait_until_registered(Node, meta_data_manager_sup);
+			true ->
+			    ok
+		    end;
 		false ->
 		    case IsPartial of
 			true ->
@@ -97,14 +108,16 @@ wait_ready_nodes([Node|Rest], IsPubSub, IsPartial) ->
 			    wait_until_registered(Node, inter_dc_manager)
 		    end
 	    end,
-	    wait_ready_nodes(Rest,IsPubSub, IsPartial);
+	    wait_ready_nodes(Rest,IsPubSub, IsPartial, IsEC);
 	false ->
 	    timer:sleep(100),
-	    wait_ready_nodes([Node|Rest],IsPubSub,IsPartial)
+	    wait_ready_nodes([Node|Rest],IsPubSub,IsPartial, IsEC)
     end.
 
 
-check_ready(Node) ->
+check_ready(_Node,true) ->
+    true;
+check_ready(Node,false) ->
     io:format("Checking if node ~w is ready ~n", [Node]),
     try
 	case rpc:call(Node,clocksi_vnode,check_tables_ready,[]) of
