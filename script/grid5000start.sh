@@ -57,22 +57,6 @@ echo
 echo Branch to send: `cat ~/branch`
 echo
 
-if [ $DoDeploy -eq 1 ]; then
-    # Connect to each cluster to deloy the nodes
-    for I in $(seq 0 $((${#Clusters[*]} - 1))); do
-	echo Deploying cluster: ${Clusters[$I]}
-	ssh -t -o StrictHostKeyChecking=no ${Clusters[$I]} ~/basho_bench/script/grid5000start-createnodes.sh ${Clusters[$I]} $GridJob &
-	#oargridstat -w -l $JobId | sed '/^$/d' > ~/machines
-	#awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
-	#kadeploy3 -f ~/machines-tmp -a ~/antidote_images/mywheezy-x64-base.env -k ~/.ssh/exp_key.pub
-    done
-    wait
-fi
-
-# oargridstat -w -l $GridJob | sed '/^$/d' > ~/machines
-# awk < ~/machines '!seen[$0]++' > ~/machines-tmp
-# awk < ~/machines-tmp '!/'"$BenchNode"'/ { print $1 }' > ~/machines-tmp2
-
 # Change node names to ips
 while read in; do dig +short "$in"; done < ~/nodelist > ~/nodelistip
 while read in; do dig +short "$in"; done < ~/benchnodelist > ~/benchnodelistip
@@ -140,7 +124,24 @@ done
 echo Benchmark cookies: `cat ~/benchcookielist`
 echo Compute cookies: `cat ~/computecookielist`
 echo All cookies: `cat ~/allcookielist`	    
-    
+
+
+
+if [ $DoDeploy -eq 1 ]; then
+    # Connect to each cluster to deloy the nodes
+    for I in $(seq 0 $((${#Clusters[*]} - 1))); do
+	echo Deploying cluster: ${Clusters[$I]}
+	ssh -t -o StrictHostKeyChecking=no ${Clusters[$I]} ~/basho_bench/script/grid5000start-createnodes.sh ${Clusters[$I]} $GridJob &
+	#oargridstat -w -l $JobId | sed '/^$/d' > ~/machines
+	#awk < ~/machines '/'"${Clusters[$I]}"'/ { print $1 }' > ~/machines-tmp
+	#kadeploy3 -f ~/machines-tmp -a ~/antidote_images/mywheezy-x64-base.env -k ~/.ssh/exp_key.pub
+    done
+    wait
+fi
+
+# oargridstat -w -l $GridJob | sed '/^$/d' > ~/machines
+# awk < ~/machines '!seen[$0]++' > ~/machines-tmp
+# awk < ~/machines-tmp '!/'"$BenchNode"'/ { print $1 }' > ~/machines-tmp2    
 
 Time=`date +"%Y-%m-%d-%s"`
 mkdir -p logs/"$GridJob"
