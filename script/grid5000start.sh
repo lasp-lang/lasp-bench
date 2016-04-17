@@ -95,6 +95,53 @@ TotalDCs=$(($TotalDCs * $DcsPerCluster))
 echo Nodes per DC: $Size
 echo Number of DCs: $TotalDCs
 
+
+echo Benchmark nodes: `cat ~/benchnodelist`
+echo
+echo Compute nodes: `cat ~/nodelist`
+echo
+echo Full node list: `cat ~/fullnodelist`
+
+
+rm ~/benchcookielist
+rm ~/computecookielist
+rm ~/allcookielist
+echo Making cookies
+
+DCNum=1
+for I in $(seq 1 $CountDC); do
+    TmpDCNum=$DCNum
+    for F in $(seq 1 $DcsPerCluster); do
+	for J in $(seq 1 $BenchCount); do
+	    echo dccookie"$TmpDCNum" >> ~/allcookielist
+	done
+	TmpDCNum=$(($TmpDCNum + 1))
+    done
+    TmpDCNum=$DCNum
+    for F in $(seq 1 $DcsPerCluster); do
+	for J in $(seq 1 $ComputeCount); do
+	    echo dccookie"$TmpDCNum" >> ~/allcookielist
+	done
+	TmpDCNum=$(($TmpDCNum + 1))
+    done
+    DCNum=$TmpDCNum
+done
+
+DCNum=1
+for I in $(seq 1 $TotalDCs); do
+    for F in $(seq 1 $BenchCount); do
+	echo dccookie"$DCNum" >> ~/benchcookielist	
+    done
+    for F in $(seq 1 $ComputeCount); do
+	echo dccookie"$DCNum" >> ~/computecookielist
+    done
+    DCNum=$(($DCNum + 1))
+done
+echo Benchmark cookies: `cat ~/benchcookielist`
+echo Compute cookies: `cat ~/computecookielist`
+echo All cookies: `cat ~/allcookielist`	    
+    
+
 Time=`date +"%Y-%m-%d-%s"`
 mkdir -p logs/"$GridJob"
 
@@ -112,11 +159,18 @@ if [ $SecondRun -eq 0 ]; then
 
   
     echo Perform configProxy.sh on "$BenchNode"
+
     echo First copying the node list to "$BenchNode"
     echo scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodes
     scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodes
+
     echo scp ~/basho_bench/script/configProxy.sh root@"$BenchNode":/root/basho_bench1/basho_bench/script/
     scp ~/basho_bench/script/configProxy.sh root@"$BenchNode":/root/basho_bench1/basho_bench/script/
+
+    echo Now copying the cookie list to "$BenchNode"
+    echo scp ~/allcookielist root@"$BenchNode":/root/basho_bench1/basho_bench/script/allcookies
+    scp ~/allcookielist root@"$BenchNode":/root/basho_bench1/basho_bench/script/allcookies
+
     echo ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configProxy.sh
     ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/configProxy.sh
 

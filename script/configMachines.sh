@@ -13,6 +13,7 @@ fi
 cd /root/basho_bench1/basho_bench/
 
 AllNodes=`cat /root/basho_bench1/basho_bench/script/allnodes`
+AllCookies=`cat /root/basho_bench1/basho_bench/script/allcookies`
 
 echo All nodes "$AllNodes"
 mkdir -p logs/"$JobId"
@@ -55,3 +56,13 @@ echo Performing: ./script/parallel_command.sh "$AllNodes" "$Command4"
 echo Performing: ./script/parallel_command.sh "$AllNodes" "$Command5"	
 ./script/parallel_command.sh "$AllNodes" "$Command5" >> logs/"$JobId"/config_machines-"$Time"
 echo
+
+CookieArray=($AllCookies)
+Count=0
+for Node in $AllNodes; do
+    Cookie=(${CookieArray[$Count]})
+    Command6="sed -i 's/\"antidote\"/\""$Cookie"\"/g' $File1"
+    echo Performing ./script/parallel_command.sh "$Node" "$Command6"
+    ./script/parallel_command.sh "$Node" "$Command6" >> logs/"$JobId"/config_machines-"$Time"
+    Count=$(($Count + 1))
+done

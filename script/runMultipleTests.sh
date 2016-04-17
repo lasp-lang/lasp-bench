@@ -17,9 +17,11 @@ cd /root/basho_bench1/basho_bench/
 mkdir -p logs/"$GridJob"
 
 AllNodes=`cat script/allnodes`
+AllCookies=`cat script/allcookies`
 BenchNodes=`cat script/allnodesbench`
 Branch=`cat script/branch`
 echo All nodes for muliptle tests: $AllNodes
+echo All cookies for muliptle tests: $AllCookies
 echo Bench nodes for multiple tests: $BenchNodes
 echo Branch using: $Branch
 Mode="pb"

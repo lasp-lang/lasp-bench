@@ -32,6 +32,7 @@ function joinNodes {
 
 #AllNodes=$1
 AllNodes=`cat script/allnodes`
+AllCookies=`cat script/allcookies`
 Cookie=$2
 NodesPerDC=$4
 Branch=$5
@@ -43,7 +44,7 @@ if [ $3 -eq 1 ]; then
 	echo "Connect DCs"
 	joinNodes "$AllNodes" $NodesPerDC
 	erlc script/connectDCs.erl
-	erl -pa script -name setter@"$MyIp" -setcookie $Cookie -run connectDCs listenAndConnect $Cookie $NodesPerDC $Branch $BenchmarkFile $AllNodes -run init stop 
+	erl -pa script -name setter@"$MyIp" -setcookie $Cookie -run connectDCs listenAndConnect $Cookie $NodesPerDC $Branch $BenchmarkFile $AllNodes $AllCookies -run init stop 
 else
 	echo "Not connecting DCs"
 fi

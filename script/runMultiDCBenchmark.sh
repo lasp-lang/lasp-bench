@@ -13,6 +13,7 @@ else
     BenchNodes=`cat script/allnodesbench`
     NodesToUse=$((NumberDC * NodesPerDC))
     AllNodes=`cat script/allnodes`    
+    AllCookies=`cat script/allcookies`    
     # AllNodes=${SystemNodesArray[@]:0:$NodesToUse}
     # AllNodes=`echo ${AllNodes[@]}`
     ConnectDCs=$5

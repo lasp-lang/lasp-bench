@@ -1,6 +1,6 @@
 -module(connectDCs).
 
--export([listenAndConnect/1, connect/6
+-export([listenAndConnect/1, connect/7
 	]).
 
 -define(LISTEN_PORT, 8311).
@@ -11,8 +11,11 @@ listenAndConnect(StringNodes) ->
     DCPerRing = list_to_integer(atom_to_list(hd(tl(Temp)))),
     Branch = hd(tl(tl(Temp))),
     BenchmarkFile = hd(tl(tl(tl(Temp)))),
-    Nodes = tl(tl(tl(tl(Temp)))),
+    NodesAndCookies = tl(tl(tl(tl(Temp)))),
+    NumNodes = length(NodesAndCookies) div 2,
+    {Nodes,Cookies} = lists:split(NumNodes,NodesAndCookies),
     io:format("Nodes ~w ~n", [Nodes]),
+    io:format("Cookies ~w ~n", [Cookies]),
     io:format("Branch from erl ~w ~n", [Branch]),
     
     true = erlang:set_cookie(node(), Cookie),
@@ -38,11 +41,14 @@ listenAndConnect(StringNodes) ->
 	       nomatch ->
 		   false
 	   end,
-    wait_ready_nodes(CookieNodes, IsPubSub, IsPartial,IsEC),
+    wait_ready_nodes(CookieNodes, Cookies, IsPubSub, IsPartial,IsEC),
     HeadNodes = keepnth(CookieNodes, DCPerRing, 0, []),
-    lists:foreach(fun(ANode) ->
-			  rpc:call(ANode, inter_dc_manager, start_bg_processes, [stable])
-		  end, HeadNodes),
+    HeadCookies = keepnth(Cookies, DCPerRing, 0, []),
+    lists:foldl(fun(ANode,[ACookie|Rest]) ->
+			true = erlang:set_cookie(node(), ACookie),
+			rpc:call(ANode, inter_dc_manager, start_bg_processes, [stable]),
+			Rest
+		  end, HeadCookies, HeadNodes),
     HeadNodesIp = keepnth(Nodes, DCPerRing, 0, []), 
     case IsPartial of
 	true ->
@@ -67,8 +73,8 @@ listenAndConnect(StringNodes) ->
 	false ->
 	    Ports =  lists:seq(?LISTEN_PORT, ?LISTEN_PORT + NumDCs -1),
 	    DCInfo = addPort(HeadNodes, Ports, []),
-	    DCList = startListeners(DCInfo,Branch,[]),
-	    connect_each(CookieNodes, DCPerRing, 1, DCInfo, HeadNodesIp, Ports, DCList, Branch)
+	    DCList = startListeners(DCInfo,HeadCookies,Branch,[]),
+	    connect_each(CookieNodes, Cookies, DCPerRing, 1, DCInfo, HeadNodesIp, Ports, DCList, Branch)
     end,
     %% Sleep for some time to let the DCs stablize
     timer:sleep(30000).
@@ -81,9 +87,10 @@ createPorts(StartInt,NumDcs,Remainder,Acc) ->
     createPorts(StartInt + NumDcs + 1, NumDcs, Remainder - 1, NewAcc).
 
 
-wait_ready_nodes([], _IsPubSub, _IsPartial, _IsEC) ->
+wait_ready_nodes([], [], _IsPubSub, _IsPartial, _IsEC) ->
     true;
-wait_ready_nodes([Node|Rest], IsPubSub, IsPartial, IsEC) ->
+wait_ready_nodes([Node|Rest], [Cookie|RestCookie], IsPubSub, IsPartial, IsEC) ->
+    true = erlang:set_cookie(node(), Cookie),
     case check_ready(Node,IsEC) of
 	true ->
 	    case IsPubSub of 
@@ -108,10 +115,11 @@ wait_ready_nodes([Node|Rest], IsPubSub, IsPartial, IsEC) ->
 			    wait_until_registered(Node, inter_dc_manager)
 		    end
 	    end,
-	    wait_ready_nodes(Rest,IsPubSub, IsPartial, IsEC);
+	    wait_ready_nodes(Rest,RestCookie,IsPubSub, IsPartial, IsEC);
 	false ->
-	    timer:sleep(100),
-	    wait_ready_nodes([Node|Rest],IsPubSub,IsPartial, IsEC)
+	    lager:info("Node ~w not ready, rety in 5 sec",[Node]),
+	    timer:sleep(5000),
+	    wait_ready_nodes([Node|Rest],[Cookie|RestCookie],IsPubSub,IsPartial, IsEC)
     end.
 
 
@@ -190,10 +198,11 @@ keepnth([First|Rest], Length, AccNum, AccList) ->
 	_ -> keepnth(Rest, Length, AccNum+1, AccList)
     end.
 
-startListeners([], _Branch, Acc) ->
+startListeners([],[], _Branch, Acc) ->
     Acc;
-startListeners([{Node, _Port}|Rest], Branch, Acc) ->
+startListeners([{Node, _Port}|Rest],[Cookie|RestCookies], Branch, Acc) ->
     io:format("Getting descriptor"),
+    true = erlang:set_cookie(node(), Cookie),
     {ok, DC} = case re:run(atom_to_list(Branch),"pubsub") of
 		   {match, _} ->
 		       rpc:call(Node, inter_dc_manager, get_descriptor, []);
@@ -202,13 +211,14 @@ startListeners([{Node, _Port}|Rest], Branch, Acc) ->
 		       %%rpc:call(Node, inter_dc_manager, start_receiver,[Port])
 	       end,
     io:format("Datacenter ~w ~n", [DC]),
-    startListeners(Rest, Branch, Acc ++ [DC]).
+    startListeners(Rest, RestCookies, Branch, Acc ++ [DC]).
 
 
-connect_each([], _DCPerRing, _Acc, _AllDCs, _, _, _, _) ->
+connect_each([], [], _DCPerRing, _Acc, _AllDCs, _, _, _, _) ->
     ok;
-connect_each(Nodes, DCPerRing, Acc, AllDCs, Allips, Allports, DCList, Branch) ->
+connect_each(Nodes, Cookies, DCPerRing, Acc, AllDCs, Allips, Allports, DCList, Branch) ->
     {DCNodes, Rest} = lists:split(DCPerRing, Nodes),
+    {DCCookies, RestCookies} = lists:split(DCPerRing, Cookies),
     OtherDCList = DCList -- [lists:nth(Acc, DCList)],
     OtherDCs = AllDCs -- [lists:nth(Acc, AllDCs)],
     OtherIps = Allips -- [lists:nth(Acc, Allips)],
@@ -217,16 +227,18 @@ connect_each(Nodes, DCPerRing, Acc, AllDCs, Allips, Allports, DCList, Branch) ->
 	[] ->
 	    io:format("Empty dc, no need to connect!~n");
 	_ ->
-    	    connect(DCNodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch)
+    	    connect(DCNodes, DCCookies, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch)
     end,
-    connect_each(Rest, DCPerRing, Acc+1, AllDCs, Allips, Allports, DCList, Branch).
+    connect_each(Rest, RestCookies, DCPerRing, Acc+1, AllDCs, Allips, Allports, DCList, Branch).
 
-connect(Nodes, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
+connect(Nodes, Cookies, OtherDCs, OtherIps, OtherPorts, OtherDCList, Branch) ->
     case Nodes of
 	[] ->
 		ok;
 	[Node|_Rest] ->
-	    io:format("Connect node ~w to ~w ~n", [Node, OtherDCs]),
+	    [Cookie|_RestCookies] = Cookies,
+	    io:format("Connect node ~w cookie ~w to ~w ~n", [Node, Cookie, OtherDCs]),
+	    true = erlang:set_cookie(node(), Cookie),
 	    lists:foldl(fun(_DC, Acc) ->
 				io:format("Acc ~w ~n", [Acc]),
 				Ip = lists:nth(Acc, OtherIps),
