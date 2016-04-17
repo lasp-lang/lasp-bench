@@ -101,6 +101,9 @@ for I in $(seq 1 $CountDC); do
 	done
 	TmpDCNum=$(($TmpDCNum + 1))
     done
+done
+DCNum=1
+for I in $(seq 1 $CountDC); do
     TmpDCNum=$DCNum
     for F in $(seq 1 $DcsPerCluster); do
 	for J in $(seq 1 $ComputeCount); do
