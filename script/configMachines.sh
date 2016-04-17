@@ -12,8 +12,8 @@ fi
 
 cd /root/basho_bench1/basho_bench/
 
-AllNodes=`cat /root/basho_bench1/basho_bench/script/allnodes`
-AllCookies=`cat /root/basho_bench1/basho_bench/script/allcookies`
+AllNodes=`cat /root/basho_bench1/basho_bench/script/allnodesfull`
+AllCookies=`cat /root/basho_bench1/basho_bench/script/allcookiesfull`
 
 echo All nodes "$AllNodes"
 mkdir -p logs/"$JobId"

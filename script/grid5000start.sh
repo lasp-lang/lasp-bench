@@ -162,15 +162,15 @@ if [ $SecondRun -eq 0 ]; then
     echo Perform configProxy.sh on "$BenchNode"
 
     echo First copying the node list to "$BenchNode"
-    echo scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodes
-    scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodes
+    echo scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodesfull
+    scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodesfull
 
     echo scp ~/basho_bench/script/configProxy.sh root@"$BenchNode":/root/basho_bench1/basho_bench/script/
     scp ~/basho_bench/script/configProxy.sh root@"$BenchNode":/root/basho_bench1/basho_bench/script/
 
     echo Now copying the cookie list to "$BenchNode"
-    echo scp ~/allcookielist root@"$BenchNode":/root/basho_bench1/basho_bench/script/allcookies
-    scp ~/allcookielist root@"$BenchNode":/root/basho_bench1/basho_bench/script/allcookies
+    echo scp ~/allcookielist root@"$BenchNode":/root/basho_bench1/basho_bench/script/allcookiesfull
+    scp ~/allcookielist root@"$BenchNode":/root/basho_bench1/basho_bench/script/allcookiesfull
 
     echo ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configProxy.sh
     ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/configProxy.sh
@@ -184,8 +184,8 @@ if [ $SecondRun -eq 0 ]; then
 
     echo Performins configMachines.sh on "$BenchNode"
     echo First copying the node list to "$BenchNode"
-    echo scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodes
-    scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodes
+    echo scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodesfull
+    scp ~/fullnodelistip root@"$BenchNode":/root/basho_bench1/basho_bench/script/allnodesfull
     echo ssh root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch
     ssh -t -o StrictHostKeyChecking=no root@$BenchNode /root/basho_bench1/basho_bench/script/configMachines.sh $Branch $GridJob $Time
 
@@ -196,6 +196,8 @@ if [ $SecondRun -eq 0 ]; then
 	for I in $(seq 1 $BenchParallel); do
 	    echo scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
 	    scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
+	    echo scp ~/computecookielist root@"$Node":/root/basho_bench"$I"/basho_bench/script/allcookies
+	    scp ~/computecookielist root@"$Node":/root/basho_bench"$I"/basho_bench/script/allcookies
 	    echo scp ~/benchnodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodesbench
 	    scp ~/benchnodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodesbench
 	    echo scp ~/branch root@"$Node":/root/basho_bench"$I"/basho_bench/script/branch
@@ -211,6 +213,8 @@ else
 	for I in $(seq 1 $BenchParallel); do
 	    echo scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
 	    scp ~/nodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodes
+	    echo scp ~/computecookielist root@"$Node":/root/basho_bench"$I"/basho_bench/script/allcookies
+	    scp ~/computecookielist root@"$Node":/root/basho_bench"$I"/basho_bench/script/allcookies
 	    echo scp ~/benchnodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodesbench
 	    scp ~/benchnodelistip root@"$Node":/root/basho_bench"$I"/basho_bench/script/allnodesbench
 	    echo scp ~/branch root@"$Node":/root/basho_bench"$I"/basho_bench/script/branch
