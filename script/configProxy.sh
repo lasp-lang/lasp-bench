@@ -3,7 +3,7 @@
 cd /root/basho_bench1/basho_bench/
 mkdir logs
 
-AllNodes=`cat /root/basho_bench1/basho_bench/script/allnodes`
+AllNodes=`cat /root/basho_bench1/basho_bench/script/allnodesfull`
 echo All nodes "$AllNodes"
 
 Command00="sed -i '/export http_proxy/d' ~/.bashrc"
