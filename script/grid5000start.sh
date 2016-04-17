@@ -94,24 +94,21 @@ echo Making cookies
 
 DCNum=1
 for I in $(seq 1 $CountDC); do
-    TmpDCNum=$DCNum
     for F in $(seq 1 $DcsPerCluster); do
 	for J in $(seq 1 $BenchCount); do
-	    echo dccookie"$TmpDCNum" >> ~/allcookielist
+	    echo dccookie"$DCNum" >> ~/allcookielist
 	done
-	TmpDCNum=$(($TmpDCNum + 1))
+	DCNum=$(($DCNum + 1))
     done
 done
 DCNum=1
 for I in $(seq 1 $CountDC); do
-    TmpDCNum=$DCNum
     for F in $(seq 1 $DcsPerCluster); do
 	for J in $(seq 1 $ComputeCount); do
-	    echo dccookie"$TmpDCNum" >> ~/allcookielist
+	    echo dccookie"$DCNum" >> ~/allcookielist
 	done
-	TmpDCNum=$(($TmpDCNum + 1))
+	DCNum=$(($DCNum + 1))
     done
-    DCNum=$TmpDCNum
 done
 
 DCNum=1
