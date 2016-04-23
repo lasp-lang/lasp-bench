@@ -165,19 +165,16 @@ run(txn, _KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=
                       CommitTime = binary_to_term(BCommitTime),
                       {ok, State#state{commit_time=CommitTime}};
                     Error ->
-                      {error, Error, State}
+                      {error, {Id, Error}, State}
                   end;
                 Error ->
-                  lager:info("Error append2 on client ~p : ~p",[Id, Error]),
-                  {error, Error, State}
+                  {error, {Id, Error}, State}
               end;
         Error ->
-          lager:info("Error read2 on client ~p : ~p",[Id, Error]),
-          {error, timeout, State}
+          {error, {Id, Error}, State}
       end;
-    _ ->
-      lager:info("Error read3 on client ~p",[Id]),
-      {error, timeout, State}
+    Error ->
+      {error, {Id, Error}, State}
   end;
 
 
