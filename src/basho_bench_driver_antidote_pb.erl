@@ -89,7 +89,6 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
     Key = list_to_binary(integer_to_list(KeyInt)),
     Type = get_key_type(KeyInt, TypeDict),
     StartTime = now_microsec(), %% For staleness calc
-    %Bound_object = {Key, riak_dt_pncounter, <<"bucket">>},
     Bound_object = {Key, Type, <<"bucket">>},
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
 	{ok, TxId} ->
@@ -99,7 +98,6 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
 			{ok, CT} ->
                             report_staleness(MS, CT, StartTime),
 			    NewCT = binary_to_term(CT),
-			    io:format("read compelted~n"),
 			    {ok, State#state{commit_time=NewCT}};
 			_ ->
 			    lager:info("Error read1 on client ~p",[Id]),
@@ -278,36 +276,10 @@ run(append, KeyGen, ValueGen,
                  target_node=_Node,
                  commit_time=OldCommitTime,
                  measure_staleness=MS}) ->
-    %%TODO: Support for different data types
-    %% Type = get_key_type(KeyInt, TypeDict),
-    %% {Mod, Op, Param} = get_random_param(TypeDict, Type, ValueGen()),
-    %% Obj = Mod:Op(Param, Mod:new(Key)),
-    
-
     IntKey = KeyGen(),
 
-    io:format("here 1"),
     Type = get_key_type(IntKey, TypeDict),
-    {Op,Value} = get_random_param_new(TypeDict, Type, ValueGen(), undefined, SetSize),
-    lager:info("Key ~w, op ~w, type ~w, value ~w", [IntKey,Op,Type,Value]),
-
-
-    BKey = list_to_binary(integer_to_list(IntKey)),
-    BObj = {{BKey, Type, <<"bucket">>}, Op, Value},
-    
-
-    %% Key = <<"key_read_write_set">>,
-    %% {ok, Pid} = antidotec_pb_socket:start(?ADDRESS, ?PORT),
-    %% Bound_object = {Key, riak_dt_orset, <<"bucket">>},
-    %% {ok, TxId} = antidotec_pb:start_transaction(Pid, term_to_binary(ignore), {}),
-    %% ok = antidotec_pb:update_objects(Pid, [{Bound_object, add, "a"}], TxId),
-    %% {ok, _} = antidotec_pb:commit_transaction(Pid, TxId),
-    %% %% Read committed updated
-    %% {ok, Tx2} = antidotec_pb:start_transaction(Pid, term_to_binary(ignore), {}),
-    %% {ok, [Val]} = antidotec_pb:read_objects(Pid, [Bound_object], Tx2),
-    %% {ok, _} = antidotec_pb:commit_transaction(Pid, Tx2),
-    %% ?assertEqual(["a"],antidotec_set:value(Val)),
-
+    [BObj] = get_random_param_new(IntKey,TypeDict, Type, ValueGen(), undefined, SetSize),
 
     StartTime=now_microsec(), %% For staleness   
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
@@ -370,36 +342,62 @@ run(update, KeyGen, ValueGen,
     State=#state{type_dict=TypeDict,
                  pb_pid = Pid,
                  worker_id = Id,
-                 pb_port=Port,
+		 commit_time=OldCommitTime,
+                 pb_port=_Port,
 		 set_size=SetSize,
-                 target_node=Node}) ->
+		 measure_staleness=MS,
+                 target_node=_Node}) ->
+
     KeyInt = KeyGen(),
     Key = list_to_binary(integer_to_list(KeyInt)),
-
-    %%TODO: Support for different data types
     Type = get_key_type(KeyInt, TypeDict),
-    Response =  case antidotec_pb_socket:get_crdt(Key, Type, Pid) of
-                    {ok, CRDT} ->
-                        {Mod, Op, Param} = get_random_param(TypeDict, Type, ValueGen(), CRDT, SetSize),
-                        Obj = Mod:Op(Param,CRDT),
-                        antidotec_pb_socket:store_crdt(Obj, Pid);
-                    Other -> Other
-                end,
-    case Response of
-        ok ->
-            {ok, State};
-        {ok, _Result} ->
-            {ok, State};
-        {error,timeout}->
-            lager:info("Timeout on client ~p",[Id]),
-            antidotec_pb_socket:stop(Pid),
-            {ok, NewPid} = antidotec_pb_socket:start_link(Node, Port),
-            {error, timeout, State#state{pb_pid=NewPid}}; 
-        {error, Reason} ->
-            {error, Reason, State};
-        {badrpc, Reason} ->
-            {error, Reason, State}
+    Bound_object = {Key, Type, <<"bucket">>},
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+	{ok, TxId} ->
+	    case antidotec_pb:read_objects(Pid, [Bound_object], TxId) of
+		{ok, [Val]} ->		    
+		    case antidotec_pb:commit_transaction(Pid, TxId) of
+			{ok, CT} ->
+			    [BObj] = get_random_param_new(KeyInt, TypeDict, Type, ValueGen(), Val, SetSize),
+			    
+			    StartTime=now_microsec(), %% For staleness   
+			    case antidotec_pb:start_transaction(Pid, CT, [{static, true}]) of
+				{ok, TxId2} ->
+				    case antidotec_pb:update_objects(Pid,
+								     [BObj],
+								     TxId2) of
+					ok ->
+					    case antidotec_pb:commit_transaction(Pid, TxId) of
+						{ok, BCT} ->
+						    report_staleness(MS, BCT, StartTime),
+						    NewCT = binary_to_term(BCT),
+						    {ok, State#state{commit_time=NewCT}};
+						Error ->
+						    {error, Error, State}
+					    end;
+					Error ->
+					    lager:info("Error append2 on client ~p : ~p",[Id, Error]),
+					    {error, Error, State}
+				    end;
+				Error ->
+				    lager:info("Error append3 on client ~p",[Id]),
+				    {error, Error, State}
+			    end;
+			
+
+			_ ->
+			    lager:info("Error read1 on client ~p",[Id]),
+			    {error, timeout, State}
+		    end;
+		Error ->
+		    lager:info("Error read2 on client ~p : ~p",[Id, Error]),
+		    {error, timeout, State}
+	    end;
+	_ ->
+	    lager:info("Error read3 on client ~p",[Id]),
+	    {error, timeout, State}
     end.
+
 
 
 get_list_key_type([], _Dict, Acc) ->
@@ -414,43 +412,46 @@ get_key_type(Key, Dict) ->
     lists:nth(RanNum+1, Keys).
 
 
-get_random_param_new(Dict, Type, Value, Obj, SetSize) ->
+get_random_param_new(Key, Dict, Type, Value, Obj, SetSize) ->
     Params = dict:fetch(Type, Dict),
     Num = random:uniform(length(Params)),
+    BKey = list_to_binary(integer_to_list(Key)),
+    NewVal = case Value of
+		 Value when is_integer(Value) ->
+		     integer_to_list(Value);
+		 Value when is_binary(Value) ->
+		     binary_to_list(Value)
+	     end,
     case Type of
         riak_dt_pncounter ->
-           {lists:nth(Num, Params), 1};
+	    [{{BKey, Type, <<"bucket">>}, lists:nth(Num, Params), 1}];
 	riak_dt_lwwreg ->
-	    NewVal = case Value of
-			 Value when is_integer(Value) ->
-			     integer_to_list(Value);
-			 Value when is_binary(Value) ->
-			     binary_to_list(Value)
-		     end,
-	    {assign, NewVal};
-        Type when Type == riak_dt_orset; Set == crdt_set ->
+	    [{{BKey, Type, <<"bucket">>}, assign, NewVal}];
+        Type when Type == riak_dt_orset; Type == crdt_set ->
             Set = 
 		case Obj of
 		    undefined ->
-			antidotec_set:new();
+			[];
 		    Obj ->
 			antidotec_set:value(Obj)
 		end,
             %%Op = lists:nth(Num, Params),
-	    NewOp = case sets:size(Set) =< SetSize of
-                true ->
-                    add;
-                false ->
-                    remove
-                end,
+	    NewOp = case length(Set) =< SetSize of
+			true ->
+			    add;
+			false ->
+			    remove
+		    end,
             case NewOp of 
                 remove ->
-                    case sets:to_list(Set) of 
-                        [] -> {add, Value};                     
-                        [H|_T] -> {remove, H}
-                    end;
+                    case Set of 
+                        [] ->
+			    [{{BKey, Type, <<"bucket">>}, add_all, [NewVal]}];
+                        Set -> 
+			    [{{BKey, Type, <<"bucket">>}, remove_all, [lists:nth(random:uniform(length(Set)),Set)]}]
+		    end;
                 _ ->
-                    {NewOp, Value}
+		    [{{BKey, Type, <<"bucket">>}, add_all, [NewVal]}]
             end                      
     end.
 
