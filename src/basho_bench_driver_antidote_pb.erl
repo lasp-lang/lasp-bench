@@ -145,20 +145,28 @@ run(read_txn, _KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_
 %% Reads from a number of keys defined in the config file: num_reads, then
 %% updates a number of keys defined in the config file: num_updates.
 
-run(txn, _KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=_Port, target_node=_Node,
+run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
+  pb_port=_Port, target_node=_Node,
   num_reads=NumReads,
   num_updates = NumUpdates,
+  type_dict = TypeDict,
+  set_size=SetSize,
   commit_time=OldCommitTime}) ->
-  IntKeys = k_unique_numes(NumReads, 1000),
-  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
+
+  IntKeys = generate_keys(NumReads, KeyGen),
+  BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
+%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
   case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
     {ok, TxId} ->
       case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
         {ok, _} ->
-          UpdateIntKeys = k_unique_numes(NumUpdates, 1000),
-          BKeys = [list_to_binary(integer_to_list(K1)) || K1 <- UpdateIntKeys],
-          BObjs = [{{K1, riak_dt_lwwreg, <<"bucket">>},
-            assign, random_string(10)} || K1 <- BKeys ],
+
+          UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
+      %    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
+        %  BKeys = [list_to_binary(integer_to_list(K1)) || K1 <- UpdateIntKeys],
+          BObjs = multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
+          %BObjs = [{{K1, riak_dt_lwwreg, <<"bucket">>},
+          %  assign, random_string(10)} || K1 <- BKeys ],
               case antidotec_pb:update_objects(Pid, BObjs, TxId) of
                 ok ->
                   case antidotec_pb:commit_transaction(Pid, TxId) of
@@ -315,12 +323,12 @@ run(append, KeyGen, ValueGen,
                  pb_pid = Pid,
                  worker_id = Id,
                  pb_port=_Port,
-		 set_size=SetSize,
+		             set_size=SetSize,
                  target_node=_Node,
                  commit_time=OldCommitTime,
                  measure_staleness=MS}) ->
-    IntKey = KeyGen(),
 
+    IntKey = KeyGen(),
     Type = get_key_type(IntKey, TypeDict),
     [BObj] = get_random_param_new(IntKey,TypeDict, Type, ValueGen(), undefined, SetSize),
 
@@ -455,85 +463,96 @@ get_key_type(Key, Dict) ->
     lists:nth(RanNum+1, Keys).
 
 
+multi_get_random_param_new(KeyList, Dict, Value, Obj, SetSize) ->
+  multi_get_random_param_new(KeyList, Dict, Value, Obj, SetSize, []).
+
+multi_get_random_param_new([], _Dict, _Value, _Obj, _SetSize, Acc)->
+  Acc;
+multi_get_random_param_new([Key|Rest], Dict, Value, Obj, SetSize, Acc)->
+  Type = get_key_type(Key, Dict),
+  Param = get_random_param_new(Key, Dict, Type, Value, Obj, SetSize),
+  %lager:info("Acumulatore: ", [Acc|Param]),
+  multi_get_random_param_new(Rest, Dict, Value, Obj, SetSize, [Acc|Param]).
+
 get_random_param_new(Key, Dict, Type, Value, Obj, SetSize) ->
-    Params = dict:fetch(Type, Dict),
-    Num = random:uniform(length(Params)),
-    BKey = list_to_binary(integer_to_list(Key)),
-    NewVal = case Value of
-		 Value when is_integer(Value) ->
-		     integer_to_list(Value);
-		 Value when is_binary(Value) ->
-		     binary_to_list(Value)
-	     end,
-    case Type of
-        riak_dt_pncounter ->
-	    [{{BKey, Type, <<"bucket">>}, lists:nth(Num, Params), 1}];
-	riak_dt_lwwreg ->
-	    [{{BKey, Type, <<"bucket">>}, assign, NewVal}];
-        Type when Type == riak_dt_orset; Type == crdt_set ->
-            Set =
-		case Obj of
-		    undefined ->
-			[];
-		    Obj ->
-			antidotec_set:value(Obj)
-		end,
-            %%Op = lists:nth(Num, Params),
-	    NewOp = case length(Set) =< SetSize of
-			true ->
-			    add;
-			false ->
-			    remove
-		    end,
-            case NewOp of
-                remove ->
-                    case Set of
-                        [] ->
-			    [{{BKey, Type, <<"bucket">>}, add_all, [NewVal]}];
-                        Set ->
-			    [{{BKey, Type, <<"bucket">>}, remove_all, [lists:nth(random:uniform(length(Set)),Set)]}]
-		    end;
-                _ ->
-		    [{{BKey, Type, <<"bucket">>}, add_all, [NewVal]}]
-            end
-    end.
+  Params = dict:fetch(Type, Dict),
+  Num = random:uniform(length(Params)),
+  BKey = list_to_binary(integer_to_list(Key)),
+  NewVal = case Value of
+             Value when is_integer(Value) ->
+               integer_to_list(Value);
+             Value when is_binary(Value) ->
+               binary_to_list(Value)
+           end,
+  case Type of
+    riak_dt_pncounter ->
+      [{{BKey, Type, <<"bucket">>}, lists:nth(Num, Params), 1}];
+    riak_dt_lwwreg ->
+      [{{BKey, Type, <<"bucket">>}, assign, NewVal}];
+    Type when Type == riak_dt_orset; Type == crdt_set ->
+      Set =
+        case Obj of
+          undefined ->
+            [];
+          Obj ->
+            antidotec_set:value(Obj)
+        end,
+      %%Op = lists:nth(Num, Params),
+      NewOp = case length(Set) =< SetSize of
+                true ->
+                  add;
+                false ->
+                  remove
+              end,
+      case NewOp of
+        remove ->
+          case Set of
+            [] ->
+              [{{BKey, Type, <<"bucket">>}, add_all, [NewVal]}];
+            Set ->
+              [{{BKey, Type, <<"bucket">>}, remove_all, [lists:nth(random:uniform(length(Set)), Set)]}]
+          end;
+        _ ->
+          [{{BKey, Type, <<"bucket">>}, add_all, [NewVal]}]
+      end
+  end.
 
 get_random_param(Dict, Type, Value) ->
-    Params = dict:fetch(Type, Dict),
-    random:seed(now()),
-    Num = random:uniform(length(Params)),
-    case Type of
-        riak_dt_pncounter ->
-           {antidotec_counter,lists:nth(Num, Params), 1};
-        riak_dt_orset ->
-            {antidotec_set, lists:nth(Num, Params), Value}                     
-    end.
+  Params = dict:fetch(Type, Dict),
+  random:seed(now()),
+  Num = random:uniform(length(Params)),
+  case Type of
+    riak_dt_pncounter ->
+      {antidotec_counter, lists:nth(Num, Params), 1};
+    riak_dt_orset ->
+      {antidotec_set, lists:nth(Num, Params), Value}
+  end.
 
 get_random_param(Dict, Type, Value, Obj, SetSize) ->
-    Params = dict:fetch(Type, Dict),
-    Num = random:uniform(length(Params)),
-    case Type of
-        riak_dt_pncounter ->
-           {antidotec_counter,lists:nth(Num, Params), 1};
-        riak_dt_orset ->
-            Set = antidotec_set:value(Obj),
-            %%Op = lists:nth(Num, Params),
-	    NewOp = case sets:size(Set) =< SetSize of
+  Params = dict:fetch(Type, Dict),
+  Num = random:uniform(length(Params)),
+  case Type of
+    riak_dt_pncounter ->
+      {antidotec_counter, lists:nth(Num, Params), 1};
+    riak_dt_orset ->
+      Set = antidotec_set:value(Obj),
+      %%Op = lists:nth(Num, Params),
+      NewOp = case sets:size(Set) =< SetSize of
                 true ->
-                    add;
+                  add;
                 false ->
-                    remove
-                end,
-            case NewOp of 
-                remove ->
-                    case sets:to_list(Set) of 
-                        [] -> {antidotec_set, add, Value};                     
-                        [H|_T] -> {antidotec_set, remove, H}
-                    end;
-                _ ->
-                    {antidotec_set, NewOp, Value}
-            end                      
-    end.
+                  remove
+              end,
+      case NewOp of
+        remove ->
+          case sets:to_list(Set) of
+            [] -> {antidotec_set, add, Value};
+            [H | _T] -> {antidotec_set, remove, H}
+          end;
+        _ ->
+          {antidotec_set, NewOp, Value}
+      end
+  end.
 
 report_staleness(true, CT, CurTime) ->
     SS = binary_to_term(CT), %% Binary to dict
@@ -575,6 +594,27 @@ uninum(Range, Set) ->
         false ->
             R
     end.
+
+
+%% @doc generate NumReads unique keys using the KeyGen
+generate_keys(NumKeys, KeyGen) ->
+  Seq = lists:seq(1, NumKeys),
+  S = lists:foldl(fun(_, Set) ->
+    N = unikey(KeyGen, Set),
+    sets:add_element(N, Set)
+                  end, sets:new(), Seq),
+  sets:to_list(S).
+
+
+unikey(KeyGen, Set) ->
+  R = KeyGen(),
+  case sets:is_element(R, Set) of
+    true ->
+      unikey(KeyGen, Set);
+    false ->
+      R
+  end.
+
 
 random_string(Len) ->
     Chrs = list_to_tuple("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"),
