@@ -331,8 +331,7 @@ run(append, KeyGen, ValueGen,
     IntKey = KeyGen(),
     Type = get_key_type(IntKey, TypeDict),
     [BObj] = get_random_param_new(IntKey,TypeDict, Type, ValueGen(), undefined, SetSize),
-
-    StartTime=now_microsec(), %% For staleness   
+    StartTime=now_microsec(), %% For staleness
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
 	{ok, TxId} ->
 	    case antidotec_pb:update_objects(Pid,
@@ -467,12 +466,12 @@ multi_get_random_param_new(KeyList, Dict, Value, Obj, SetSize) ->
   multi_get_random_param_new(KeyList, Dict, Value, Obj, SetSize, []).
 
 multi_get_random_param_new([], _Dict, _Value, _Obj, _SetSize, Acc)->
+ % lager:info("Acumulatore: ~p", [Acc]),
   Acc;
 multi_get_random_param_new([Key|Rest], Dict, Value, Obj, SetSize, Acc)->
   Type = get_key_type(Key, Dict),
-  Param = get_random_param_new(Key, Dict, Type, Value, Obj, SetSize),
-  %lager:info("Acumulatore: ", [Acc|Param]),
-  multi_get_random_param_new(Rest, Dict, Value, Obj, SetSize, [Acc|Param]).
+  [Param] = get_random_param_new(Key, Dict, Type, Value, Obj, SetSize),
+  multi_get_random_param_new(Rest, Dict, Value, Obj, SetSize, [Param|Acc]).
 
 get_random_param_new(Key, Dict, Type, Value, Obj, SetSize) ->
   Params = dict:fetch(Type, Dict),
