@@ -427,7 +427,7 @@ get_random_param_new(Key, Dict, Type, Value, Obj, SetSize) ->
 	    [{{BKey, Type, <<"bucket">>}, lists:nth(Num, Params), 1}];
 	riak_dt_lwwreg ->
 	    [{{BKey, Type, <<"bucket">>}, assign, NewVal}];
-        Type when Type == riak_dt_orset; Type == crdt_set ->
+        Type when Type == riak_dt_orset; Type == crdt_orset ->
             Set = 
 		case Obj of
 		    undefined ->
