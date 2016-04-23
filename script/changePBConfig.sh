@@ -9,21 +9,29 @@ NumDCs=$6
 NodesPerDC=$7
 DcId=$8
 
-if [ $File = "./examples/orset_pb.config" ]; then
-    Type="set"
-elif [ $File = "./examples/antidote_pb.config" ]; then
-    Type="counter"
-elif [ $File = "./examples/single_key.config" ]; then
-    Type="set"
-else
-    Type="counter"
-fi
-
+# if [ $File = "./examples/antidote_pb_crdt_orset.config" ]; then
+#     Type="set"
+# if [ $File = "./examples/antidote_pb_crdt_orset_big.config" ]; then
+#     Type="set"
+# if [ $File = "./examples/antidote_pb_riak_dt_orset.config" ]; then
+#     Type="set"
+# if [ $File = "./examples/antidote_pb_riak_dt_orset.config" ]; then
+#     Type="set"
+# else
+#     Type="counter"
+# fi
+Type="counter"
 
 sed -i '/antidote_pb_ips/d' $File 
 sed -i '/concurrent/d' $File
 ## {operations, [{append, 1}, {read, 100}]}.
 sed -i '/operations/d' $File
+sed -i '/num_reads/d' $File
+sed -i '/num_updates/d' $File
+
+#{num_reads, 10}.
+#{num_updates, 10}.
+
 #PerNodeNum=5
 #Thread=20
 
@@ -57,9 +65,24 @@ else
     sed -i "6i {operations, [{update, $Writes}, {read, $Reads}]}." $File
 fi
 
+if [ $Writes -eq 1 ]; then
+    ReadTxn=1
+elif [ $Writes -eq 10 ]; then
+    ReadTxn=5
+elif [ $Writes -eq 25 ]; then
+    ReadTxn=10
+elif [ $Writes -eq 50 ]; then
+    ReadTxn=20
+else
+    ReadTxn=1
+fi
+
+sed -i "7i {num_reads, $ReadTxn}." $File
+sed -i "7i {num_updates, $ReadTxn}." $File
+
 sed -i '/key_generator/d' $File
 #sed -i "3i {key_generator, {dc_bias, $NumDCs, $DcId, $NodesPerDC, 10000}}." $File
-Keys=$(($NodesPerDC * 50000))
+Keys=$(($NodesPerDC * 100000))
 sed -i "3i {key_generator, {pareto_int, $Keys}}." $File
 
 sed -i '/antidote_pb_num_dcs/d' $File 
