@@ -186,7 +186,46 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
       {error, {Id, Error}, State}
   end;
 
+%% A  static transaction that reads and updates the same objects.
+%% Reads from a number of keys defined in the config file: num_reads, then
+%% updates the same keys (the num_updates in the config is unused).
 
+run(rw_txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
+  pb_port=_Port, target_node=_Node,
+  num_reads=NumReads,
+  type_dict = TypeDict,
+  set_size=SetSize,
+  commit_time=OldCommitTime}) ->
+
+  IntKeys = generate_keys(NumReads, KeyGen),
+  BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
+%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
+  case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+    {ok, TxId} ->
+      case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
+        {ok, Values} ->
+
+          BObjs = multi_get_random_param_new(IntKeys, TypeDict, ValueGen(), Values, SetSize),
+          %BObjs = [{{K1, riak_dt_lwwreg, <<"bucket">>},
+          %  assign, random_string(10)} || K1 <- BKeys ],
+          case antidotec_pb:update_objects(Pid, BObjs, TxId) of
+            ok ->
+              case antidotec_pb:commit_transaction(Pid, TxId) of
+                {ok, BCommitTime} ->
+                  CommitTime = binary_to_term(BCommitTime),
+                  {ok, State#state{commit_time=CommitTime}};
+                Error ->
+                  {error, {Id, Error}, State}
+              end;
+            Error ->
+              {error, {Id, Error}, State}
+          end;
+        Error ->
+          {error, {Id, Error}, State}
+      end;
+    Error ->
+      {error, {Id, Error}, State}
+  end;
 
 %% @doc Multikey txn
 %% reads 1 object from every partition, defined by the num_vnodes parameter in the config file,
@@ -238,7 +277,7 @@ run(read_all_write_one, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id 
     end;
 
 %% @doc Read and write from and to every vnode
-run(read_all_write_all, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=_Port, target_node=_Node, type_dict=TypeDict}) ->
+run(read_all_write_all, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = _Id, num_partitions=NumPart, pb_port=_Port, target_node=_Node, type_dict=TypeDict}) ->
     KeyInt = KeyGen(),
     KeyList = lists:seq(KeyInt, KeyInt+NumPart-1),
     KeyTypeList = get_list_key_type(KeyList, TypeDict, []),
@@ -462,16 +501,24 @@ get_key_type(Key, Dict) ->
     lists:nth(RanNum+1, Keys).
 
 
-multi_get_random_param_new(KeyList, Dict, Value, Obj, SetSize) ->
-  multi_get_random_param_new(KeyList, Dict, Value, Obj, SetSize, []).
+multi_get_random_param_new(KeyList, Dict, Value, Objects, SetSize) ->
+  multi_get_random_param_new(KeyList, Dict, Value, Objects, SetSize, []).
 
-multi_get_random_param_new([], _Dict, _Value, _Obj, _SetSize, Acc)->
+multi_get_random_param_new([], _Dict, _Value, _Objects, _SetSize, Acc)->
  % lager:info("Acumulatore: ~p", [Acc]),
   Acc;
-multi_get_random_param_new([Key|Rest], Dict, Value, Obj, SetSize, Acc)->
+multi_get_random_param_new([Key|Rest], Dict, Value, Objects, SetSize, Acc)->
   Type = get_key_type(Key, Dict),
+  case Objects of
+    undefined ->
+      Obj = undefined,
+      ObjRest = undefined;
+    [H|T]->
+      Obj = H,
+      ObjRest = T
+  end,
   [Param] = get_random_param_new(Key, Dict, Type, Value, Obj, SetSize),
-  multi_get_random_param_new(Rest, Dict, Value, Obj, SetSize, [Param|Acc]).
+  multi_get_random_param_new(Rest, Dict, Value, ObjRest, SetSize, [Param|Acc]).
 
 get_random_param_new(Key, Dict, Type, Value, Obj, SetSize) ->
   Params = dict:fetch(Type, Dict),
