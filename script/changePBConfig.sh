@@ -24,15 +24,15 @@ sed -i '/antidote_pb_ips/d' $File
 sed -i '/concurrent/d' $File
 ## {operations, [{append, 1}, {read, 100}]}.
 sed -i '/operations/d' $File
-PerNodeNum=5
+#PerNodeNum=5
 #Thread=20
 
-if [ $NodesPerDC -gt 8 ]; then
-    PerNodeNum=10
-fi
-if [ $NodesPerDC -gt 20 ]; then
-    PerNodeNum=1
-fi
+#if [ $NodesPerDC -gt 8 ]; then
+#    PerNodeNum=10
+#fi
+#if [ $NodesPerDC -gt 20 ]; then
+#    PerNodeNum=1
+#fi
 
 
 BenchConfig="{antidote_pb_ips, ["
@@ -40,8 +40,12 @@ for Node in $AllNodes
 do
     Node=\'$Node\',
     BenchConfig=$BenchConfig$Node
-    Thread=$((Thread+PerNodeNum))
+    #Thread=$((Thread+PerNodeNum))
 done
+
+# Use static number of threads
+Thread=40
+
 BenchConfig=${BenchConfig::-1}"]}."
 echo $BenchConfig
 echo "$BenchConfig" >> $File
@@ -55,7 +59,7 @@ fi
 
 sed -i '/key_generator/d' $File
 #sed -i "3i {key_generator, {dc_bias, $NumDCs, $DcId, $NodesPerDC, 10000}}." $File
-Keys=$(($NodesPerDC * 10000))
+Keys=$(($NodesPerDC * 50000))
 sed -i "3i {key_generator, {pareto_int, $Keys}}." $File
 
 sed -i '/antidote_pb_num_dcs/d' $File 
