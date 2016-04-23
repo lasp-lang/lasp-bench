@@ -20,7 +20,7 @@ DcId=$8
 # else
 #     Type="counter"
 # fi
-Type="set"
+Type="counter"
 
 sed -i '/antidote_pb_ips/d' $File 
 sed -i '/concurrent/d' $File
