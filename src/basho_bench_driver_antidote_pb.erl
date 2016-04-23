@@ -138,8 +138,54 @@ run(read_txn, _KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_
         {error, timeout, State}
     end;
 
-%% @doc Multikey txn 
-run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=_Port, target_node=_Node, type_dict=TypeDict}) ->
+
+%% A more general static transaction.
+%% combienes the previous read_txn and update_txn
+%% Reads from a number of keys defined in the config file: num_reads, then
+%% updates a number of keys defined in the config file: num_updates.
+
+run(txn, _KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, pb_port=_Port, target_node=_Node,
+  num_reads=NumReads,
+  num_updates = NumUpdates,
+  commit_time=OldCommitTime}) ->
+  IntKeys = k_unique_numes(NumReads, 1000),
+  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
+  case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+    {ok, TxId} ->
+      case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
+        {ok, _} ->
+          UpdateIntKeys = k_unique_numes(NumUpdates, 1000),
+          BKeys = [list_to_binary(integer_to_list(K1)) || K1 <- UpdateIntKeys],
+          BObjs = [{{K1, riak_dt_lwwreg, <<"bucket">>},
+            assign, random_string(10)} || K1 <- BKeys ],
+              case antidotec_pb:update_objects(Pid, BObjs, TxId) of
+                ok ->
+                  case antidotec_pb:commit_transaction(Pid, TxId) of
+                    {ok, BCommitTime} ->
+                      CommitTime = binary_to_term(BCommitTime),
+                      {ok, State#state{commit_time=CommitTime}};
+                    Error ->
+                      {error, Error, State}
+                  end;
+                Error ->
+                  lager:info("Error append2 on client ~p : ~p",[Id, Error]),
+                  {error, Error, State}
+              end;
+        Error ->
+          lager:info("Error read2 on client ~p : ~p",[Id, Error]),
+          {error, timeout, State}
+      end;
+    _ ->
+      lager:info("Error read3 on client ~p",[Id]),
+      {error, timeout, State}
+  end;
+
+
+
+%% @doc Multikey txn
+%% reads 1 object from every partition, defined by the num_vnodes parameter in the config file,
+%% then writes to one.
+run(read_all_write_one, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=_Port, target_node=_Node, type_dict=TypeDict}) ->
     KeyInt = KeyGen(),
     KeyList = lists:seq(KeyInt, KeyInt+NumPart-1), 
     KeyTypeList = get_list_key_type(KeyList, TypeDict, []),
@@ -186,7 +232,8 @@ run(read_all_write_one, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id =
     end;
 
 %% @doc Read and write from and to every vnode
-run(read_all_write_all, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id, num_partitions=NumPart, pb_port=_Port, target_node=_Node, type_dict=TypeDict}) ->
+run(read_all_write_all, KeyGen, _ValueGen, State=#state{pb_pid = Pid,
+  worker_id = _Id, num_partitions=NumPart, pb_port=_Port, target_node=_Node, type_dict=TypeDict}) ->
     KeyInt = KeyGen(),
     KeyList = lists:seq(KeyInt, KeyInt+NumPart-1),
     KeyTypeList = get_list_key_type(KeyList, TypeDict, []),
@@ -221,15 +268,15 @@ run(read_all_write_all, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id =
                                     {ok, State};
                                 Error ->
                                     %lager:info("Error read1 on client ~p, ~p",[Id, Error]),
-                                    {error, timeout, State}
+                                    {error, {timeout, Error}, State}
                             end;
                         Error ->
                             %lager:info("Error updating on client ~p : ~p",[Id, Error]),
-                            {error, timeout, State}
+                            {error, {timeout, Error}, State}
                     end;
                 Error ->
                     %lager:info("Error read2 on client ~p : ~p",[Id, Error]),
-                    {error, timeout, State}
+                    {error, {timeout, Error}, State}
             end;
         _ ->
             %lager:info("Error read3 on client ~p",[Id]),
@@ -339,6 +386,8 @@ run(append_txn, _KeyGen, _ValueGen,
         lager:info("Error append3 on client ~p",[Id]),
         {error, Error, State}
     end;
+
+
 
 run(update, KeyGen, ValueGen,
     State=#state{type_dict=TypeDict,
