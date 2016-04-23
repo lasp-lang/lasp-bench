@@ -30,6 +30,7 @@
 -record(state, {worker_id,
                 time,
                 type_dict,
+		last_read,
                 pb_pid,
 		        num_partitions,
 		        set_size,
@@ -73,6 +74,7 @@ new(Id) ->
     TypeDict = dict:from_list(Types),
     {ok, #state{time={1,1,1}, worker_id=Id,
 		pb_pid = Pid,
+		last_read={undefined,undefined},
 		set_size = SetSize,
 		num_partitions = NumPartitions,
 		type_dict = TypeDict, pb_port=PbPort,
@@ -93,12 +95,12 @@ run(read, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
 	{ok, TxId} ->
 	    case antidotec_pb:read_objects(Pid, [Bound_object], TxId) of
-		{ok, [_Val]} ->		    
+		{ok, [Val]} ->		    
 		    case antidotec_pb:commit_transaction(Pid, TxId) of
 			{ok, CT} ->
                             report_staleness(MS, CT, StartTime),
 			    NewCT = binary_to_term(CT),
-			    {ok, State#state{commit_time=NewCT}};
+			    {ok, State#state{commit_time=NewCT,last_read={Key,Val}}};
 			_ ->
 			    lager:info("Error read1 on client ~p",[Id]),
 			    {error, timeout, State}
@@ -273,13 +275,14 @@ run(append, KeyGen, ValueGen,
                  worker_id = Id,
                  pb_port=_Port,
 		 set_size=SetSize,
+		 last_read={LastKey,LastVal},
                  target_node=_Node,
                  commit_time=OldCommitTime,
                  measure_staleness=MS}) ->
     IntKey = KeyGen(),
 
     Type = get_key_type(IntKey, TypeDict),
-    [BObj] = get_random_param_new(IntKey,TypeDict, Type, ValueGen(), undefined, SetSize),
+    [BObj] = get_random_param_new(IntKey,TypeDict, Type, ValueGen(), {LastKey,LastVal}, SetSize),
 
     StartTime=now_microsec(), %% For staleness   
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
@@ -358,7 +361,7 @@ run(update, KeyGen, ValueGen,
 		{ok, [Val]} ->		    
 		    case antidotec_pb:commit_transaction(Pid, TxId) of
 			{ok, CT} ->
-			    [BObj] = get_random_param_new(KeyInt, TypeDict, Type, ValueGen(), Val, SetSize),
+			    [BObj] = get_random_param_new(KeyInt, TypeDict, Type, ValueGen(), {KeyInt,Val}, SetSize),
 			    
 			    StartTime=now_microsec(), %% For staleness   
 			    case antidotec_pb:start_transaction(Pid, CT, [{static, true}]) of
@@ -412,7 +415,7 @@ get_key_type(Key, Dict) ->
     lists:nth(RanNum+1, Keys).
 
 
-get_random_param_new(Key, Dict, Type, Value, Obj, SetSize) ->
+get_random_param_new(Key, Dict, Type, Value, {PrevKey,Obj}, SetSize) ->
     Params = dict:fetch(Type, Dict),
     Num = random:uniform(length(Params)),
     BKey = list_to_binary(integer_to_list(Key)),
@@ -448,7 +451,7 @@ get_random_param_new(Key, Dict, Type, Value, Obj, SetSize) ->
                         [] ->
 			    [{{BKey, Type, <<"bucket">>}, add_all, [NewVal]}];
                         Set -> 
-			    [{{BKey, Type, <<"bucket">>}, remove_all, [lists:nth(random:uniform(length(Set)),Set)]}]
+			    [{{PrevKey, Type, <<"bucket">>}, remove_all, [lists:nth(random:uniform(length(Set)),Set)]}]
 		    end;
                 _ ->
 		    [{{BKey, Type, <<"bucket">>}, add_all, [NewVal]}]
