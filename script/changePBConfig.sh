@@ -9,11 +9,13 @@ NumDCs=$6
 NodesPerDC=$7
 DcId=$8
 
-if [ $File = "./examples/orset_pb.config" ]; then
+if [ $File = "./examples/antidote_pb_crdt_orset.config" ]; then
     Type="set"
-elif [ $File = "./examples/antidote_pb.config" ]; then
-    Type="counter"
-elif [ $File = "./examples/single_key.config" ]; then
+if [ $File = "./examples/antidote_pb_crdt_orset_big.config" ]; then
+    Type="set"
+if [ $File = "./examples/antidote_pb_riak_dt_orset.config" ]; then
+    Type="set"
+if [ $File = "./examples/antidote_pb_riak_dt_orset.config" ]; then
     Type="set"
 else
     Type="counter"
