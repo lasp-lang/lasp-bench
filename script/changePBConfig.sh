@@ -9,18 +9,18 @@ NumDCs=$6
 NodesPerDC=$7
 DcId=$8
 
-if [ $File = "./examples/antidote_pb_crdt_orset.config" ]; then
-    Type="set"
-if [ $File = "./examples/antidote_pb_crdt_orset_big.config" ]; then
-    Type="set"
-if [ $File = "./examples/antidote_pb_riak_dt_orset.config" ]; then
-    Type="set"
-if [ $File = "./examples/antidote_pb_riak_dt_orset.config" ]; then
-    Type="set"
-else
-    Type="counter"
-fi
-
+# if [ $File = "./examples/antidote_pb_crdt_orset.config" ]; then
+#     Type="set"
+# if [ $File = "./examples/antidote_pb_crdt_orset_big.config" ]; then
+#     Type="set"
+# if [ $File = "./examples/antidote_pb_riak_dt_orset.config" ]; then
+#     Type="set"
+# if [ $File = "./examples/antidote_pb_riak_dt_orset.config" ]; then
+#     Type="set"
+# else
+#     Type="counter"
+# fi
+Type="set"
 
 sed -i '/antidote_pb_ips/d' $File 
 sed -i '/concurrent/d' $File
