@@ -281,9 +281,15 @@ get_random_param(Dict, Type, Value, Obj, SetSize) ->
   end.
 
 report_staleness(true, CT, CurTime) ->
-    SS = binary_to_term(CT), %% Binary to dict
+    SS1 = binary_to_term(CT), %% Binary to dict
+    SS = binary_to_list(CT),
+    lager:info("CT = ",[CT]),
+    lager:info("Bynary to term = ",[SS1]),
+    lager:info("Bynary to list = ",[SS]),
+
     %% Here it is assumed the stable snapshot has entries for all remote DCs
-    SSL = lists:keysort(1, dict:to_list(SS)),
+%%    SSL = lists:keysort(1, dict:to_list(SS)),
+    SSL = lists:keysort(1, SS),
     Staleness = lists:map(fun({_Dc, Time}) ->
                                   max(1, CurTime - Time) %% it should be max(0, ..), but 0 is causing some crash in stats generation
                           end, SSL),
