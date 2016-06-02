@@ -133,9 +133,9 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
 %% updates the same keys (the num_updates in the config is unused).
 
 run(append, KeyGen, ValueGen, State) ->
-    run(rw_txn, KeyGen, ValueGen, State);
+    run(rw_txn, KeyGen, ValueGen, State#state{num_reads = 0});
 run(read, KeyGen, ValueGen, State) ->
-    run(rw_txn, KeyGen, ValueGen, State);
+    run(rw_txn, KeyGen, ValueGen, State#state{num_updates = 0});
     
 run(rw_txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
   pb_port=_Port, target_node=_Node,
@@ -149,29 +149,28 @@ run(rw_txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
 %  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
   case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
     {ok, TxId} ->
-      case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
-        {ok, Values} ->
-
-          BObjs = multi_get_random_param_new(IntKeys, TypeDict, ValueGen(), Values, SetSize),
-          %BObjs = [{{K1, riak_dt_lwwreg, <<"bucket">>},
-          %  assign, random_string(10)} || K1 <- BKeys ],
-          case antidotec_pb:update_objects(Pid, BObjs, TxId) of
-            ok ->
-              case antidotec_pb:commit_transaction(Pid, TxId) of
-                {ok, BCommitTime} ->
-                  CommitTime = binary_to_term(BCommitTime),
-                  {ok, State#state{commit_time=CommitTime}};
-                Error ->
-                  {error, {Id, Error}, State}
-              end;
+        case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
+            {ok, Values} ->
+                BObjs = multi_get_random_param_new(IntKeys, TypeDict, ValueGen(), Values, SetSize),
+                %BObjs = [{{K1, riak_dt_lwwreg, <<"bucket">>},
+                %  assign, random_string(10)} || K1 <- BKeys ],
+                case antidotec_pb:update_objects(Pid, BObjs, TxId) of
+                    ok ->
+                        case antidotec_pb:commit_transaction(Pid, TxId) of
+                            {ok, BCommitTime} ->
+                                CommitTime = binary_to_term(BCommitTime),
+                                {ok, State#state{commit_time = CommitTime}};
+                            Error ->
+                                {error, {Id, Error}, State}
+                        end;
+                    Error ->
+                        {error, {Id, Error}, State}
+                end;
             Error ->
-              {error, {Id, Error}, State}
-          end;
-        Error ->
+                {error, {Id, Error}, State}
+        end;
+      Error ->
           {error, {Id, Error}, State}
-      end;
-    Error ->
-      {error, {Id, Error}, State}
   end.
 
 
