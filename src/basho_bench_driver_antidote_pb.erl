@@ -39,7 +39,9 @@
                 num_updates,
                 pb_port,
                 target_node,
-                measure_staleness}).
+                measure_staleness,
+                temp_num_reads,
+                temp_num_updates}).
 
 %% ====================================================================
 %% API
@@ -80,6 +82,7 @@ new(Id) ->
 		type_dict = TypeDict, pb_port=PbPort,
 		target_node=TargetNode, commit_time=ignore,
         num_reads=NumReads, num_updates=NumUpdates,
+        temp_num_reads=NumReads, temp_num_updates=NumUpdates,
         measure_staleness=MeasureStaleness}}.
 
 %% A more general static transaction.
@@ -149,9 +152,9 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
 %% updates the same keys (the num_updates in the config is unused).
 
 run(append, KeyGen, ValueGen, State) ->
-    run(txn, KeyGen, ValueGen, State#state{num_reads = 0});
+    run(txn, KeyGen, ValueGen, State#state{num_reads = 0,num_updates=State#state.temp_num_updates});
 run(read, KeyGen, ValueGen, State) ->
-    run(txn, KeyGen, ValueGen, State#state{num_updates = 0});
+    run(txn, KeyGen, ValueGen, State#state{num_updates = 0,num_reads=State#state.temp_num_reads});
     
 run(rw_txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
   pb_port=_Port, target_node=_Node,

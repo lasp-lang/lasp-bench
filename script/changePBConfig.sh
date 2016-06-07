@@ -77,12 +77,13 @@ else
     ReadTxn=1
 fi
 
-sed -i "7i {num_reads, $ReadTxn}." $File
-sed -i "7i {num_updates, $ReadTxn}." $File
+#sed -i "7i {num_reads, $ReadTxn}." $File
+#sed -i "7i {num_updates, $ReadTxn}." $File
 
 sed -i '/key_generator/d' $File
 #sed -i "3i {key_generator, {dc_bias, $NumDCs, $DcId, $NodesPerDC, 10000}}." $File
-Keys=$(($NodesPerDC * 100000))
+#Keys=$(($NodesPerDC * 1000))
+Keys=10000
 sed -i "3i {key_generator, {pareto_int, $Keys}}." $File
 
 sed -i '/antidote_pb_num_dcs/d' $File 

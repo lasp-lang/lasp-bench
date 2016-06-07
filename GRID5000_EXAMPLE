@@ -95,7 +95,7 @@ oargridsub -t deploy -w '0:30:00' rennes:rdef="/nodes=1",lille:rdef="/nodes=1"
 
 The following command reserves 22 nodes in the suno cluster at the sophia site, and 22 nodes in the chinqchint cluster at the lille site, for 6 hours, with the reservation set to start at 20h 2015-07-26
 
-oargridsub -t deploy -w '6:00:00' -s '2015-07-26 20:00:00' sophia:rdef="/nodes=22":prop="cluster='suno'",lille:rdef="/nodes=22":prop="cluster='chinqchint'"
+oargridsub -t deploy -w '6:00:00' -s '2015-07-26 20:00:00' nancy:rdef="/nodes=22":prop="cluster='grisou'",lille:rdef="/nodes=22":prop="cluster='chinqchint'"
 
 If you wanted to start the reservation immediately remove the -s option.
 
@@ -128,6 +128,9 @@ This is how many nodes per DC will be running the basho_bench.  The sum of Antid
 
 BenchInstances:
 This is a value 1 through 6.  It is the number of basho_bench instances that will be run per basho_bench node. Note that I put this here just because I noticed that a single instance of bash_bench wansn't using all resources on that node, but I didn't look into detail why this happens.
+
+DCs per Cluster:
+Number of DCs of antidote that will run per G5K cluster.
 
 BenchConfigFile:
 This is the name of the basho_bench configuration file for the benchmark in the examples directory.
