@@ -90,62 +90,115 @@ new(Id) ->
 %% Reads from a number of keys defined in the config file: num_reads, then
 %% updates a number of keys defined in the config file: num_updates.
 
-run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
-  pb_port=_Port, target_node=_Node,
-  num_reads=NumReads,
-  num_updates = NumUpdates,
-  type_dict = TypeDict,
-  set_size=SetSize,
-  commit_time=OldCommitTime}) ->
-%%    io:format("NumReads = ~w  NumUpdates = ~w~n",[NumReads, NumUpdates]),
-  IntKeys = generate_keys(NumReads, KeyGen),
-  BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
+
+%% READ ONLY TXN!!!
+run(txn, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
+    pb_port=_Port, target_node=_Node,
+    num_reads=NumReads,
+    num_updates = 0,
+    type_dict = TypeDict,
+    set_size=SetSize,
+    commit_time=OldCommitTime}) ->
+    IntKeys = generate_keys(NumReads, KeyGen),
+    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
 %  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
-  case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
-    {ok, TxId} ->
-      case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
-        {ok, _ReadResult} ->
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+        {ok, TxId} ->
+            case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
+                {ok, _ReadResult} ->
+                            case antidotec_pb:commit_transaction(Pid, TxId) of
+                                {ok, BCommitTime} ->
+                                    CommitTime = binary_to_term(BCommitTime),
+                                    {ok, State#state{commit_time=CommitTime}};
+                                Error ->
+                                    {error, {Id, Error}, State}
+                            end;
+                Error ->
+                    {error, {Id, Error}, State}
+            end;
+        Error ->
+            {error, {Id, Error}, State}
+    end;
 
-%%            lager:info("ReadKeys ~p",[IntKeys]),
-%%            lager:info("_ReadResult ~p",[_ReadResult]),
 
+%% WRITE ONLY TXN!!!
+run(txn, KeyGen, ValueGen, State = #state{pb_pid = Pid, worker_id = Id,
+    pb_port = _Port, target_node = _Node,
+    num_reads = 0,
+    num_updates = NumUpdates,
+    type_dict = TypeDict,
+    set_size = SetSize,
+    commit_time = OldCommitTime}) ->
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+        {ok, TxId} ->
+            UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
+            BObjs = multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
+            case antidotec_pb:update_objects(Pid, BObjs, TxId) of
+                ok ->
+                    case antidotec_pb:commit_transaction(Pid, TxId) of
+                        {ok, BCommitTime} ->
+                            CommitTime = binary_to_term(BCommitTime),
+                            {ok, State#state{commit_time = CommitTime}};
+                        Error ->
+                            {error, {Id, Error}, State}
+                    end;
+                Error ->
+                    {error, {Id, Error}, State}
+            end;        Error ->
+        {error, {Id, Error}, State}
+    end;
 
-
-          UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
-      %    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
-        %  BKeys = [list_to_binary(integer_to_list(K1)) || K1 <- UpdateIntKeys],
-          BObjs = multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
-          %BObjs = [{{K1, riak_dt_lwwreg, <<"bucket">>},
-          %  assign, random_string(10)} || K1 <- BKeys ],
+run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
+    pb_port=_Port, target_node=_Node,
+    num_reads=NumReads,
+    num_updates = NumUpdates,
+    type_dict = TypeDict,
+    set_size=SetSize,
+    commit_time=OldCommitTime}) ->
+    io:format("~nNumReads = ~w  NumUpdates = ~w",[NumReads, NumUpdates]),
+    IntKeys = generate_keys(NumReads, KeyGen),
+    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
+%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+        {ok, TxId} ->
+            case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
+                {ok, _ReadResult} ->
+                    UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
+                    %    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
+                    %  BKeys = [list_to_binary(integer_to_list(K1)) || K1 <- UpdateIntKeys],
+                    BObjs = multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
+                    %BObjs = [{{K1, riak_dt_lwwreg, <<"bucket">>},
+                    %  assign, random_string(10)} || K1 <- BKeys ],
 
 %%            lager:info("Sending this updates ~p",[BObjs]),
-
-              case antidotec_pb:update_objects(Pid, BObjs, TxId) of
-                ok ->
-                  case antidotec_pb:commit_transaction(Pid, TxId) of
-                    {ok, BCommitTime} ->
-                      CommitTime =
+                    case antidotec_pb:update_objects(Pid, BObjs, TxId) of
+                        ok ->
+                            case antidotec_pb:commit_transaction(Pid, TxId) of
+                                {ok, BCommitTime} ->
+                                    CommitTime =
 %%                          case BCommitTime of
 %%                                       ignore ->
 %%                                           ignore;
 %%                                       _->
-                                           binary_to_term(BCommitTime),
+                                    binary_to_term(BCommitTime),
 %%                                   end,
 %%                        lager:info("BCommitTime ~p",[BCommitTime]),
 
-                        {ok, State#state{commit_time=CommitTime}};
-                    Error ->
-                      {error, {Id, Error}, State}
-                  end;
+                                    {ok, State#state{commit_time=CommitTime}};
+                                Error ->
+                                    {error, {Id, Error}, State}
+                            end;
+                        Error ->
+                            {error, {Id, Error}, State}
+                    end;
                 Error ->
-                  {error, {Id, Error}, State}
-              end;
+                    {error, {Id, Error}, State}
+            end;
         Error ->
-          {error, {Id, Error}, State}
-      end;
-    Error ->
-      {error, {Id, Error}, State}
-  end;
+            {error, {Id, Error}, State}
+    end;
+
+
 
 %% A  static transaction that reads and updates the same objects.
 %% Reads from a number of keys defined in the config file: num_reads, then
