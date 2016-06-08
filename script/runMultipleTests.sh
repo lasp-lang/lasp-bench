@@ -36,13 +36,13 @@ then
     RingSize=8
 elif [ $NodesPerDC -lt 3 ]
 then
-    RingSize=16
+    RingSize=128
 elif [ $NodesPerDC -lt 5 ]
 then
-    RingSize=512
+    RingSize=256
 elif [ $NodesPerDC -lt 14 ]
 then
-    RingSize=512
+    RingSize=256
 elif [ $NodesPerDC -lt 33 ]
 then
     RingSize=128
