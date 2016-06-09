@@ -102,7 +102,7 @@ run(txn, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
     IntKeys = generate_keys(NumReads, KeyGen),
     BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
 %  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
-    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
         {ok, TxId} ->
             case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
                 {ok, _ReadResult} ->
@@ -129,7 +129,7 @@ run(txn, KeyGen, ValueGen, State = #state{pb_pid = Pid, worker_id = Id,
     type_dict = TypeDict,
     set_size = SetSize,
     commit_time = OldCommitTime}) ->
-    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
         {ok, TxId} ->
             UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
             BObjs = multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
@@ -155,11 +155,11 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
     type_dict = TypeDict,
     set_size=SetSize,
     commit_time=OldCommitTime}) ->
-    io:format("~nNumReads = ~w  NumUpdates = ~w",[NumReads, NumUpdates]),
+%%    io:format("~nNumReads = ~w  NumUpdates = ~w",[NumReads, NumUpdates]),
     IntKeys = generate_keys(NumReads, KeyGen),
     BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
 %  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
-    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
         {ok, TxId} ->
             case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
                 {ok, _ReadResult} ->
@@ -219,7 +219,7 @@ run(rw_txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
   IntKeys = generate_keys(NumReads, KeyGen),
   BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
 %  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
-  case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+  case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
     {ok, TxId} ->
         case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
             {ok, Values} ->
