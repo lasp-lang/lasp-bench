@@ -1,6 +1,6 @@
 set term png 
-set output "results-CONS-1dcs-6nodes-4benchNodes/write_latencies.png"
-set title "Write-Latencies-1-DCs-6-Nodes-4-Bench-Nodes-Branch-CONS"
+set output "results-CONS-1dcs-7nodes-2benchNodes/write_latencies.png"
+set title "Write-Latencies-1-DCs-7-Nodes-2-Bench-Nodes-Branch-CONS"
 #set xtics ("99.99(.01)" 1, "99(1)" 2, "90(10)" 3, "75(25)" 4, "50(50)" 5, "1(99)" 6)
 set xtics ("99(1)" 1, "90(10)" 2, "75(25)" 3, "50(50)" 4)
 set tics out
