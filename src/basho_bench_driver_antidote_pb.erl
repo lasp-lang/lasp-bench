@@ -121,7 +121,7 @@ run(txn, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
     end;
 
 
-%% WRITE ONLY TXN!!!
+%% WRITE TXN!!!
 run(txn, KeyGen, ValueGen, State = #state{pb_pid = Pid, worker_id = Id,
     pb_port = _Port, target_node = _Node,
     num_reads = 0,
@@ -163,7 +163,9 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
         {ok, TxId} ->
             case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
                 {ok, _ReadResult} ->
-                    UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
+%%                    UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
+%%                    This selects the latest reads for updating.
+                    UpdateIntKeys = lists:sublist(IntKeys, NumReads - NumUpdates +1, NumUpdates),
                     %    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
                     %  BKeys = [list_to_binary(integer_to_list(K1)) || K1 <- UpdateIntKeys],
                     BObjs = multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
@@ -205,7 +207,8 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
 %% updates the same keys (the num_updates in the config is unused).
 
 run(append, KeyGen, ValueGen, State) ->
-    run(txn, KeyGen, ValueGen, State#state{num_reads = 0,num_updates=State#state.temp_num_updates});
+    %% this reads first, and then updates.
+    run(txn, KeyGen, ValueGen, State#state{num_reads = State#state.temp_num_updates,num_updates=State#state.temp_num_updates});
 run(read, KeyGen, ValueGen, State) ->
     run(txn, KeyGen, ValueGen, State#state{num_updates = 0,num_reads=State#state.temp_num_reads});
 %%run(append, KeyGen, ValueGen, State) ->
