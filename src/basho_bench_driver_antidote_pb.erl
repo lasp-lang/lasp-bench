@@ -164,7 +164,7 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
             case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
                 {ok, _ReadResult} ->
 %%                    UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
-%%                    This selects the latest reads for updating.
+%%                    The following selects the latest reads for updating.
                     UpdateIntKeys = lists:sublist(IntKeys, NumReads - NumUpdates +1, NumUpdates),
                     %    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
                     %  BKeys = [list_to_binary(integer_to_list(K1)) || K1 <- UpdateIntKeys],
