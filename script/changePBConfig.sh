@@ -83,7 +83,7 @@ fi
 sed -i '/key_generator/d' $File
 #sed -i "3i {key_generator, {dc_bias, $NumDCs, $DcId, $NodesPerDC, 10000}}." $File
 #Keys=$(($NodesPerDC * 1000))
-Keys=1000000
+Keys=10000000
 sed -i "3i {key_generator, {pareto_int, $Keys}}." $File
 
 sed -i '/antidote_pb_num_dcs/d' $File 
