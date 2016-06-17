@@ -26,8 +26,8 @@ sed -i '/antidote_pb_ips/d' $File
 sed -i '/concurrent/d' $File
 ## {operations, [{append, 1}, {read, 100}]}.
 sed -i '/operations/d' $File
-#sed -i '/num_reads/d' $File
-#sed -i '/num_updates/d' $File
+sed -i '/num_reads/d' $File
+sed -i '/num_updates/d' $File
 
 #{num_reads, 10}.
 #{num_updates, 10}.
