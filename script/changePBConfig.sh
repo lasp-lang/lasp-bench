@@ -59,26 +59,33 @@ echo $BenchConfig
 echo "$BenchConfig" >> $File
 sed -i "5i {concurrent, $Thread}." $File
 
-if [ $Type = "counter" ]; then
-    sed -i "6i {operations, [{append, $Writes}, {read, $Reads}]}." $File
-else
-    sed -i "6i {operations, [{update, $Writes}, {read, $Reads}]}." $File
-fi
+#if [ $Type = "counter" ]; then
+#    sed -i "6i {operations, [{append, $Writes}, {read, $Reads}]}." $File
+#else
+#    sed -i "6i {operations, [{update, $Writes}, {read, $Reads}]}." $File
+#fi
+#use just transactions.
+sed -i "6i {operations, [{txn, 1}]}." $File
+
 
 if [ $Writes -eq 1 ]; then
-    ReadTxn=1
+    ReadTxn=50
+    WriteTxn=50
 elif [ $Writes -eq 10 ]; then
-    ReadTxn=5
+    ReadTxn=75
+    WriteTxn=25
 elif [ $Writes -eq 25 ]; then
-    ReadTxn=10
+    ReadTxn=90
+    WriteTxn=10
 elif [ $Writes -eq 50 ]; then
-    ReadTxn=20
+    ReadTxn=100
+    WriteTxn=0
 else
     ReadTxn=1
 fi
 
-#sed -i "7i {num_reads, $ReadTxn}." $File
-#sed -i "7i {num_updates, $ReadTxn}." $File
+sed -i "7i {num_reads, $ReadTxn}." $File
+sed -i "7i {num_updates, $Writes}." $File
 
 sed -i '/key_generator/d' $File
 #sed -i "3i {key_generator, {dc_bias, $NumDCs, $DcId, $NodesPerDC, 10000}}." $File
