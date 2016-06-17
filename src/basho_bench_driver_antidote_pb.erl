@@ -206,15 +206,15 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
 %% Reads from a number of keys defined in the config file: num_reads, then
 %% updates the same keys (the num_updates in the config is unused).
 
-run(append, KeyGen, ValueGen, State) ->
-    %% this reads first, and then updates.
-    run(txn, KeyGen, ValueGen, State#state{num_reads = State#state.temp_num_updates,num_updates=State#state.temp_num_updates});
-run(read, KeyGen, ValueGen, State) ->
-    run(txn, KeyGen, ValueGen, State#state{num_updates = 0,num_reads=State#state.temp_num_reads});
 %%run(append, KeyGen, ValueGen, State) ->
-%%    run(txn, KeyGen, ValueGen, State);
+%%    %% this reads first, and then updates.
+%%    run(txn, KeyGen, ValueGen, State#state{num_reads = State#state.temp_num_updates,num_updates=State#state.temp_num_updates});
 %%run(read, KeyGen, ValueGen, State) ->
-%%    run(txn, KeyGen, ValueGen, State);
+%%    run(txn, KeyGen, ValueGen, State#state{num_updates = 0,num_reads=State#state.temp_num_reads});
+run(append, KeyGen, ValueGen, State) ->
+    run(txn, KeyGen, ValueGen, State);
+run(read, KeyGen, ValueGen, State) ->
+    run(txn, KeyGen, ValueGen, State);
 
 run(rw_txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
   pb_port=_Port, target_node=_Node,
