@@ -69,13 +69,17 @@ sed -i "6i {operations, [{txn, 1}]}." $File
 
 
 if [ $Writes -eq 1 ]; then
-    ReadTxn=99
-elif [ $Writes -eq 10 ]; then
-    ReadTxn=90
-elif [ $Writes -eq 25 ]; then
-    ReadTxn=75
-elif [ $Writes -eq 50 ]; then
     ReadTxn=50
+    WriteTxn=50
+elif [ $Writes -eq 10 ]; then
+    ReadTxn=75
+    WriteTxn=25
+elif [ $Writes -eq 25 ]; then
+    ReadTxn=90
+    WriteTxn=10
+elif [ $Writes -eq 50 ]; then
+    ReadTxn=100
+    WriteTxn=0
 else
     ReadTxn=1
 fi
