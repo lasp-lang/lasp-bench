@@ -82,10 +82,12 @@ elif [ $Writes -eq 50 ]; then
     WriteTxn=0
 else
     ReadTxn=1
+    WriteTxn=1
 fi
 
 sed -i "7i {num_reads, $ReadTxn}." $File
-sed -i "7i {num_updates, $Writes}." $File
+sed -i "7i {num_updates, $WriteTxn}." $File
+
 
 sed -i '/key_generator/d' $File
 #sed -i "3i {key_generator, {dc_bias, $NumDCs, $DcId, $NodesPerDC, 10000}}." $File
@@ -99,3 +101,5 @@ sed -i '/antidote_pb_dc_id/d' $File
 sed -i "7i {antidote_pb_num_dcs, $NumDCs}." $File
 sed -i "8i {antidote_pb_nodes_per_dc, $NodesPerDC}." $File
 sed -i "9i {antidote_pb_dc_id, $DcId}." $File
+
+
