@@ -41,7 +41,9 @@
                 target_node,
                 measure_staleness,
                 temp_num_reads,
-                temp_num_updates}).
+                temp_num_updates,
+    sequential_reads,
+    sequential_writes}).
 
 %% ====================================================================
 %% API
@@ -67,6 +69,9 @@ new(Id) ->
     NumReads = basho_bench_config:get(num_reads),
     NumPartitions = basho_bench_config:get(num_vnodes),
     MeasureStaleness = basho_bench_config:get(staleness),
+    SequentialReads = basho_bench_config:get(sequential_reads),
+    SequentialWrites = basho_bench_config:get(sequential_writes),
+
 
     %% Choose the node using our ID as a modulus
     TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
@@ -83,7 +88,9 @@ new(Id) ->
 		target_node=TargetNode, commit_time=ignore,
         num_reads=NumReads, num_updates=NumUpdates,
         temp_num_reads=NumReads, temp_num_updates=NumUpdates,
-        measure_staleness=MeasureStaleness}}.
+        measure_staleness=MeasureStaleness,
+        sequential_reads = SequentialReads,
+        sequential_writes = SequentialWrites}}.
 
 %% A more general static transaction.
 %% combienes the previous read_txn and update_txn
@@ -98,13 +105,14 @@ run(txn, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
     num_updates = 0,
     type_dict = TypeDict,
     set_size=SetSize,
-    commit_time=OldCommitTime}) ->
+    commit_time=OldCommitTime,
+    sequential_reads = SeqReads}) ->
     IntKeys = generate_keys(NumReads, KeyGen),
     BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
 %  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
         {ok, TxId} ->
-            case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
+            case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
                 {ok, _ReadResult} ->
                             case antidotec_pb:commit_transaction(Pid, TxId) of
                                 {ok, BCommitTime} ->
@@ -128,12 +136,13 @@ run(txn, KeyGen, ValueGen, State = #state{pb_pid = Pid, worker_id = Id,
     num_updates = NumUpdates,
     type_dict = TypeDict,
     set_size = SetSize,
-    commit_time = OldCommitTime}) ->
+    commit_time = OldCommitTime,
+    sequential_writes = SeqWrites}) ->
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
         {ok, TxId} ->
             UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
             BObjs = multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
-            case antidotec_pb:update_objects(Pid, BObjs, TxId) of
+            case create_update_operations(Pid, BObjs, TxId, SeqWrites) of
                 ok ->
                     case antidotec_pb:commit_transaction(Pid, TxId) of
                         {ok, BCommitTime} ->
@@ -148,20 +157,25 @@ run(txn, KeyGen, ValueGen, State = #state{pb_pid = Pid, worker_id = Id,
         {error, {Id, Error}, State}
     end;
 
+
+
+
 run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
     pb_port=_Port, target_node=_Node,
     num_reads=NumReads,
     num_updates = NumUpdates,
     type_dict = TypeDict,
     set_size=SetSize,
-    commit_time=OldCommitTime}) ->
+    commit_time=OldCommitTime,
+    sequential_writes = SeqWrites,
+    sequential_reads = SeqReads}) ->
 %%    io:format("~nNumReads = ~w  NumUpdates = ~w",[NumReads, NumUpdates]),
     IntKeys = generate_keys(NumReads, KeyGen),
     BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
 %  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
         {ok, TxId} ->
-            case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
+            case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
                 {ok, _ReadResult} ->
 %%                    UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
 %%                    The following selects the latest reads for updating.
@@ -173,7 +187,7 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
                     %  assign, random_string(10)} || K1 <- BKeys ],
 
 %%            lager:info("Sending this updates ~p",[BObjs]),
-                    case antidotec_pb:update_objects(Pid, BObjs, TxId) of
+                    case create_update_operations(Pid, BObjs, TxId, SeqWrites) of
                         ok ->
                             case antidotec_pb:commit_transaction(Pid, TxId) of
                                 {ok, BCommitTime} ->
@@ -202,6 +216,10 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
 
 
 
+
+
+
+
 %% A  static transaction that reads and updates the same objects.
 %% Reads from a number of keys defined in the config file: num_reads, then
 %% updates the same keys (the num_updates in the config is unused).
@@ -221,19 +239,21 @@ run(rw_txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
   num_reads=NumReads,
   type_dict = TypeDict,
   set_size=SetSize,
-  commit_time=OldCommitTime}) ->
+  commit_time=OldCommitTime,
+    sequential_reads = SeqReads,
+    sequential_writes = SeqWrites}) ->
 
   IntKeys = generate_keys(NumReads, KeyGen),
   BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
 %  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
   case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
     {ok, TxId} ->
-        case antidotec_pb:read_objects(Pid, BoundObjects, TxId) of
+        case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
             {ok, Values} ->
                 BObjs = multi_get_random_param_new(IntKeys, TypeDict, ValueGen(), Values, SetSize),
                 %BObjs = [{{K1, riak_dt_lwwreg, <<"bucket">>},
                 %  assign, random_string(10)} || K1 <- BKeys ],
-                case antidotec_pb:update_objects(Pid, BObjs, TxId) of
+                case create_update_operations(Pid, BObjs, TxId, SeqWrites) of
                     ok ->
                         case antidotec_pb:commit_transaction(Pid, TxId) of
                             {ok, BCommitTime} ->
@@ -253,7 +273,33 @@ run(rw_txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
   end.
 
 
-get_key_type(Key, Dict) ->
+
+create_read_operations(Pid, BoundObjects, TxId, IsSeq) ->
+    case IsSeq of
+        true->
+            Result = lists:map(fun(BoundObj)->
+                {ok, [Value]} = antidotec_pb:read_objects(Pid, [BoundObj], TxId),
+                        Value
+                end,BoundObjects),
+            {ok, Result};
+        false ->
+                antidotec_pb:read_objects(Pid, BoundObjects, TxId)
+    end.
+
+create_update_operations(Pid, BoundObjects, TxId, IsSeq) ->
+    case IsSeq of
+        true ->
+            lists:map(fun(BoundObj) ->
+                antidotec_pb:update_objects(Pid, [BoundObj], TxId)
+                               end, BoundObjects),
+            ok;
+        false ->
+            antidotec_pb:update_objects(Pid, BoundObjects, TxId)
+    end.
+
+
+
+        get_key_type(Key, Dict) ->
     Keys = dict:fetch_keys(Dict),
     RanNum = Key rem length(Keys),
     lists:nth(RanNum+1, Keys).
