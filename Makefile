@@ -1,19 +1,18 @@
 .PHONY: deps
 
+REBAR := ./rebar3
+
 all: deps compile
-	./rebar skip_deps=true escriptize
+	${REBAR} skip_deps=true escriptize
 
 deps:
-	./rebar get-deps
+	${REBAR} deps
 
 compile: deps
-	@(./rebar compile)
+	(${REBAR} compile)
 
 clean:
-	@./rebar clean
-
-distclean: clean
-	@rm -rf basho_bench deps
+	${REBAR} clean
 
 results:
 	Rscript --vanilla priv/summary.r -i tests/current
