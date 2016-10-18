@@ -33,7 +33,7 @@
                 pb_pid,
 		        num_partitions,
 		        set_size,
-                deps :: dict(),
+                deps :: dict:dict(),
                 num_reads :: non_neg_integer(),
                 num_updates :: non_neg_integer(),
                 pb_port,
