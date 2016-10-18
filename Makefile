@@ -3,7 +3,7 @@
 REBAR := ./rebar3
 
 all: deps compile
-	${REBAR} skip_deps=true escriptize
+	${REBAR} escriptize
 
 deps:
 	${REBAR} deps

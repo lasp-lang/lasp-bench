@@ -124,7 +124,7 @@ run(update_txn, _KeyGen, _ValueGen, State=#state{worker_id = Id, target_node=Nod
 random_string(Len) ->
     Chrs = list_to_tuple("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"),
     ChrsSize = size(Chrs),
-    F = fun(_, R) -> [element(random:uniform(ChrsSize), Chrs) | R] end,
+    F = fun(_, R) -> [element(rand_compat:uniform(ChrsSize), Chrs) | R] end,
     lists:foldl(F, "", lists:seq(1, Len)).
 
 k_unique_numes(Num, Range) ->
@@ -136,7 +136,7 @@ k_unique_numes(Num, Range) ->
     sets:to_list(S).
 
 uninum(Range, Set) ->
-    R = random:uniform(Range),
+    R = rand_compat:uniform(Range),
     case sets:is_element(R, Set) of
         true ->
             uninum(Range, Set);

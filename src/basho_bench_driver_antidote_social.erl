@@ -102,8 +102,8 @@ run(update_status, _KeyGen, _ValueGen, State=#state{node=Node, user_id = UserId}
     end;
 
 run(send_friend_request, _KeyGen, _ValueGen, State=#state{node=Node, user_id = UserId, num_users=NumUsers, friends = Friends}) ->
-    random:seed(now()),
-    NumFrnd = random:uniform(NumUsers),
+    rand_compat:seed(time_compat:timestamp()),
+    NumFrnd = rand_compat:uniform(NumUsers),
     case NumFrnd =:= UserId of 
         true -> {ok, State};
         false ->
@@ -159,10 +159,10 @@ run(read_friend_list, _KeyGen, _ValueGen, State=#state{node=Node, user_id = User
 run(post_message,  _KeyGen, _ValueGen, State=#state{node=Node, user_id = UserId, friends = Friends}) ->
     %% get random friend from friends
     %% post message
-    random:seed(now()),
+    rand_compat:seed(time_compat:timestamp()),
     case length(Friends) > 0 of
         true ->
-            Num = random:uniform(length(Friends)),
+            Num = rand_compat:uniform(length(Friends)),
             Friend = lists:nth(Num, Friends),
             Response = social:post_message(UserId, "Hi", Friend, Node),
             case Response of

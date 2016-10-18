@@ -71,23 +71,23 @@ new({biased_partial, MaxKey, ReplicationFactor, PercentageExternal}, _Id) ->
 		       Oth2 ->
 			   Oth2
 		   end,
-    fun() -> DcNum = case random:uniform() > PercentageExternal of
+    fun() -> DcNum = case rand_compat:uniform() > PercentageExternal of
 			 false ->
-			     case (MinNotHere + (random:uniform(RangeNotHere)-1)) rem (NumDcs) of
+			     case (MinNotHere + (rand_compat:uniform(RangeNotHere)-1)) rem (NumDcs) of
 				 0 ->
 				     NumDcs;
 				 Other ->
 				     Other
 			     end;
 			 true ->
-			     case (MinHere + (random:uniform(RangeHere)-1)) rem (NumDcs) of
+			     case (MinHere + (rand_compat:uniform(RangeHere)-1)) rem (NumDcs) of
 				 0 ->
 				     NumDcs;
 				 Other ->
 				     Other
 			     end
 		     end,
-	     (((random:uniform(KeySpace)) * NumDcs) + (DcNum))
+	     (((rand_compat:uniform(KeySpace)) * NumDcs) + (DcNum))
     end;
 		    
 new({int_to_bin, InputGen}, Id) ->
@@ -140,10 +140,10 @@ new({partitioned_sequential_int, StartKey, NumKeys}, Id)
     fun() -> sequential_int_generator(Ref, MaxValue - MinValue, Id, DisableProgress) + MinValue end;
 new({uniform_int, MaxKey}, _Id)
   when is_integer(MaxKey), MaxKey > 0 ->
-    fun() -> random:uniform(MaxKey) end;
+    fun() -> rand_compat:uniform(MaxKey) end;
 new({uniform_int, StartKey, NumKeys}, _Id)
   when is_integer(StartKey), is_integer(NumKeys), NumKeys > 0 ->
-    fun() -> random:uniform(NumKeys) + StartKey - 1 end;
+    fun() -> rand_compat:uniform(NumKeys) + StartKey - 1 end;
 new({pareto_int, MaxKey}, _Id)
   when is_integer(MaxKey), MaxKey > 0 ->
     pareto(trunc(MaxKey * 0.2), ?PARETO_SHAPE);
@@ -207,7 +207,7 @@ pareto(Mean, Shape) ->
     S1 = (-1 / Shape),
     S2 = Mean * (Shape - 1),
     fun() ->
-            U = 1 - random:uniform(),
+            U = 1 - rand_compat:uniform(),
             trunc((math:pow(U, S1) - 1) * S2)
     end.
 
@@ -217,7 +217,7 @@ bias(NumDCs, DcId, Max, Mean, Shape) ->
     S1 = (-1 / Shape),
     S2 = Mean * (Shape - 1),
     fun() ->
-            U = 1 - random:uniform(),
+            U = 1 - rand_compat:uniform(),
             Key1 = erlang:min(Max, trunc((math:pow(U, S1) - 1) * S2)),
 	    (Key1 + DcRange) rem Max
     end.

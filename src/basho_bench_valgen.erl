@@ -40,7 +40,7 @@ new({fixed_bin, Size, Val}, _Id)
     fun() -> Data end;
 new({fixed_char, Size}, _Id)
   when is_integer(Size), Size >= 0 ->
-    fun() -> list_to_binary(lists:map(fun (_) -> random:uniform(95)+31 end, lists:seq(1,Size))) end;
+    fun() -> list_to_binary(lists:map(fun (_) -> rand_compat:uniform(95)+31 end, lists:seq(1,Size))) end;
 new({exponential_bin, MinSize, Mean}, Id)
   when is_integer(MinSize), MinSize >= 0, is_number(Mean), Mean > 0 ->
     Source = init_source(Id),
@@ -49,7 +49,7 @@ new({uniform_bin, MinSize, MaxSize}, Id)
   when is_integer(MinSize), is_integer(MaxSize), MinSize < MaxSize ->
     Source = init_source(Id),
     Diff = MaxSize - MinSize,
-    fun() -> data_block(Source, MinSize + random:uniform(Diff)) end;
+    fun() -> data_block(Source, MinSize + rand_compat:uniform(Diff)) end;
 new({function, Module, Function, Args}, Id)
   when is_atom(Module), is_atom(Function), is_list(Args) ->
     case code:ensure_loaded(Module) of
@@ -60,10 +60,10 @@ new({function, Module, Function, Args}, Id)
     end;
 new({uniform_int, MaxVal}, _Id)
   when is_integer(MaxVal), MaxVal >= 1 ->
-    fun() -> random:uniform(MaxVal) end;
+    fun() -> rand_compat:uniform(MaxVal) end;
 new({uniform_int, MinVal, MaxVal}, _Id)
   when is_integer(MinVal), is_integer(MaxVal), MaxVal > MinVal ->
-    fun() -> random:uniform(MinVal, MaxVal) end;
+    fun() -> rand_compat:uniform(MinVal, MaxVal) end;
 new(Other, _Id) ->
     ?FAIL_MSG("Invalid value generator requested: ~p\n", [Other]).
 
@@ -86,7 +86,7 @@ init_source(Id, undefined) ->
        true    -> ok
     end,
     SourceSz = basho_bench_config:get(?VAL_GEN_SRC_SIZE, 1048576),
-    {?VAL_GEN_SRC_SIZE, SourceSz, crypto:rand_bytes(SourceSz)};
+    {?VAL_GEN_SRC_SIZE, SourceSz, crypto:strong_rand_bytes(SourceSz)};
 init_source(Id, Path) ->
     {Path, {ok, Bin}} = {Path, file:read_file(Path)},
     if Id == 1 -> ?DEBUG("path source ~p ~p\n", [size(Bin), Path]);
@@ -97,7 +97,7 @@ init_source(Id, Path) ->
 data_block({SourceCfg, SourceSz, Source}, BlockSize) ->
     case SourceSz - BlockSize > 0 of
         true ->
-            Offset = random:uniform(SourceSz - BlockSize),
+            Offset = rand_compat:uniform(SourceSz - BlockSize),
             <<_:Offset/bytes, Slice:BlockSize/bytes, _Rest/binary>> = Source,
             Slice;
         false ->
