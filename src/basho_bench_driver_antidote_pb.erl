@@ -68,98 +68,103 @@ new(Id) ->
     SetSize = basho_bench_config:get(set_size),
     NumUpdates  = basho_bench_config:get(num_updates),
     NumReads = basho_bench_config:get(num_reads),
-    NumPartitions = basho_bench_config:get(num_vnodes),
-    MeasureStaleness = basho_bench_config:get(staleness),
-    SequentialReads = basho_bench_config:get(sequential_reads),
-    SequentialWrites = basho_bench_config:get(sequential_writes),
+    
+    case NumUpdates > NumReads of
+        true ->
+            {error, "the number of updates can't be bigger than the number of reads. Try again."};
+        false ->
+            NumPartitions = basho_bench_config:get(num_vnodes),
+            MeasureStaleness = basho_bench_config:get(staleness),
+            SequentialReads = basho_bench_config:get(sequential_reads),
+            SequentialWrites = basho_bench_config:get(sequential_writes),
+    
+    
+            %% Choose the node using our ID as a modulus
+            TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
+            ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
+    
+            {ok, Pid} = antidotec_pb_socket:start_link(TargetNode, PbPort),
+            TypeDict = dict:from_list(Types),
+            {ok, #state{time={1,1,1}, worker_id=Id,
+                pb_pid = Pid,
+                last_read={undefined,undefined},
+                set_size = SetSize,
+                num_partitions = NumPartitions,
+                type_dict = TypeDict, pb_port=PbPort,
+                target_node=TargetNode, commit_time=ignore,
+                num_reads=NumReads, num_updates=NumUpdates,
+                temp_num_reads=NumReads, temp_num_updates=NumUpdates,
+                measure_staleness=MeasureStaleness,
+                sequential_reads = SequentialReads,
+                sequential_writes = SequentialWrites}}
+    end.
 
 
-    %% Choose the node using our ID as a modulus
-    TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
-    ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
-
-    {ok, Pid} = antidotec_pb_socket:start_link(TargetNode, PbPort),
-    TypeDict = dict:from_list(Types),
-    {ok, #state{time={1,1,1}, worker_id=Id,
-		pb_pid = Pid,
-		last_read={undefined,undefined},
-		set_size = SetSize,
-		num_partitions = NumPartitions,
-		type_dict = TypeDict, pb_port=PbPort,
-		target_node=TargetNode, commit_time=ignore,
-        num_reads=NumReads, num_updates=NumUpdates,
-        temp_num_reads=NumReads, temp_num_updates=NumUpdates,
-        measure_staleness=MeasureStaleness,
-        sequential_reads = SequentialReads,
-        sequential_writes = SequentialWrites}}.
-
-%% A more general static transaction.
-%% combienes the previous read_txn and update_txn
-%% Reads from a number of keys defined in the config file: num_reads, then
-%% updates a number of keys defined in the config file: num_updates.
-
-
-%% READ ONLY TXN!!!
-run(txn, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
-    pb_port=_Port, target_node=_Node,
-    num_reads=NumReads,
-    num_updates = 0,
-    type_dict = TypeDict,
-    set_size=SetSize,
-    commit_time=OldCommitTime,
-    sequential_reads = SeqReads}) ->
-    IntKeys = generate_keys(NumReads, KeyGen),
-    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET} || K <- IntKeys ],
-%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, ?BUCKET} || K <- IntKeys ],
-    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
-        {ok, TxId} ->
-            case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
-                {ok, _ReadResult} ->
-                            case antidotec_pb:commit_transaction(Pid, TxId) of
-                                {ok, BCommitTime} ->
-                                    CommitTime = binary_to_term(BCommitTime),
-                                    {ok, State#state{commit_time=CommitTime}};
-                                Error ->
-                                    {error, {Id, Error}, State}
-                            end;
-                Error ->
-                    {error, {Id, Error}, State}
-            end;
-        Error ->
-            {error, {Id, Error}, State}
-    end;
-
-
-%% WRITE TXN!!!
-run(txn, KeyGen, ValueGen, State = #state{pb_pid = Pid, worker_id = Id,
-    pb_port = _Port, target_node = _Node,
-    num_reads = 0,
-    num_updates = NumUpdates,
-    type_dict = TypeDict,
-    set_size = SetSize,
-    commit_time = OldCommitTime,
-    sequential_writes = SeqWrites}) ->
-    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
-        {ok, TxId} ->
-            UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
-            BObjs = multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
-            case create_update_operations(Pid, BObjs, TxId, SeqWrites) of
-                ok ->
-                    case antidotec_pb:commit_transaction(Pid, TxId) of
-                        {ok, BCommitTime} ->
-                            CommitTime = binary_to_term(BCommitTime),
-                            {ok, State#state{commit_time = CommitTime}};
-                        Error ->
-                            {error, {Id, Error}, State}
-                    end;
-                Error ->
-                    {error, {Id, Error}, State}
-            end;        Error ->
-        {error, {Id, Error}, State}
-    end;
+%%%% READ ONLY TXN!!!
+%%run(txn, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
+%%    pb_port=_Port, target_node=_Node,
+%%    num_reads=NumReads,
+%%    num_updates = 0, %% this line is the one that makes this txn run
+%%    type_dict = TypeDict,
+%%    set_size=SetSize,
+%%    commit_time=OldCommitTime,
+%%    sequential_reads = SeqReads}) ->
+%%    IntKeys = generate_keys(NumReads, KeyGen),
+%%    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET} || K <- IntKeys ],
+%%%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, ?BUCKET} || K <- IntKeys ],
+%%    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
+%%        {ok, TxId} ->
+%%            case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
+%%                {ok, _ReadResult} ->
+%%                            case antidotec_pb:commit_transaction(Pid, TxId) of
+%%                                {ok, BCommitTime} ->
+%%                                    CommitTime = binary_to_term(BCommitTime),
+%%                                    {ok, State#state{commit_time=CommitTime}};
+%%                                Error ->
+%%                                    {error, {Id, Error}, State}
+%%                            end;
+%%                Error ->
+%%                    {error, {Id, Error}, State}
+%%            end;
+%%        Error ->
+%%            {error, {Id, Error}, State}
+%%    end;
+%%
+%%
+%%%% WRITE TXN!!!
+%%run(txn, KeyGen, ValueGen, State = #state{pb_pid = Pid, worker_id = Id,
+%%    pb_port = _Port, target_node = _Node,
+%%    num_reads = 0,
+%%    num_updates = NumUpdates,
+%%    type_dict = TypeDict,
+%%    set_size = SetSize,
+%%    commit_time = OldCommitTime,
+%%    sequential_writes = SeqWrites}) ->
+%%    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
+%%        {ok, TxId} ->
+%%            UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
+%%            BObjs = multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
+%%            case create_update_operations(Pid, BObjs, TxId, SeqWrites) of
+%%                ok ->
+%%                    case antidotec_pb:commit_transaction(Pid, TxId) of
+%%                        {ok, BCommitTime} ->
+%%                            CommitTime = binary_to_term(BCommitTime),
+%%                            {ok, State#state{commit_time = CommitTime}};
+%%                        Error ->
+%%                            {error, {Id, Error}, State}
+%%                    end;
+%%                Error ->
+%%                    {error, {Id, Error}, State}
+%%            end;        Error ->
+%%        {error, {Id, Error}, State}
+%%    end;
 
 
 
+%% @doc A more general static transaction.
+%% it first performs reads to a number of objects defined by the
+%% {num_reads, X} parameter in the config file.
+%% Then, it updates {num_updates, X}.
 
 run(txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
     pb_port=_Port, target_node=_Node,
@@ -216,19 +221,23 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
     end;
 
 
-%% A  static transaction that reads and updates the same objects.
-%% Reads from a number of keys defined in the config file: num_reads, then
-%% updates the same keys (the num_updates in the config is unused).
+%% @doc This transaction will only perform update operations.
+%% the number of operations is defined by the {num_updates, x}
+%% parameter in the config file.
+run(update_only_txn, KeyGen, ValueGen, State) ->
+    run(txn, KeyGen, ValueGen, State#state{num_reads=0});
+%% @doc This transaction will only perform read operations.
+%% the number of operations is defined by the {num_reads, x}
+%% parameter in the config file.
+run(read_only_txn, KeyGen, ValueGen, State) ->
+    run(txn, KeyGen, ValueGen, State#state{num_updates=0});
 
-%%run(append, KeyGen, ValueGen, State) ->
-%%    %% this reads first, and then updates.
-%%    run(txn, KeyGen, ValueGen, State#state{num_reads = State#state.temp_num_updates,num_updates=State#state.temp_num_updates});
-%%run(read, KeyGen, ValueGen, State) ->
-%%    run(txn, KeyGen, ValueGen, State#state{num_updates = 0,num_reads=State#state.temp_num_reads});
+%% @doc the append command will run a transaction with a single update, and no reads.
 run(append, KeyGen, ValueGen, State) ->
-    run(txn, KeyGen, ValueGen, State);
+    run(txn, KeyGen, ValueGen, State#state{num_reads=0,num_updates=1});
+%% @doc the read command will run a transaction with a single read, and no updates.
 run(read, KeyGen, ValueGen, State) ->
-    run(txn, KeyGen, ValueGen, State);
+    run(txn, KeyGen, ValueGen, State#state{num_reads=1,num_updates=0});
 
 run(rw_txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
   pb_port=_Port, target_node=_Node,
