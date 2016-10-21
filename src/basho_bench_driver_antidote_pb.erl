@@ -329,7 +329,7 @@ get_random_param_new(Key, Dict, Type, Value, Obj, SetSize)->
         Value when is_integer(Value)->
             integer_to_list(Value);
         Value when is_binary(Value)->
-            binary_to_list(Value)
+            Value
     end,
     case Type of
         antidote_crdt_counter->
