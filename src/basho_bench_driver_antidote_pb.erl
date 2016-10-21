@@ -175,25 +175,41 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
     commit_time=OldCommitTime,
     sequential_writes=SeqWrites,
     sequential_reads=SeqReads})->
-%%    io:format("~nNumReads = ~w  NumUpdates = ~w", [NumReads, NumUpdates]),
-    IntKeys=generate_keys(NumReads, KeyGen),
-    BoundObjects=[{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET}||K<-IntKeys],
-    BoundObjects=[{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, ?BUCKET}||K<-IntKeys],
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
         {ok, TxId}->
-%%            lager:info("TxId = ~p", [TxId]),
-            case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
-                {ok, _ReadResult}->
-                    %%                    UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
-                    %%                    The following selects the latest reads for updating.
-                    UpdateIntKeys=lists:sublist(IntKeys, NumReads-NumUpdates+1, NumUpdates),
+            
+            {ReadResult, IntKeys}=case NumReads>0 of
+                true->
+                    IntegerKeys=generate_keys(NumReads, KeyGen),
+                    BoundObjects=[{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET}||K<-IntegerKeys],
+                    case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
+                        {ok, RS}->
+                            {RS, IntegerKeys};
+                        Error->
+                            {{error, {Id, Error}, State}, IntegerKeys}
+                    end;
+                false->
+                    {no_reads, no_reads}
+            end,
+            case ReadResult of
+                {error, {ID, ERROR}, STATE}->
+                    {error, {ID, ERROR}, STATE};
+                _->
+                    UpdateIntKeys=case IntKeys of
+                        no_reads->
+                            %% write only transaction
+                            UpdateIntKeys=generate_keys(NumUpdates, KeyGen);
+                        _->
+                            %%                    The following selects the latest reads for updating.
+                            UpdateIntKeys=lists:sublist(IntKeys, NumReads-NumUpdates+1, NumUpdates)
+                    end,
                     %    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET} || K <- IntKeys ],
                     %  BKeys = [list_to_binary(integer_to_list(K1)) || K1 <- UpdateIntKeys],
                     BObjs=multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
                     %BObjs = [{{K1, riak_dt_lwwreg, ?BUCKET},
                     %  assign, random_string(10)} || K1 <- BKeys ],
                     
-%%                    lager:info("Sending this updates ~p", [BObjs]),
+                    %%                    lager:info("Sending this updates ~p", [BObjs]),
                     case create_update_operations(Pid, BObjs, TxId, SeqWrites) of
                         ok->
                             case antidotec_pb:commit_transaction(Pid, TxId) of
@@ -205,16 +221,14 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
                                     %%                                       _->
                                     binary_to_term(BCommitTime),
                                     %%                                   end,
-%%                                    lager:info("BCommitTime ~p", [BCommitTime]),
+                                    %%                                    lager:info("BCommitTime ~p", [BCommitTime]),
                                     {ok, State#state{commit_time=CommitTime}};
-                                Error->
-                                    {error, {Id, Error}, State}
+                                E->
+                                    {error, {Id, E}, State}
                             end;
-                        Error->
-                            {error, {Id, Error}, State}
-                    end;
-                Error->
-                    {error, {Id, Error}, State}
+                        E1->
+                            {error, {Id, E1}, State}
+                    end
             end;
         Error->
             {error, {Id, Error}, State}
@@ -383,90 +397,63 @@ get_random_param_new(Key, Dict, Type, Value, Obj, SetSize)->
                     [{{BKey, Type, ?BUCKET}, add_all, [NewVal]}]
             end
     end.
+%%
+%%get_random_param(Dict, Type, Value) ->
+%%  Params = dict:fetch(Type, Dict),
+%%  rand_compat:seed(time_compat:timestamp()),
+%%  Num = rand_compat:uniform(length(Params)),
+%%  case Type of
+%%    riak_dt_pncounter ->
+%%      {antidotec_counter, lists:nth(Num, Params), 1};
+%%    riak_dt_orset ->
+%%      {antidotec_set, lists:nth(Num, Params), Value}
+%%  end.
+%%
+%%get_random_param(Dict, Type, Value, Obj, SetSize) ->
+%%  Params = dict:fetch(Type, Dict),
+%%  Num = rand_compat:uniform(length(Params)),
+%%  case Type of
+%%    riak_dt_pncounter ->
+%%      {antidotec_counter, lists:nth(Num, Params), 1};
+%%    riak_dt_orset ->
+%%      Set = antidotec_set:value(Obj),
+%%      %%Op = lists:nth(Num, Params),
+%%      NewOp = case sets:size(Set) =< SetSize of
+%%                true ->
+%%                  add;
+%%                false ->
+%%                  remove
+%%              end,
+%%      case NewOp of
+%%        remove ->
+%%          case sets:to_list(Set) of
+%%            [] -> {antidotec_set, add, Value};
+%%            [H | _T] -> {antidotec_set, remove, H}
+%%          end;
+%%        _ ->
+%%          {antidotec_set, NewOp, Value}
+%%      end
+%%  end.
 
-get_random_param(Dict, Type, Value) ->
-  Params = dict:fetch(Type, Dict),
-  rand_compat:seed(time_compat:timestamp()),
-  Num = rand_compat:uniform(length(Params)),
-  case Type of
-    riak_dt_pncounter ->
-      {antidotec_counter, lists:nth(Num, Params), 1};
-    riak_dt_orset ->
-      {antidotec_set, lists:nth(Num, Params), Value}
-  end.
 
-get_random_param(Dict, Type, Value, Obj, SetSize) ->
-  Params = dict:fetch(Type, Dict),
-  Num = rand_compat:uniform(length(Params)),
-  case Type of
-    riak_dt_pncounter ->
-      {antidotec_counter, lists:nth(Num, Params), 1};
-    riak_dt_orset ->
-      Set = antidotec_set:value(Obj),
-      %%Op = lists:nth(Num, Params),
-      NewOp = case sets:size(Set) =< SetSize of
-                true ->
-                  add;
-                false ->
-                  remove
-              end,
-      case NewOp of
-        remove ->
-          case sets:to_list(Set) of
-            [] -> {antidotec_set, add, Value};
-            [H | _T] -> {antidotec_set, remove, H}
-          end;
-        _ ->
-          {antidotec_set, NewOp, Value}
-      end
-  end.
 
-report_staleness(true, CT, CurTime) ->
-    SS1 = binary_to_term(CT), %% Binary to dict
-    SS = binary_to_list(CT),
-    lager:info("CT = ",[CT]),
-    lager:info("Bynary to term = ",[SS1]),
-    lager:info("Bynary to list = ",[SS]),
+%%report_staleness_rec([],_,_) -> ok;
+%%report_staleness_rec([H|T], HistName, Iter) ->
+%%    Op=list_to_atom(string:concat(HistName, integer_to_list(Iter))),
+%%    folsom_metrics:notify({latencies, {Op, Op}}, H),
+%%    folsom_metrics:notify({units, {Op, Op}}, {inc, 1}),
+%%    report_staleness_rec(T, HistName, Iter+1).
 
-    %% Here it is assumed the stable snapshot has entries for all remote DCs
-%%    SSL = lists:keysort(1, dict:to_list(SS)),
-    SSL = lists:keysort(1, SS),
-    Staleness = lists:map(fun({_Dc, Time}) ->
-                                  max(1, CurTime - Time) %% it should be max(0, ..), but 0 is causing some crash in stats generation
-                          end, SSL),
-    HistName = atom_to_list(staleness),
-    report_staleness_rec(Staleness, HistName, 1);
 
-report_staleness(_,_,_) ->
-     ok.
-
-report_staleness_rec([],_,_) -> ok;
-report_staleness_rec([H|T], HistName, Iter) ->
-    Op=list_to_atom(string:concat(HistName, integer_to_list(Iter))),
-    folsom_metrics:notify({latencies, {Op, Op}}, H),
-    folsom_metrics:notify({units, {Op, Op}}, {inc, 1}),
-    report_staleness_rec(T, HistName, Iter+1).
-
-now_microsec() ->    
-    {MegaSecs, Secs, MicroSecs} = os:timestamp(),
-    (MegaSecs * 1000000 + Secs) * 1000000 + MicroSecs.                                                  
-
-k_unique_numes(Num, Range) ->
-    Seq = lists:seq(1, Num),
-    S = lists:foldl(fun(_, Set) ->
-                N = uninum(Range, Set),
-                 sets:add_element(N, Set)
-                end, sets:new(), Seq),
-    sets:to_list(S).
-
-uninum(Range, Set) ->
-    R = rand_compat:uniform(Range),
-    case sets:is_element(R, Set) of
-        true ->
-            uninum(Range, Set);
-        false ->
-            R
-    end.
+%%
+%%uninum(Range, Set) ->
+%%    R = rand_compat:uniform(Range),
+%%    case sets:is_element(R, Set) of
+%%        true ->
+%%            uninum(Range, Set);
+%%        false ->
+%%            R
+%%    end.
 
 
 %% @doc generate NumReads unique keys using the KeyGen
@@ -489,8 +476,39 @@ unikey(KeyGen, Set) ->
   end.
 
 
-random_string(Len) ->
-    Chrs = list_to_tuple("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"),
-    ChrsSize = size(Chrs),
-    F = fun(_, R) -> [element(rand_compat:uniform(ChrsSize), Chrs) | R] end,
-    lists:foldl(F, "", lists:seq(1, Len)).
+%%random_string(Len) ->
+%%    Chrs = list_to_tuple("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"),
+%%    ChrsSize = size(Chrs),
+%%    F = fun(_, R) -> [element(rand_compat:uniform(ChrsSize), Chrs) | R] end,
+%%    lists:foldl(F, "", lists:seq(1, Len)).
+%%
+%%now_microsec() ->
+%%    {MegaSecs, Secs, MicroSecs} = os:timestamp(),
+%%    (MegaSecs * 1000000 + Secs) * 1000000 + MicroSecs.
+%%
+%%k_unique_numes(Num, Range) ->
+%%    Seq = lists:seq(1, Num),
+%%    S = lists:foldl(fun(_, Set) ->
+%%        N = uninum(Range, Set),
+%%        sets:add_element(N, Set)
+%%    end, sets:new(), Seq),
+%%    sets:to_list(S).
+%%
+%%report_staleness(true, CT, CurTime) ->
+%%    SS1 = binary_to_term(CT), %% Binary to dict
+%%    SS = binary_to_list(CT),
+%%    lager:info("CT = ",[CT]),
+%%    lager:info("Bynary to term = ",[SS1]),
+%%    lager:info("Bynary to list = ",[SS]),
+%%
+%%    %% Here it is assumed the stable snapshot has entries for all remote DCs
+%%    %%    SSL = lists:keysort(1, dict:to_list(SS)),
+%%    SSL = lists:keysort(1, SS),
+%%    Staleness = lists:map(fun({_Dc, Time}) ->
+%%        max(1, CurTime - Time) %% it should be max(0, ..), but 0 is causing some crash in stats generation
+%%    end, SSL),
+%%    HistName = atom_to_list(staleness),
+%%    report_staleness_rec(Staleness, HistName, 1);
+%%
+%%report_staleness(_,_,_) ->
+%%    ok.
