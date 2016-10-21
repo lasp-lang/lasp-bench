@@ -111,8 +111,10 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
     type_dict=TypeDict,
     set_size=SetSize,
     commit_time=OldCommitTime,
+    measure_staleness=MS,
     sequential_writes=SeqWrites,
     sequential_reads=SeqReads})->
+    StartTime = erlang:system_time(micro_seconds), %% For staleness calc
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
         {ok, TxId}->
             %% Perform reads, if this is not a write only transaction.
@@ -148,6 +150,7 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
                         ok->
                             case antidotec_pb:commit_transaction(Pid, TxId) of
                                 {ok, BCommitTime}->
+                                    report_staleness(MS, BCommitTime, StartTime),
                                     CommitTime=
                                     binary_to_term(BCommitTime),
                                     {ok, State#state{commit_time=CommitTime}};
@@ -365,23 +368,25 @@ get_random_param_new(Key, Dict, Type, Value, Obj, SetSize)->
 
 
 
-%%report_staleness_rec([],_,_) -> ok;
-%%report_staleness_rec([H|T], HistName, Iter) ->
-%%    Op=list_to_atom(string:concat(HistName, integer_to_list(Iter))),
-%%    folsom_metrics:notify({latencies, {Op, Op}}, H),
-%%    folsom_metrics:notify({units, {Op, Op}}, {inc, 1}),
-%%    report_staleness_rec(T, HistName, Iter+1).
+report_staleness(true, CT, CurTime) ->
+    SS = binary_to_term(CT), %% Binary to dict
+    %% Here it is assumed the stable snapshot has entries for all remote DCs
+    SSL = lists:keysort(1, dict:to_list(SS)),
+    Staleness = lists:map(fun({_Dc, Time}) ->
+                                  max(1, CurTime - Time) %% it should be max(0, ..), but 0 is causing some crash in stats generation
+                          end, SSL),
+    HistName = atom_to_list(staleness),
+    report_staleness_rec(Staleness, HistName, 1);
 
+report_staleness(_,_,_) ->
+     ok.
 
-%%
-%%uninum(Range, Set) ->
-%%    R = rand_compat:uniform(Range),
-%%    case sets:is_element(R, Set) of
-%%        true ->
-%%            uninum(Range, Set);
-%%        false ->
-%%            R
-%%    end.
+report_staleness_rec([],_,_) -> ok;
+report_staleness_rec([H|T], HistName, Iter) ->
+    Op=list_to_atom(string:concat(HistName, integer_to_list(Iter))),
+    folsom_metrics:notify({latencies, {Op, Op}}, H),
+    folsom_metrics:notify({units, {Op, Op}}, {inc, 1}),
+    report_staleness_rec(T, HistName, Iter+1).
 
 
 %% @doc generate NumReads unique keys using the KeyGen
