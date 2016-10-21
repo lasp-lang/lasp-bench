@@ -25,6 +25,7 @@
          run/4]).
 
 -include("basho_bench.hrl").
+-define(BUCKET, <<"antidote_bench_bucket">>).
 
 -define(TIMEOUT, 20000).
 -record(state, {worker_id,
@@ -104,12 +105,12 @@ run(txn, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
     num_reads=NumReads,
     num_updates = 0,
     type_dict = TypeDict,
-    set_size=_SetSize,
+    set_size=SetSize,
     commit_time=OldCommitTime,
     sequential_reads = SeqReads}) ->
     IntKeys = generate_keys(NumReads, KeyGen),
-    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
-%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
+    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET} || K <- IntKeys ],
+%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, ?BUCKET} || K <- IntKeys ],
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
         {ok, TxId} ->
             case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
@@ -160,64 +161,59 @@ run(txn, KeyGen, ValueGen, State = #state{pb_pid = Pid, worker_id = Id,
 
 
 
-run(txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
+run(txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
     pb_port=_Port, target_node=_Node,
     num_reads=NumReads,
-    num_updates = NumUpdates,
-    type_dict = TypeDict,
+    num_updates=NumUpdates,
+    type_dict=TypeDict,
     set_size=SetSize,
     commit_time=OldCommitTime,
-    sequential_writes = SeqWrites,
-    sequential_reads = SeqReads}) ->
-%%    io:format("~nNumReads = ~w  NumUpdates = ~w",[NumReads, NumUpdates]),
-    IntKeys = generate_keys(NumReads, KeyGen),
-    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
-%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
+    sequential_writes=SeqWrites,
+    sequential_reads=SeqReads})->
+%%    io:format("~nNumReads = ~w  NumUpdates = ~w", [NumReads, NumUpdates]),
+    IntKeys=generate_keys(NumReads, KeyGen),
+    BoundObjects=[{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET}||K<-IntKeys],
+    BoundObjects=[{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, ?BUCKET}||K<-IntKeys],
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
-        {ok, TxId} ->
+        {ok, TxId}->
+%%            lager:info("TxId = ~p", [TxId]),
             case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
-                {ok, _ReadResult} ->
-%%                    UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
-%%                    The following selects the latest reads for updating.
-                    UpdateIntKeys = lists:sublist(IntKeys, NumReads - NumUpdates +1, NumUpdates),
-                    %    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
+                {ok, _ReadResult}->
+                    %%                    UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
+                    %%                    The following selects the latest reads for updating.
+                    UpdateIntKeys=lists:sublist(IntKeys, NumReads-NumUpdates+1, NumUpdates),
+                    %    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET} || K <- IntKeys ],
                     %  BKeys = [list_to_binary(integer_to_list(K1)) || K1 <- UpdateIntKeys],
-                    BObjs = multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
-                    %BObjs = [{{K1, riak_dt_lwwreg, <<"bucket">>},
+                    BObjs=multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
+                    %BObjs = [{{K1, riak_dt_lwwreg, ?BUCKET},
                     %  assign, random_string(10)} || K1 <- BKeys ],
-
-%%            lager:info("Sending this updates ~p",[BObjs]),
+                    
+%%                    lager:info("Sending this updates ~p", [BObjs]),
                     case create_update_operations(Pid, BObjs, TxId, SeqWrites) of
-                        ok ->
+                        ok->
                             case antidotec_pb:commit_transaction(Pid, TxId) of
-                                {ok, BCommitTime} ->
-                                    CommitTime =
-%%                          case BCommitTime of
-%%                                       ignore ->
-%%                                           ignore;
-%%                                       _->
+                                {ok, BCommitTime}->
+                                    CommitTime=
+                                        %%                          case BCommitTime of
+                                    %%                                       ignore ->
+                                    %%                                           ignore;
+                                    %%                                       _->
                                     binary_to_term(BCommitTime),
-%%                                   end,
-%%                        lager:info("BCommitTime ~p",[BCommitTime]),
-
+                                    %%                                   end,
+%%                                    lager:info("BCommitTime ~p", [BCommitTime]),
                                     {ok, State#state{commit_time=CommitTime}};
-                                Error ->
+                                Error->
                                     {error, {Id, Error}, State}
                             end;
-                        Error ->
+                        Error->
                             {error, {Id, Error}, State}
                     end;
-                Error ->
+                Error->
                     {error, {Id, Error}, State}
             end;
-        Error ->
+        Error->
             {error, {Id, Error}, State}
     end;
-
-
-
-
-
 
 
 %% A  static transaction that reads and updates the same objects.
@@ -244,14 +240,14 @@ run(rw_txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
     sequential_writes = SeqWrites}) ->
 
   IntKeys = generate_keys(NumReads, KeyGen),
-  BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), <<"bucket">>} || K <- IntKeys ],
-%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, <<"bucket">>} || K <- IntKeys ],
+  BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET} || K <- IntKeys ],
+%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, ?BUCKET} || K <- IntKeys ],
   case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
     {ok, TxId} ->
         case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
             {ok, Values} ->
                 BObjs = multi_get_random_param_new(IntKeys, TypeDict, ValueGen(), Values, SetSize),
-                %BObjs = [{{K1, riak_dt_lwwreg, <<"bucket">>},
+                %BObjs = [{{K1, riak_dt_lwwreg, ?BUCKET},
                 %  assign, random_string(10)} || K1 <- BKeys ],
                 case create_update_operations(Pid, BObjs, TxId, SeqWrites) of
                     ok ->
@@ -283,6 +279,7 @@ create_read_operations(Pid, BoundObjects, TxId, IsSeq) ->
                 end,BoundObjects),
             {ok, Result};
         false ->
+%%            lager:info("sending this reads in parallel", [BoundObjects]),
                 antidotec_pb:read_objects(Pid, BoundObjects, TxId)
     end.
 
@@ -324,48 +321,59 @@ multi_get_random_param_new([Key|Rest], Dict, Value, Objects, SetSize, Acc)->
   [Param] = get_random_param_new(Key, Dict, Type, Value, Obj, SetSize),
   multi_get_random_param_new(Rest, Dict, Value, ObjRest, SetSize, [Param|Acc]).
 
-get_random_param_new(Key, Dict, Type, Value, Obj, SetSize) ->
-  Params = dict:fetch(Type, Dict),
-  Num = rand_compat:uniform(length(Params)),
-  BKey = list_to_binary(integer_to_list(Key)),
-  NewVal = case Value of
-             Value when is_integer(Value) ->
-               integer_to_list(Value);
-             Value when is_binary(Value) ->
-               binary_to_list(Value)
-           end,
-  case Type of
-    riak_dt_pncounter ->
-      [{{BKey, Type, <<"bucket">>}, lists:nth(Num, Params), 1}];
-    riak_dt_lwwreg ->
-      [{{BKey, Type, <<"bucket">>}, assign, NewVal}];
-    Type when Type == riak_dt_orset; Type == crdt_orset ->
-      Set =
-        case Obj of
-          undefined ->
-            [];
-          Obj ->
-            antidotec_set:value(Obj)
-        end,
-      %%Op = lists:nth(Num, Params),
-      NewOp = case length(Set) =< SetSize of
-                true ->
-                  add;
-                false ->
-                  remove
-              end,
-      case NewOp of
-        remove ->
-          case Set of
-            [] ->
-              [{{BKey, Type, <<"bucket">>}, add_all, [NewVal]}];
-            Set ->
-              [{{BKey, Type, <<"bucket">>}, remove_all, [lists:nth(rand_compat:uniform(length(Set)), Set)]}]
-          end;
-        _ ->
-          [{{BKey, Type, <<"bucket">>}, add_all, [NewVal]}]
-      end
-  end.
+get_random_param_new(Key, Dict, Type, Value, Obj, SetSize)->
+    Params=dict:fetch(Type, Dict),
+    Num=rand_compat:uniform(length(Params)),
+    BKey=list_to_binary(integer_to_list(Key)),
+    NewVal=case Value of
+        Value when is_integer(Value)->
+            integer_to_list(Value);
+        Value when is_binary(Value)->
+            binary_to_list(Value)
+    end,
+    case Type of
+        antidote_crdt_counter->
+            case lists:nth(Num, Params) of
+                {increment, Ammount}->
+                    [{{BKey, Type, ?BUCKET}, increment, Ammount}];
+                {decrement, Ammount}->
+                    [{{BKey, Type, ?BUCKET}, decrement, Ammount}];
+                increment->
+                    [{{BKey, Type, ?BUCKET}, increment, 1}];
+                decrement->
+                    [{{BKey, Type, ?BUCKET}, decrement, 1}]
+            end;
+    
+        RegisterType when ((RegisterType==antidote_crdt_mvreg) orelse (RegisterType==antidote_crdt_lwwreg))->
+            [{{BKey, Type, ?BUCKET}, assign, NewVal}];
+        
+        SetType when ((SetType==antidote_crdt_orset) orelse (SetType==antidote_crdt_set_rw))->
+            Set=
+                case Obj of
+                    undefined->
+                        [];
+                    Obj->
+                        antidotec_set:value(Obj)
+                end,
+            %%Op = lists:nth(Num, Params),
+            NewOp=case length(Set)=<SetSize of
+                true->
+                    add;
+                false->
+                    remove
+            end,
+            case NewOp of
+                remove->
+                    case Set of
+                        []->
+                            [{{BKey, Type, ?BUCKET}, add_all, [NewVal]}];
+                        Set->
+                            [{{BKey, Type, ?BUCKET}, remove_all, [lists:nth(rand_compat:uniform(length(Set)), Set)]}]
+                    end;
+                _->
+                    [{{BKey, Type, ?BUCKET}, add_all, [NewVal]}]
+            end
+    end.
 
 get_random_param(Dict, Type, Value) ->
   Params = dict:fetch(Type, Dict),
