@@ -99,69 +99,7 @@ new(Id) ->
                 sequential_writes = SequentialWrites}}
     end.
 
-
-%%%% READ ONLY TXN!!!
-%%run(txn, KeyGen, _ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
-%%    pb_port=_Port, target_node=_Node,
-%%    num_reads=NumReads,
-%%    num_updates = 0, %% this line is the one that makes this txn run
-%%    type_dict = TypeDict,
-%%    set_size=SetSize,
-%%    commit_time=OldCommitTime,
-%%    sequential_reads = SeqReads}) ->
-%%    IntKeys = generate_keys(NumReads, KeyGen),
-%%    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET} || K <- IntKeys ],
-%%%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, ?BUCKET} || K <- IntKeys ],
-%%    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
-%%        {ok, TxId} ->
-%%            case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
-%%                {ok, _ReadResult} ->
-%%                            case antidotec_pb:commit_transaction(Pid, TxId) of
-%%                                {ok, BCommitTime} ->
-%%                                    CommitTime = binary_to_term(BCommitTime),
-%%                                    {ok, State#state{commit_time=CommitTime}};
-%%                                Error ->
-%%                                    {error, {Id, Error}, State}
-%%                            end;
-%%                Error ->
-%%                    {error, {Id, Error}, State}
-%%            end;
-%%        Error ->
-%%            {error, {Id, Error}, State}
-%%    end;
-%%
-%%
-%%%% WRITE TXN!!!
-%%run(txn, KeyGen, ValueGen, State = #state{pb_pid = Pid, worker_id = Id,
-%%    pb_port = _Port, target_node = _Node,
-%%    num_reads = 0,
-%%    num_updates = NumUpdates,
-%%    type_dict = TypeDict,
-%%    set_size = SetSize,
-%%    commit_time = OldCommitTime,
-%%    sequential_writes = SeqWrites}) ->
-%%    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
-%%        {ok, TxId} ->
-%%            UpdateIntKeys = generate_keys(NumUpdates, KeyGen),
-%%            BObjs = multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
-%%            case create_update_operations(Pid, BObjs, TxId, SeqWrites) of
-%%                ok ->
-%%                    case antidotec_pb:commit_transaction(Pid, TxId) of
-%%                        {ok, BCommitTime} ->
-%%                            CommitTime = binary_to_term(BCommitTime),
-%%                            {ok, State#state{commit_time = CommitTime}};
-%%                        Error ->
-%%                            {error, {Id, Error}, State}
-%%                    end;
-%%                Error ->
-%%                    {error, {Id, Error}, State}
-%%            end;        Error ->
-%%        {error, {Id, Error}, State}
-%%    end;
-
-
-
-%% @doc A more general static transaction.
+%% @doc A general transaction.
 %% it first performs reads to a number of objects defined by the
 %% {num_reads, X} parameter in the config file.
 %% Then, it updates {num_updates, X}.
@@ -177,7 +115,7 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
     sequential_reads=SeqReads})->
     case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
         {ok, TxId}->
-            
+            %% Perform reads, if this is not a write only transaction.
             {ReadResult, IntKeys}=case NumReads>0 of
                 true->
                     IntegerKeys=generate_keys(NumReads, KeyGen),
@@ -192,9 +130,11 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
                     {no_reads, no_reads}
             end,
             case ReadResult of
+                %% if reads failed, return immediately.
                 {error, {ID, ERROR}, STATE}->
                     {error, {ID, ERROR}, STATE};
                 _->
+                    %% if reads succeeded, perform updates.
                     UpdateIntKeys=case IntKeys of
                         no_reads->
                             %% write only transaction
@@ -203,25 +143,13 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
                             %%                    The following selects the latest reads for updating.
                             UpdateIntKeys=lists:sublist(IntKeys, NumReads-NumUpdates+1, NumUpdates)
                     end,
-                    %    BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET} || K <- IntKeys ],
-                    %  BKeys = [list_to_binary(integer_to_list(K1)) || K1 <- UpdateIntKeys],
                     BObjs=multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
-                    %BObjs = [{{K1, riak_dt_lwwreg, ?BUCKET},
-                    %  assign, random_string(10)} || K1 <- BKeys ],
-                    
-                    %%                    lager:info("Sending this updates ~p", [BObjs]),
                     case create_update_operations(Pid, BObjs, TxId, SeqWrites) of
                         ok->
                             case antidotec_pb:commit_transaction(Pid, TxId) of
                                 {ok, BCommitTime}->
                                     CommitTime=
-                                        %%                          case BCommitTime of
-                                    %%                                       ignore ->
-                                    %%                                           ignore;
-                                    %%                                       _->
                                     binary_to_term(BCommitTime),
-                                    %%                                   end,
-                                    %%                                    lager:info("BCommitTime ~p", [BCommitTime]),
                                     {ok, State#state{commit_time=CommitTime}};
                                 E->
                                     {error, {Id, E}, State}
