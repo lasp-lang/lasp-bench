@@ -13,9 +13,14 @@
    - src/basho_bench_driver_antidote_pb.erl: defines the initialization of a benchmarking thread and how it executes transactions.
    - examples/antidote_pb.config: contains the bench benchmark parameters and an explanation of each of them.
 
+** Compile
+#+BEGIN_SRC shell
+$ make
+#+END_SRC
+
 ** Run a benchmark 
 #+BEGIN_SRC shell
-$ ./basho_bench examples/antidote_pb.config
+$ ./_build/default/bin/basho_bench examples/antidote_pb.config
 #+END_SRC
 
    At the end of the benchmark, results will be available in CSV
