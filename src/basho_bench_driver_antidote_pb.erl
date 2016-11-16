@@ -166,62 +166,87 @@ run(txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
     end;
 
 
-%% @doc This transaction will only perform update operations.
+%% @doc This transaction will only perform update operations,
+%% by calling the static update_objects interface of antidote.
 %% the number of operations is defined by the {num_updates, x}
 %% parameter in the config file.
-run(update_only_txn, KeyGen, ValueGen, State) ->
-    run(txn, KeyGen, ValueGen, State#state{num_reads=0});
-%% @doc This transaction will only perform read operations.
+run(update_only_txn, KeyGen, ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
+    pb_port=_Port, target_node=_Node,
+    num_updates=NumUpdates,
+    type_dict=TypeDict,
+    set_size=SetSize,
+    commit_time=OldCommitTime,
+    measure_staleness=MS,
+    sequential_writes=SeqWrites})->
+    StartTime = erlang:system_time(micro_seconds), %% For staleness calc
+    case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, true}]) of
+        {ok, {static, {TimeStamp, TxnProperties}}}->
+            UpdateIntKeys=generate_keys(NumUpdates, KeyGen),
+            BObjs=multi_get_random_param_new(UpdateIntKeys, TypeDict, ValueGen(), undefined, SetSize),
+            case create_update_operations(Pid, BObjs, {static, {TimeStamp, TxnProperties}}, SeqWrites) of
+                ok->
+                    case antidotec_pb:commit_transaction(Pid, {static, {TimeStamp, TxnProperties}}) of
+                        {ok, BCommitTime}->
+                            report_staleness(MS, BCommitTime, StartTime),
+                            CommitTime=
+                                binary_to_term(BCommitTime),
+                            {ok, State#state{commit_time=CommitTime}};
+                        E->
+                            {error, {Id, E}, State}
+                    end;
+                E1->
+                    {error, {Id, E1}, State}
+            end;
+        Error->
+            {error, {Id, Error}, State}
+    end;
+%% @doc This transaction will only perform read operations in
+%% an antidote's read/only transaction.
 %% the number of operations is defined by the {num_reads, x}
 %% parameter in the config file.
-run(read_only_txn, KeyGen, ValueGen, State) ->
-    run(txn, KeyGen, ValueGen, State#state{num_updates=0});
+run(read_only_txn, KeyGen, _ValueGen, State=#state{pb_pid=Pid, worker_id=Id,
+    pb_port=_Port, target_node=_Node,
+    num_reads=NumReads,
+    sequential_reads = SeqReads,
+    type_dict=TypeDict,
+    measure_staleness = MS,
+    commit_time = OldCommitTime}) ->
+    StartTime = erlang:system_time(micro_seconds), %% For staleness calc
+    ReadResult = case NumReads > 0 of
+        true ->
+            IntegerKeys = generate_keys(NumReads, KeyGen),
+            BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET} || K <- IntegerKeys],
+            case create_read_operations(Pid, BoundObjects, {static, {term_to_binary(OldCommitTime), [{static, true}]}}, SeqReads) of
+                {ok, RS} ->
+                    {RS, IntegerKeys};
+                Error ->
+                    {{error, {Id, Error}, State}, IntegerKeys}
+            end;
+        false ->
+            no_reads
+    end,
+    case ReadResult of
+        %% if reads failed, return immediately.
+        {error, {ID, ERROR}, STATE} ->
+            {error, {ID, ERROR}, STATE};
+        _ ->
+            case antidotec_pb_socket:get_last_commit_time(Pid) of
+                {ok, BCommitTime} ->
+                    report_staleness(MS, BCommitTime, StartTime),
+                    CommitTime =
+                        binary_to_term(BCommitTime),
+                    {ok, State#state{commit_time = CommitTime}};
+                E ->
+                    {error, {Id, E}, State}
+            end
+    end;
 
 %% @doc the append command will run a transaction with a single update, and no reads.
 run(append, KeyGen, ValueGen, State) ->
     run(txn, KeyGen, ValueGen, State#state{num_reads=0,num_updates=1});
 %% @doc the read command will run a transaction with a single read, and no updates.
 run(read, KeyGen, ValueGen, State) ->
-    run(txn, KeyGen, ValueGen, State#state{num_reads=1,num_updates=0});
-
-run(rw_txn, KeyGen, ValueGen, State=#state{pb_pid = Pid, worker_id = Id,
-  pb_port=_Port, target_node=_Node,
-  num_reads=NumReads,
-  type_dict = TypeDict,
-  set_size=SetSize,
-  commit_time=OldCommitTime,
-    sequential_reads = SeqReads,
-    sequential_writes = SeqWrites}) ->
-
-  IntKeys = generate_keys(NumReads, KeyGen),
-  BoundObjects = [{list_to_binary(integer_to_list(K)), get_key_type(K, TypeDict), ?BUCKET} || K <- IntKeys ],
-%  BoundObjects = [{list_to_binary(integer_to_list(K)), riak_dt_lwwreg, ?BUCKET} || K <- IntKeys ],
-  case antidotec_pb:start_transaction(Pid, term_to_binary(OldCommitTime), [{static, false}]) of
-    {ok, TxId} ->
-        case create_read_operations(Pid, BoundObjects, TxId, SeqReads) of
-            {ok, Values} ->
-                BObjs = multi_get_random_param_new(IntKeys, TypeDict, ValueGen(), Values, SetSize),
-                %BObjs = [{{K1, riak_dt_lwwreg, ?BUCKET},
-                %  assign, random_string(10)} || K1 <- BKeys ],
-                case create_update_operations(Pid, BObjs, TxId, SeqWrites) of
-                    ok ->
-                        case antidotec_pb:commit_transaction(Pid, TxId) of
-                            {ok, BCommitTime} ->
-                                CommitTime = binary_to_term(BCommitTime),
-                                {ok, State#state{commit_time = CommitTime}};
-                            Error ->
-                                {error, {Id, Error}, State}
-                        end;
-                    Error ->
-                        {error, {Id, Error}, State}
-                end;
-            Error ->
-                {error, {Id, Error}, State}
-        end;
-      Error ->
-          {error, {Id, Error}, State}
-  end.
-
+    run(txn, KeyGen, ValueGen, State#state{num_reads=1,num_updates=0}).
 
 
 create_read_operations(Pid, BoundObjects, TxId, IsSeq) ->
@@ -233,10 +258,11 @@ create_read_operations(Pid, BoundObjects, TxId, IsSeq) ->
                 end,BoundObjects),
             {ok, Result};
         false ->
-%%            lager:info("sending this reads in parallel", [BoundObjects]),
                 antidotec_pb:read_objects(Pid, BoundObjects, TxId)
     end.
 
+create_update_operations(_Pid, [], _TxId, _IsSeq) ->
+    ok;
 create_update_operations(Pid, BoundObjects, TxId, IsSeq) ->
     case IsSeq of
         true ->
@@ -247,10 +273,7 @@ create_update_operations(Pid, BoundObjects, TxId, IsSeq) ->
         false ->
             antidotec_pb:update_objects(Pid, BoundObjects, TxId)
     end.
-
-
-
-        get_key_type(Key, Dict) ->
+    get_key_type(Key, Dict) ->
     Keys = dict:fetch_keys(Dict),
     RanNum = Key rem length(Keys),
     lists:nth(RanNum+1, Keys).
@@ -260,7 +283,6 @@ multi_get_random_param_new(KeyList, Dict, Value, Objects, SetSize) ->
   multi_get_random_param_new(KeyList, Dict, Value, Objects, SetSize, []).
 
 multi_get_random_param_new([], _Dict, _Value, _Objects, _SetSize, Acc)->
- % lager:info("Acumulatore: ~p", [Acc]),
   Acc;
 multi_get_random_param_new([Key|Rest], Dict, Value, Objects, SetSize, Acc)->
   Type = get_key_type(Key, Dict),
