@@ -1,4 +1,4 @@
-* basho_bench
+* basho_bench for Antidote
 ** Overview
 
    [[https://github.com/basho/basho_bench/blob/master/README.org][For general information about basho_bench, please refer to the original README]]
@@ -7,15 +7,20 @@
    repeatable performance tests and stress tests, and produce
    performance graphs.
     
-** Modification
+** Benchmarking Antidote
 
-   Two files are added for benchmarking floppystore: 
-   - src/basho_bench_driver_floppystore.erl: defines the initialization of a benchmarking thread and how it executes put/get operations.
-   - examples/floppstore.config: contains benchmark parameters.
+   Two files were added to the original basho_bench for benchmarking Antidote:
+   - src/basho_bench_driver_antidote_pb.erl: defines the initialization of a benchmarking thread and how it executes transactions.
+   - examples/antidote_pb.config: contains the bench benchmark parameters and an explanation of each of them.
+
+** Compile
+#+BEGIN_SRC shell
+$ make
+#+END_SRC
 
 ** Run a benchmark 
 #+BEGIN_SRC shell
-$ ./basho_bench examples/floppystore.config
+$ ./_build/default/bin/basho_bench examples/antidote_pb.config
 #+END_SRC
 
    At the end of the benchmark, results will be available in CSV
@@ -27,6 +32,13 @@ $ make results
 $ open tests/current/summary.png
 #+END_SRC
 
-** Limitations
-   Right now it only has put/get interfaces and there is no support for transaction.
-   It only put/get for riak_dt_gcounter.
+** What can I do with it?
+   In its current state the benchmark allows running read/append commands, which are interpreted as the benchmark as single operation transactions, as well as more general transactions.
+   The available datatypes included in the benchmark as of today are the following [[https://github.com/syncfree/antidote_crdt][Antidote's operation-based CRDTs]]:
+   - Sets: antidote_crdt_orset and antidote_crdt_set_rw,
+   - Counters: antidote_crdt_counter,
+   - Registers: antidote_crdt_lwwreg and antidote_crdt_mvreg.
+   
+   For instructions on how to use them please refer to our configuration file:
+   [[https://github.com/SyncFree/basho_bench/blob/antidote_pb-rebar3-erlang19/examples/antidote_pb.config][examples/antidote_pb.config]]
+   
