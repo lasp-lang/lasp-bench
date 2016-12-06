@@ -20,7 +20,10 @@ This will reply something like:
 [OAR_GRIDSUB] [lille] Reservation success on sophia : batchId = 1507949
 [OAR_GRIDSUB] Grid reservation id = 54894
 
-Now you need to edit the config file for this experiment, so here are the contents that I will have for this experiment in the file ./basho_bench/script/testconfig (I described in a previous email what each line does):
+Now you need to edit the config file for this experiment, 
+so here are the contents that I will have for this experiment in the file 
+./basho_bench/script/testconfig (I described in a previous email what each line does):
+
 54894
 master
 1
@@ -31,6 +34,19 @@ master
 1
 grid5000newpb
 antidote_pb.config
+
+Meaning:
+gridjobid - the id of the job running on grid5000
+branch - the git branch of antidote to run the experiment on
+dodeploy - 1 or 0, 1 means it will boot the machines and load the os image, 0 means the machines should already be running
+secondrun - 1 or 0, 0 means it will download and recompile all the code, 0 means it should already be compiled
+computeCount - the number of machines running BashoBench per DC
+benchCount - the number of machines running Antidote per DC
+benchParallel - the number of instances of BashoBench to run per machine
+dcspercluster - the number of DCs per grid5000 cluster (for example if we want to run 2 DCs within the Rennes site)
+benchBranch - the git branch of BashoBench to use
+benchFile - the name of the benchmark configuration file to use
+
 
 Now you should be able to run the experiment
 ./basho_bench/script/grid5000start.sh ./basho_bench/script/testconfig
