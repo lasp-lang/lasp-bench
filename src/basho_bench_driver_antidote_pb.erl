@@ -68,39 +68,29 @@ new(Id) ->
     SetSize = basho_bench_config:get(set_size),
     NumUpdates  = basho_bench_config:get(num_updates),
     NumReads = basho_bench_config:get(num_reads),
-    
-    case NumUpdates > NumReads of
-        true ->
-            {error, "the number of updates can't be bigger than the number of reads. Try again."};
-        false ->
-            NumPartitions = basho_bench_config:get(num_vnodes),
-            MeasureStaleness = basho_bench_config:get(staleness),
-            SequentialReads = basho_bench_config:get(sequential_reads),
-            SequentialWrites = basho_bench_config:get(sequential_writes),
-    
-    
-            %% Choose the node using our ID as a modulus
-            TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
-            ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
-            TargetPort = lists:nth((Id rem length(IPs)+1), PbPorts),
-            ?INFO("Using target port ~p for worker ~p\n", [TargetPort, Id]),
-    
-            {ok, Pid} = antidotec_pb_socket:start_link(TargetNode, TargetPort),
-            TypeDict = dict:from_list(Types),
-            {ok, #state{time={1,1,1}, worker_id=Id,
-                pb_pid = Pid,
-                last_read={undefined,undefined},
-                set_size = SetSize,
-                num_partitions = NumPartitions,
-                type_dict = TypeDict, pb_port= TargetPort,
-                target_node=TargetNode, commit_time=ignore,
-                num_reads=NumReads, num_updates=NumUpdates,
-                temp_num_reads=NumReads, temp_num_updates=NumUpdates,
-                measure_staleness=MeasureStaleness,
-                sequential_reads = SequentialReads,
-                sequential_writes = SequentialWrites}}
-    end.
-
+    NumPartitions = basho_bench_config:get(num_vnodes),
+    MeasureStaleness = basho_bench_config:get(staleness),
+    SequentialReads = basho_bench_config:get(sequential_reads),
+    SequentialWrites = basho_bench_config:get(sequential_writes),
+    %% Choose the node using our ID as a modulus
+    TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
+    ?INFO("Using target node ~p for worker ~p\n", [TargetNode, Id]),
+    TargetPort = lists:nth((Id rem length(IPs)+1), PbPorts),
+    ?INFO("Using target port ~p for worker ~p\n", [TargetPort, Id]),
+    {ok, Pid} = antidotec_pb_socket:start_link(TargetNode, TargetPort),
+    TypeDict = dict:from_list(Types),
+    {ok, #state{time = {1, 1, 1}, worker_id = Id,
+        pb_pid = Pid,
+        last_read = {undefined, undefined},
+        set_size = SetSize,
+        num_partitions = NumPartitions,
+        type_dict = TypeDict, pb_port = TargetPort,
+        target_node = TargetNode, commit_time = ignore,
+        num_reads = NumReads, num_updates = NumUpdates,
+        temp_num_reads = NumReads, temp_num_updates = NumUpdates,
+        measure_staleness = MeasureStaleness,
+        sequential_reads = SequentialReads,
+        sequential_writes = SequentialWrites}}.
 %% @doc A general transaction.
 %% it first performs reads to a number of objects defined by the
 %% {num_reads, X} parameter in the config file.
