@@ -33,7 +33,7 @@ $ open tests/current/summary.png
 #+END_SRC
 
 ** What can I do with it?
-   In its current state the benchmark allows running read/append commands, which are interpreted as the benchmark as single operation transactions, as well as more general transactions.
+   In its current state the benchmark allows running all kinds of transactions provided by the antidote interfacce. 
    The available datatypes included in the benchmark as of today are the following [[https://github.com/syncfree/antidote_crdt][Antidote's operation-based CRDTs]]:
    - Sets: antidote_crdt_orset and antidote_crdt_set_rw,
    - Counters: antidote_crdt_counter,
@@ -41,4 +41,3 @@ $ open tests/current/summary.png
    
    For instructions on how to use them please refer to our configuration file:
    [[https://github.com/SyncFree/basho_bench/blob/antidote_pb-rebar3-erlang19/examples/antidote_pb.config][examples/antidote_pb.config]]
-   
