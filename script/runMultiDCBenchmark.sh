@@ -37,6 +37,8 @@ fi
 
 BenchmarkType=1
 
+#In this case, this script will run 4 benchmark rounds with the following read/update ratios:
+# 99/1, 90/10, 75/25, 50/50
 ReadsNumber=( 99 90 75 50 )
 WritesNumber=( 1 10 25 50 )
 

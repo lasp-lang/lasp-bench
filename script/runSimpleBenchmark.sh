@@ -38,7 +38,7 @@ fi
 echo "No loading phase..."
 #sudo ./basho_bench "$LoadFile"
 echo "Benchmarking phase..."
-./basho_bench $FileName
+./_build/default/bin/basho_bench $FileName
 
 tar cvzf ./test-"$File"-"$Reads".tar tests
 
