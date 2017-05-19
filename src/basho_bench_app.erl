@@ -27,7 +27,7 @@
 -export([start/0,
          stop/0,
          is_running/0,
-         halt_or_kill/0]).
+         stop_or_kill/0]).
 
 %% Application callbacks
 -export([start/2, stop/1]).
@@ -44,7 +44,7 @@ start() ->
           %%Make sure sasl and crypto is available
           true=lists:keymember(sasl,1,application:which_applications()),
           true=lists:keymember(crypto,1,application:which_applications()),
-          ok = application:start(folsom),
+
           %% Start up our application
           application:start(basho_bench);
        NotInc when NotInc == {ok, standalone} orelse NotInc == undefined ->
@@ -64,14 +64,14 @@ stop() ->
 is_running() ->
     application:get_env(basho_bench_app, is_running) == {ok, true}.
 
-halt_or_kill() ->
+stop_or_kill() ->
     %% If running standalone, halt and kill node.  Otherwise, just
     %% kill top supervisor.
     case application:get_env(basho_bench,app_run_mode) of
         {ok, included} ->
             exit(whereis(basho_bench_sup),kill);
         _ ->
-            init:stop()
+            init:stop(1)
     end.
 
 %% ===================================================================
@@ -79,6 +79,8 @@ halt_or_kill() ->
 %%===================================================================
 
 start(_StartType, _StartArgs) ->
+    %% TODO: Move into a proper supervision tree, janky for now
+    %% basho_bench_config:start_link(),
     {ok, Pid} = basho_bench_sup:start_link(),
     application:set_env(basho_bench_app, is_running, true),
     ok = basho_bench_stats:run(),
