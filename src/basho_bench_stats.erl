@@ -40,31 +40,38 @@
                  last_write_time = os:timestamp(),
                  report_interval,
                  errors_since_last_report = false,
-                 summary_file,
-                 errors_file}).
+                 stats_writer, stats_writer_data,
+                 last_warn = {0,0,0}}).
 
+-define(WARN_INTERVAL, 1000). % Warn once a second
 %% ====================================================================
 %% API
 %% ====================================================================
 
 start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+    gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
 exponential(Lambda) ->
     -math:log(rand:uniform()) / Lambda.
 
 run() ->
-    gen_server:call(?MODULE, run).
+    gen_server:call({global, ?MODULE}, run).
 
 op_complete(Op, ok, ElapsedUs) ->
     op_complete(Op, {ok, 1}, ElapsedUs);
 op_complete(Op, {ok, Units}, ElapsedUs) ->
     %% Update the histogram and units counter for the op in question
-    folsom_metrics:notify({latencies, Op}, ElapsedUs),
-    folsom_metrics:notify({units, Op}, {inc, Units}),
+   % io:format("Get distributed: ~p~n", [get_distributed()]),
+    case get_distributed() of
+        true ->
+            gen_server:cast({global, ?MODULE}, {Op, {ok, Units}, ElapsedUs});
+        false ->
+            folsom_metrics:notify({latencies, Op}, ElapsedUs),
+            folsom_metrics:notify({units, Op}, {inc, Units})
+    end,
     ok;
 op_complete(Op, Result, ElapsedUs) ->
-    gen_server:call(?MODULE, {op, Op, Result, ElapsedUs}).
+    gen_server:call({global, ?MODULE}, {op, Op, Result, ElapsedUs}, infinity).
 
 %% ====================================================================
 %% gen_server callbacks
@@ -107,28 +114,23 @@ init([]) ->
          folsom_metrics:new_counter({units, Op})
      end || Op <- Ops ++ Measurements],
 
-    %% Setup output file handles for dumping periodic CSV of histogram results.
-    [erlang:put({csv_file, X}, op_csv_file(X)) || X <- Ops],
-
-    %% Setup output file handles for dumping periodic CSV of histogram results.
-    [erlang:put({csv_file, X}, measurement_csv_file(X)) || X <- Measurements],
-
-    %% Setup output file w/ counters for total requests, errors, etc.
-    {ok, SummaryFile} = file:open("summary.csv", [raw, binary, write]),
-    file:write(SummaryFile, <<"elapsed, window, total, successful, failed\n">>),
-
-    %% Setup errors file w/counters for each error.  Embedded commas likely
-    %% in the error messages so quote the columns.
-    {ok, ErrorsFile} = file:open("errors.csv", [raw, binary, write]),
-    file:write(ErrorsFile, <<"\"error\",\"count\"\n">>),
-
+    StatsWriter = basho_bench_config:get(stats, csv),
+    {ok, StatsSinkModule} = normalize_name(StatsWriter),
+    _ = (catch StatsSinkModule:module_info()),
+    case code:is_loaded(StatsSinkModule) of
+        {file, _} ->
+            ok;
+        false ->
+            ?WARN("Cannot load module ~p (derived on ~p, from the config value of 'stats' or compiled default)\n",
+                  [StatsSinkModule, StatsWriter])
+    end,
     %% Schedule next write/reset of data
     ReportInterval = timer:seconds(basho_bench_config:get(report_interval)),
 
     {ok, #state{ ops = Ops ++ Measurements,
                  report_interval = ReportInterval,
-                 summary_file = SummaryFile,
-                 errors_file = ErrorsFile}}.
+                 stats_writer = StatsSinkModule,
+                 stats_writer_data = StatsSinkModule:new(Ops, Measurements)}}.
 
 handle_call(run, _From, State) ->
     %% Schedule next report
@@ -140,6 +142,22 @@ handle_call({op, Op, {error, Reason}, _ElapsedUs}, _From, State) ->
     increment_error_counter({Op, Reason}),
     {reply, ok, State#state { errors_since_last_report = true }}.
 
+handle_cast({Op, {ok, Units}, ElapsedUs}, State = #state{last_write_time = LWT, report_interval = RI}) ->
+    Now = os:timestamp(),
+    TimeSinceLastReport = timer:now_diff(Now, LWT) / 1000, %% To get the diff in seconds
+    TimeSinceLastWarn = timer:now_diff(Now, State#state.last_warn) / 1000,
+    if
+        TimeSinceLastReport > (RI * 2) andalso TimeSinceLastWarn > ?WARN_INTERVAL  ->
+            ?WARN("basho_bench_stats has not reported in ~.2f milliseconds\n", [TimeSinceLastReport]),
+            {message_queue_len, QLen} = process_info(self(), message_queue_len),
+            ?WARN("stats process mailbox size = ~w\n", [QLen]),
+            NewState = State#state{last_warn = Now};
+        true ->
+            NewState = State
+    end,
+    folsom_metrics:notify({latencies, Op}, ElapsedUs),
+    folsom_metrics:notify({units, Op}, {inc, Units}),
+    {noreply, NewState};
 handle_cast(_, State) ->
     {noreply, State}.
 
@@ -149,15 +167,12 @@ handle_info(report, State) ->
     process_stats(Now, State),
     {noreply, State#state { last_write_time = Now, errors_since_last_report = false }}.
 
-terminate(_Reason, State) ->
+terminate(_Reason, #state{stats_writer=Module}=State) ->
     %% Do the final stats report and write the errors file
     process_stats(os:timestamp(), State),
     report_total_errors(State),
 
-    [ok = file:close(F) || {{csv_file, _}, F} <- erlang:get()],
-    ok = file:close(State#state.summary_file),
-    ok = file:close(State#state.errors_file),
-    ok.
+    Module:terminate(State#state.stats_writer_data).
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
@@ -168,39 +183,20 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal functions
 %% ====================================================================
 
-op_csv_file({Label, _Op}) ->
-    Fname = normalize_label(Label) ++ "_latencies.csv",
-    {ok, F} = file:open(Fname, [raw, binary, write]),
-    ok = file:write(F, <<"elapsed, window, n, min, mean, median, 95th, 99th, 99_9th, max, errors\n">>),
-    F.
+%% Uses the process dictionary to memoize checks
+%% for checking if we're running in distributed mode
+%% as constantly checking in with a centralized gen_server
+%% would impede progress
 
-measurement_csv_file({Label, _Op}) ->
-    Fname = normalize_label(Label) ++ "_measurements.csv",
-    {ok, F} = file:open(Fname, [raw, binary, write]),
-    ok = file:write(F, <<"elapsed, window, n, min, mean, median, 95th, 99th, 99_9th, max, errors\n">>),
-    F.
-
-normalize_label(Label) when is_list(Label) ->
-    replace_special_chars(Label);
-normalize_label(Label) when is_binary(Label) ->
-    normalize_label(binary_to_list(Label));
-normalize_label(Label) when is_integer(Label) ->
-    normalize_label(integer_to_list(Label));
-normalize_label(Label) when is_atom(Label) ->
-    normalize_label(atom_to_list(Label));
-normalize_label(Label) when is_tuple(Label) ->
-    Parts = [normalize_label(X) || X <- tuple_to_list(Label)],
-    string:join(Parts, "-").
-
-replace_special_chars([H|T]) when
-      (H >= $0 andalso H =< $9) orelse
-      (H >= $A andalso H =< $Z) orelse
-      (H >= $a andalso H =< $z) ->
-    [H|replace_special_chars(T)];
-replace_special_chars([_|T]) ->
-    [$-|replace_special_chars(T)];
-replace_special_chars([]) ->
-    [].
+get_distributed() ->
+    case erlang:get(distribute_work) of
+        undefined ->
+            DistributeWork = basho_bench_config:get(distribute_work, false),
+            erlang:put(distribute_work, DistributeWork),
+            DistributeWork;
+        DistributeWork ->
+            DistributeWork
+    end.
 
 increment_error_counter(Key) ->
     ets_increment(basho_bench_errors, Key, 1).
@@ -239,7 +235,7 @@ lookup_or_zero(Tab, Key) ->
     end.
 
 
-process_stats(Now, State) ->
+process_stats(Now, #state{stats_writer=Module}=State) ->
     %% Determine how much time has elapsed (seconds) since our last report
     %% If zero seconds, round up to one to avoid divide-by-zeros in reporting
     %% tools.
@@ -249,7 +245,7 @@ process_stats(Now, State) ->
     %% Time to report latency data to our CSV files
     {Oks, Errors, OkOpsRes} =
         lists:foldl(fun(Op, {TotalOks, TotalErrors, OpsResAcc}) ->
-                            {Oks, Errors} = report_latency(Elapsed, Window, Op),
+                            {Oks, Errors} = report_latency(State, Elapsed, Window, Op),
                             {TotalOks + Oks, TotalErrors + Errors,
                              [{Op, Oks}|OpsResAcc]}
                     end, {0,0,[]}, State#state.ops),
@@ -258,13 +254,8 @@ process_stats(Now, State) ->
     [folsom_metrics_counter:dec({units, Op}, OpAmount) || {Op, OpAmount} <- OkOpsRes],
 
     %% Write summary
-    file:write(State#state.summary_file,
-               io_lib:format("~w, ~w, ~w, ~w, ~w\n",
-                             [Elapsed,
-                              Window,
-                              Oks + Errors,
-                              Oks,
-                              Errors])),
+    Module:process_summary(State#state.stats_writer_data,
+                           Elapsed, Window, Oks, Errors),
 
     %% Dump current error counts to console
     case (State#state.errors_since_last_report) of
@@ -283,36 +274,18 @@ process_stats(Now, State) ->
 %% Write latency info for a given op to the appropriate CSV. Returns the
 %% number of successful and failed ops in this window of time.
 %%
-report_latency(Elapsed, Window, Op) ->
+report_latency(#state{stats_writer=Module}=State, Elapsed, Window, Op) ->
     Stats = folsom_metrics:get_histogram_statistics({latencies, Op}),
     Errors = error_counter(Op),
     Units = folsom_metrics:get_metric_value({units, Op}),
-    case proplists:get_value(n, Stats) > 0 of
-        true ->
-            P = proplists:get_value(percentile, Stats),
-            Line = io_lib:format("~w, ~w, ~w, ~w, ~.1f, ~w, ~w, ~w, ~w, ~w, ~w\n",
-                                 [Elapsed,
-                                  Window,
-                                  Units,
-                                  proplists:get_value(min, Stats),
-                                  proplists:get_value(arithmetic_mean, Stats),
-                                  proplists:get_value(median, Stats),
-                                  proplists:get_value(95, P),
-                                  proplists:get_value(99, P),
-                                  proplists:get_value(999, P),
-                                  proplists:get_value(max, Stats),
-                                  Errors]);
-        false ->
-            ?WARN("No data for op: ~p\n", [Op]),
-            Line = io_lib:format("~w, ~w, 0, 0, 0, 0, 0, 0, 0, 0, ~w\n",
-                                 [Elapsed,
-                                  Window,
-                                  Errors])
-    end,
-    ok = file:write(erlang:get({csv_file, Op}), Line),
+
+    Module:report_latency({State#state.stats_writer,
+                                             State#state.stats_writer_data},
+                                            Elapsed, Window, Op,
+                                            Stats, Errors, Units),
     {Units, Errors}.
 
-report_total_errors(State) ->
+report_total_errors(#state{stats_writer=Module}=State) ->
     case ets:tab2list(basho_bench_total_errors) of
         [] ->
             ?INFO("No Errors.\n", []);
@@ -325,9 +298,9 @@ report_total_errors(State) ->
                                 ok; % per op total
                             false ->
                                 ?INFO("  ~p: ~p\n", [Key, Count]),
-                                file:write(State#state.errors_file,
-                                           io_lib:format("\"~w\",\"~w\"\n",
-                                                         [Key, Count]))
+                                Module:report_error({State#state.stats_writer,
+                                                                       State#state.stats_writer_data},
+                                                                      Key, Count)
                         end
                 end,
             lists:foreach(F, ErrCounts)
@@ -340,3 +313,8 @@ consume_report_msgs() ->
     after 0 ->
             ok
     end.
+
+% Assuming all stats sink modules are prefixed with basho_bench_stats_writer_
+normalize_name(StatsSink) when is_atom(StatsSink) ->
+    {ok, list_to_atom("basho_bench_stats_writer_" ++ atom_to_list(StatsSink))};
+normalize_name(StatsSink) -> {error, {StatsSink, invalid_name}}.
