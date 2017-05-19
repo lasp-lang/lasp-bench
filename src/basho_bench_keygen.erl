@@ -58,7 +58,7 @@ new({biased_partial, MaxKey, ReplicationFactor, PercentageExternal}, _Id) ->
 		     Oth ->
 			 Oth
 		 end,
-    
+
     %% MinNotHere = case (IdDc + ReplicationFactor) rem (NumDcs) of
     %% 		     0 ->
     %% 			 NumDcs;
@@ -71,25 +71,25 @@ new({biased_partial, MaxKey, ReplicationFactor, PercentageExternal}, _Id) ->
 		       Oth2 ->
 			   Oth2
 		   end,
-    fun() -> DcNum = case rand_compat:uniform() > PercentageExternal of
+    fun() -> DcNum = case rand:uniform() > PercentageExternal of
 			 false ->
-			     case (MinNotHere + (rand_compat:uniform(RangeNotHere)-1)) rem (NumDcs) of
+			     case (MinNotHere + (rand:uniform(RangeNotHere)-1)) rem (NumDcs) of
 				 0 ->
 				     NumDcs;
 				 Other ->
 				     Other
 			     end;
 			 true ->
-			     case (MinHere + (rand_compat:uniform(RangeHere)-1)) rem (NumDcs) of
+			     case (MinHere + (rand:uniform(RangeHere)-1)) rem (NumDcs) of
 				 0 ->
 				     NumDcs;
 				 Other ->
 				     Other
 			     end
 		     end,
-	     (((rand_compat:uniform(KeySpace)) * NumDcs) + (DcNum))
+	     (((rand:uniform(KeySpace)) * NumDcs) + (DcNum))
     end;
-		    
+
 new({int_to_bin, InputGen}, Id) ->
     ?WARN("The int_to_bin key generator wrapper is deprecated, please use the "
           "int_to_bin_bigendian or int_to_bin_littleendian wrapper instead\n",
@@ -140,10 +140,10 @@ new({partitioned_sequential_int, StartKey, NumKeys}, Id)
     fun() -> sequential_int_generator(Ref, MaxValue - MinValue, Id, DisableProgress) + MinValue end;
 new({uniform_int, MaxKey}, _Id)
   when is_integer(MaxKey), MaxKey > 0 ->
-    fun() -> rand_compat:uniform(MaxKey) end;
+    fun() -> rand:uniform(MaxKey) end;
 new({uniform_int, StartKey, NumKeys}, _Id)
   when is_integer(StartKey), is_integer(NumKeys), NumKeys > 0 ->
-    fun() -> rand_compat:uniform(NumKeys) + StartKey - 1 end;
+    fun() -> rand:uniform(NumKeys) + StartKey - 1 end;
 new({pareto_int, MaxKey}, _Id)
   when is_integer(MaxKey), MaxKey > 0 ->
     pareto(trunc(MaxKey * 0.2), ?PARETO_SHAPE);
@@ -163,7 +163,7 @@ new({function, Module, Function, Args}, Id)
         _Error ->
             ?FAIL_MSG("Could not find keygen function: ~p:~p\n", [Module, Function])
     end;
-%% Adapt a value generator. The function keygen would work if Id was added as 
+%% Adapt a value generator. The function keygen would work if Id was added as
 %% the last parameter. But, alas, it is added as the first.
 new({valgen, ValGen}, Id) ->
     basho_bench_valgen:new(ValGen, Id);
@@ -207,7 +207,7 @@ pareto(Mean, Shape) ->
     S1 = (-1 / Shape),
     S2 = Mean * (Shape - 1),
     fun() ->
-            U = 1 - rand_compat:uniform(),
+            U = 1 - rand:uniform(),
             trunc((math:pow(U, S1) - 1) * S2)
     end.
 
@@ -217,11 +217,11 @@ bias(NumDCs, DcId, Max, Mean, Shape) ->
     S1 = (-1 / Shape),
     S2 = Mean * (Shape - 1),
     fun() ->
-            U = 1 - rand_compat:uniform(),
+            U = 1 - rand:uniform(),
             Key1 = erlang:min(Max, trunc((math:pow(U, S1) - 1) * S2)),
 	    (Key1 + DcRange) rem Max
     end.
-    
+
 
 
 sequential_int_generator(Ref, MaxValue, Id, DisableProgress) ->

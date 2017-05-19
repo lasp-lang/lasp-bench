@@ -16,7 +16,7 @@
 %% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 %% KIND, either express or implied.  See the License for the
 %% specific language governing permissions and limitations
-%% under the License.    
+%% under the License.
 %%
 %% -------------------------------------------------------------------
 -module(basho_bench_app).
@@ -44,7 +44,7 @@ start() ->
           %%Make sure sasl and crypto is available
           true=lists:keymember(sasl,1,application:which_applications()),
           true=lists:keymember(crypto,1,application:which_applications()),
-          
+          ok = application:start(folsom),
           %% Start up our application
           application:start(basho_bench);
        NotInc when NotInc == {ok, standalone} orelse NotInc == undefined ->
