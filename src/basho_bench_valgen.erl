@@ -78,15 +78,25 @@ dimension(_Other, _) ->
 %% Internal Functions
 %% ====================================================================
 
+-define(TAB, valgen_bin_tab).
+
 init_source(Id) ->
     init_source(Id, basho_bench_config:get(?VAL_GEN_BLOB_CFG, undefined)).
 
-init_source(Id, undefined) ->
-    if Id == 1 -> ?DEBUG("random source\n", []);
-       true    -> ok
+init_source(1, undefined) ->
+    SourceSz = basho_bench_config:get(?VAL_GEN_SRC_SIZE, 96*1048576),
+    ?INFO("Random source: calling crypto:rand_bytes(~w) (override with the '~w' config option\n", [SourceSz, ?VAL_GEN_SRC_SIZE]),
+    Bytes = crypto:strong_rand_bytes(SourceSz),
+    try
+        ?TAB = ets:new(?TAB, [public, named_table]),
+        true = ets:insert(?TAB, {x, Bytes})
+    catch _:_ -> rerunning_id_1_init_source_table_already_exists
     end,
-    SourceSz = basho_bench_config:get(?VAL_GEN_SRC_SIZE, 1048576),
-    {?VAL_GEN_SRC_SIZE, SourceSz, crypto:strong_rand_bytes(SourceSz)};
+    ?INFO("Random source: finished crypto:rand_bytes(~w)\n", [SourceSz]),
+    {?VAL_GEN_SRC_SIZE, SourceSz, Bytes};
+init_source(_Id, undefined) ->
+    [{_, Bytes}] = ets:lookup(?TAB, x),
+    {?VAL_GEN_SRC_SIZE, size(Bytes), Bytes};
 init_source(Id, Path) ->
     {Path, {ok, Bin}} = {Path, file:read_file(Path)},
     if Id == 1 -> ?DEBUG("path source ~p ~p\n", [size(Bin), Path]);
