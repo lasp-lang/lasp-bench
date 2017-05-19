@@ -55,4 +55,3 @@ run(another_error, KeyGen, _ValueGen, State) ->
     _Key = KeyGen(),
 io:format(State, "~p ", [_Key]),
     {error, {bad, things, happened}, State}.
-
