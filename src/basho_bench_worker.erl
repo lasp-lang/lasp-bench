@@ -25,6 +25,7 @@
 
 %% API
 -export([start_link/2,
+         start_link_local/2,
          run/1,
          stop/1]).
 
@@ -52,14 +53,26 @@
 %% ====================================================================
 
 start_link(SupChild, Id) ->
+    case basho_bench_config:get(distribute_work, false) of
+        true ->
+            start_link_distributed(SupChild, Id);
+        false ->
+            start_link_local(SupChild, Id)
+    end.
+
+start_link_distributed(SupChild, Id) ->
+    Node = pool:get_node(),
+    rpc:block_call(Node, ?MODULE, start_link_local, [SupChild, Id]).
+
+start_link_local(SupChild, Id) ->
     gen_server:start_link(?MODULE, [SupChild, Id], []).
 
 run(Pids) ->
-    [ok = gen_server:call(Pid, run) || Pid <- Pids],
+    [ok = gen_server:call(Pid, run, infinity) || Pid <- Pids],
     ok.
 
 stop(Pids) ->
-    [ok = gen_server:call(Pid, stop) || Pid <- Pids],
+    [ok = gen_server:call(Pid, stop, infinity) || Pid <- Pids],
     ok.
 
 %% ====================================================================
@@ -114,7 +127,9 @@ init([SupChild, Id]) ->
     WorkerPid ! {init_driver, self()},
     receive
         driver_ready ->
-            ok
+            ok;
+        {driver_failed, Why} ->
+            exit({init_driver_failed, Why})
     end,
 
     %% If the system is marked as running this is a restart; queue up the run
@@ -211,6 +226,7 @@ worker_idle_loop(State) ->
                     Caller ! driver_ready,
                     ok;
                 Error ->
+                    Caller ! {init_driver_failed, Error},
                     DriverState = undefined, % Make erlc happy
                     ?FAIL_MSG("Failed to initialize driver ~p: ~p\n", [Driver, Error])
             end,
@@ -218,16 +234,16 @@ worker_idle_loop(State) ->
         run ->
             case basho_bench_config:get(mode) of
                 max ->
-                    ?INFO("Starting max worker: ~p\n", [self()]),
+                    ?INFO("Starting max worker: ~p on ~p~n", [self(), node()]),
                     max_worker_run_loop(State);
                 {rate, max} ->
-                    ?INFO("Starting max worker: ~p\n", [self()]),
+                    ?INFO("Starting max worker: ~p on ~p~n", [self(), node()]),
                     max_worker_run_loop(State);
                 {rate, Rate} ->
                     %% Calculate mean interarrival time in in milliseconds. A
                     %% fixed rate worker can generate (at max) only 1k req/sec.
                     MeanArrival = 1000 / Rate,
-                    ?INFO("Starting ~w ms/req fixed rate worker: ~p\n", [MeanArrival, self()]),
+                    ?INFO("Starting ~w ms/req fixed rate worker: ~p on ~p\n", [MeanArrival, self(), node()]),
                     rate_worker_run_loop(State, 1 / MeanArrival)
             end
     end.
@@ -247,6 +263,11 @@ worker_next_op(State) ->
             {ok, State#state { driver_state = DriverState}};
 
         {Res, DriverState} when Res == silent orelse element(1, Res) == silent ->
+            {ok, State#state { driver_state = DriverState}};
+
+        {ok, ElapsedT, DriverState} ->
+            %% time is measured by external system
+            basho_bench_stats:op_complete(Next, ok, ElapsedT),
             {ok, State#state { driver_state = DriverState}};
 
         {error, Reason, DriverState} ->
