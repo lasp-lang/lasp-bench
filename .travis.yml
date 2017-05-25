@@ -1,6 +1,7 @@
 language: erlang
 otp_release:
-  - 19.2
+  - 18.3
+  - 19.3
 script:
   - ./rebar3 escriptize
 sudo: false
