@@ -3,5 +3,5 @@ otp_release:
   - 19.2
 script:
   - ./rebar3 escriptize
-sudo: required
+sudo: false
 dist: trusty
