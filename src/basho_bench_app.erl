@@ -46,12 +46,14 @@ start() ->
           true=lists:keymember(crypto,1,application:which_applications()),
 
           %% Start up our application
+          application:load(bear),
+          folsom:start(),
           application:start(basho_bench);
        NotInc when NotInc == {ok, standalone} orelse NotInc == undefined ->
           application:load(sasl),
           application:set_env(sasl, sasl_error_logger, {file, "log.sasl.txt"}),
           %% Make sure crypto is available
-          ensure_started([sasl, crypto]),
+          ensure_started([sasl, crypto, bear]),
 
           %% Start up our application -- mark it as permanent so that the node
           %% will be killed if we go down
