@@ -1,8 +1,9 @@
 language: erlang
+dist: trusty
+sudo: false
 otp_release:
-  - 18.3
+  - 20.0
   - 19.3
+  - 18.3
 script:
   - ./rebar3 escriptize
-sudo: false
-dist: trusty
