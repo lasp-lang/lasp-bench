@@ -97,10 +97,6 @@ main(Args) ->
     %% Copy the config into the test dir for posterity
     [ begin {ok, _} = file:copy(Config, filename:join(TestDir, filename:basename(Config))) end
       || Config <- Configs ],
-    case basho_bench_config:get(distribute_work, false) of
-        true -> setup_distributed_work();
-        false -> ok
-    end,
     %% Set our CWD to the test dir
     ok = file:set_cwd(TestDir),
     log_dimensions(),
@@ -262,7 +258,6 @@ load_source_files(Dir) ->
                         case compile:file(F, [report, binary]) of
                             {ok, Mod, Bin} ->
                                 {module, Mod} = code:load_binary(Mod, F, Bin),
-                                deploy_module(Mod),
                                 ?INFO("Loaded ~p (~s)\n", [Mod, F]),
                                 ok;
                             Error ->
