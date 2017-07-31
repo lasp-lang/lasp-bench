@@ -145,4 +145,3 @@ replace_special_chars([_|T]) ->
     [$-|replace_special_chars(T)];
 replace_special_chars([]) ->
     [].
-

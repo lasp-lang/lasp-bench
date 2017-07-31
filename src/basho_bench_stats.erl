@@ -16,7 +16,7 @@
 %% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 %% KIND, either express or implied.  See the License for the
 %% specific language governing permissions and limitations
-%% under the License.    
+%% under the License.
 %%
 %% -------------------------------------------------------------------
 -module(basho_bench_stats).
@@ -52,7 +52,7 @@ start_link() ->
     gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
 exponential(Lambda) ->
-    -math:log(random:uniform()) / Lambda.
+    -math:log(rand:uniform()) / Lambda.
 
 run() ->
     gen_server:call({global, ?MODULE}, run).
@@ -263,7 +263,7 @@ process_stats(Now, #state{stats_writer=Module}=State) ->
             ErrCounts = ets:tab2list(basho_bench_errors),
             true = ets:delete_all_objects(basho_bench_errors),
             ?INFO("Errors:~p\n", [lists:sort(ErrCounts)]),
-            [ets_increment(basho_bench_total_errors, Err, Count) || 
+            [ets_increment(basho_bench_total_errors, Err, Count) ||
                               {Err, Count} <- ErrCounts],
             ok;
         false ->

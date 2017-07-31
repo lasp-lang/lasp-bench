@@ -16,7 +16,7 @@
 %% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 %% KIND, either express or implied.  See the License for the
 %% specific language governing permissions and limitations
-%% under the License.    
+%% under the License.
 %%
 %% -------------------------------------------------------------------
 -module(basho_bench_app).
@@ -44,14 +44,16 @@ start() ->
           %%Make sure sasl and crypto is available
           true=lists:keymember(sasl,1,application:which_applications()),
           true=lists:keymember(crypto,1,application:which_applications()),
-          
+
           %% Start up our application
+          application:load(bear),
+          folsom:start(),
           application:start(basho_bench);
        NotInc when NotInc == {ok, standalone} orelse NotInc == undefined ->
           application:load(sasl),
           application:set_env(sasl, sasl_error_logger, {file, "log.sasl.txt"}),
           %% Make sure crypto is available
-          ensure_started([sasl, crypto]),
+          ensure_started([sasl, crypto, bear]),
 
           %% Start up our application -- mark it as permanent so that the node
           %% will be killed if we go down
@@ -80,7 +82,7 @@ stop_or_kill() ->
 
 start(_StartType, _StartArgs) ->
     %% TODO: Move into a proper supervision tree, janky for now
-    basho_bench_config:start_link(),
+    %% basho_bench_config:start_link(),
     {ok, Pid} = basho_bench_sup:start_link(),
     application:set_env(basho_bench_app, is_running, true),
     ok = basho_bench_stats:run(),

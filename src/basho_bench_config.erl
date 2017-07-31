@@ -48,21 +48,22 @@
 %% ===================================================================
 
 %% Todo: ensure_started before calling on any gen_server APIs.
-ensure_started() -> 
+ensure_started() ->
     start_link().
 
 start_link() ->
     gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
-
 load(Files) ->
     ensure_started(),
-    gen_server:call({global, ?MODULE}, {load_files, Files}). 
-    
+    gen_server:call({global, ?MODULE}, {load_files, Files}).
+
 set(Key, Value) ->
+    ensure_started(),
     gen_server:call({global, ?MODULE}, {set, Key, Value}).
 
 get(Key) ->
+    ensure_started(),
     case gen_server:call({global, ?MODULE}, {get, Key}) of
         {ok, Value} ->
             Value;
@@ -71,6 +72,7 @@ get(Key) ->
     end.
 
 get(Key, Default) ->
+    ensure_started(),
     case gen_server:call({global, ?MODULE}, {get, Key}) of
         {ok, Value} ->
             Value;
@@ -115,14 +117,14 @@ normalize_ip_entry(IP, Normalized, DefaultPort) ->
 %% Gen_server Functions
 %% ===
 
--spec init(term()) -> {ok, state()}.  
+-spec init(term()) -> {ok, state()}.
 init(_Args) ->
     State = #basho_bench_config_state{},
     {ok, State}.
 
 -spec code_change(term(), state(), term()) -> {ok, state()}.
 code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.                                
+    {ok, State}.
 
 -spec terminate(term(), state()) -> 'ok'.
 terminate(_Reason, _State) ->
@@ -133,7 +135,7 @@ handle_call({load_files, FileNames}, _From, State) ->
     {reply, ok, State};
 
 handle_call({set, Key, Value}, _From, State) ->
-    application:set_env(basho_bench, Key, Value), 
+    application:set_env(basho_bench, Key, Value),
     {reply, ok, State};
 handle_call({get, Key}, _From, State) ->
     Value = application:get_env(basho_bench, Key),
@@ -146,7 +148,7 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 set_keys_from_files(Files) ->
-    KVs = [ 
+    KVs = [
     case file:consult(File) of
         {ok, Terms} ->
             Terms;
@@ -157,4 +159,3 @@ set_keys_from_files(Files) ->
     end || File <- Files ],
     FlatKVs = lists:flatten(KVs),
     [application:set_env(basho_bench, Key, Value) || {Key, Value} <- FlatKVs].
-

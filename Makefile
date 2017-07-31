@@ -6,44 +6,23 @@ PKG_ID           = basho-bench-$(PKG_VERSION)
 PKG_BUILD        = 1
 BASE_DIR         = $(shell pwd)
 ERLANG_BIN       = $(shell dirname $(shell which erl))
-REBAR           ?= $(BASE_DIR)/rebar
+REBAR           ?= $(BASE_DIR)/rebar3
 OVERLAY_VARS    ?=
 
 
+REBAR := ./rebar3
+
 all: deps compile
-	$(REBAR) skip_deps=true escriptize
-
-.PHONY: deps compile rel lock locked-all locked-deps
-
-rel: deps compile
-	cd rel && .$(REBAR) generate skip_deps=true $(OVERLAY_VARS)
+	${REBAR} escriptize
 
 deps:
-	$(REBAR) get-deps
-
-##
-## Lock Targets
-##
-##  see https://github.com/seth/rebar_lock_deps_plugin
-lock: deps compile
-	$(REBAR) lock-deps
-
-locked-all: locked-deps compile
-
-locked-deps:
-	@echo "Using rebar.config.lock file to fetch dependencies"
-	$(REBAR) -C rebar.config.lock get-deps
+	${REBAR} deps
 
 compile: deps
-	# Temp hack to work around https://github.com/basho/riak-erlang-client/issues/151
-	(cd deps/riak_pb ; $(REBAR) clean compile deps_dir=..)
-	@($(REBAR) compile)
+	(${REBAR} compile)
 
 clean:
-	@$(REBAR) clean
-
-distclean: clean
-	@rm -rf basho_bench deps
+	${REBAR} clean
 
 results:
 	Rscript --vanilla priv/summary.r -i tests/current

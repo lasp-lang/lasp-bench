@@ -7,4 +7,7 @@ package
 .rebar
 *~
 #*#
-
+tags
+_build/
+rebar.lock
+.DS_Store
