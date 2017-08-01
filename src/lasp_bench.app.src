@@ -1,0 +1,82 @@
+{application, lasp_bench,
+ [{description, "Lasp Benchmarking Suite"},
+  {vsn, "0.0.1"},
+  {modules, []},
+  {registered, [ lasp_bench_sup ]},
+  {applications, [kernel,
+                  stdlib,
+                  lager,
+                  sasl,
+                  bear]},
+  {mod, {lasp_bench_app, []}},
+  {env, [
+	 %% Run mode: How should lasp_bench started as a separate node, or part of an
+	 %% other node. The default is standalone, other option is included.
+	 {app_run_mode, standalone},
+
+         %%
+         %% Mode of load generation:
+         %% max - Generate as many requests as possible per worker
+         %% {rate, Rate} - Exp. distributed Mean reqs/sec
+         %%
+         {mode, {rate, 5}},
+
+         %%
+         %% Default log level
+         %%
+         {log_level, [{level,debug}]},
+
+         %%
+         %% Base test output directory
+         %%
+         {test_dir, "tests"},
+
+         %%
+         %% Test duration (minutes)
+         %%
+         {duration, 5},
+
+         %%
+         %% Number of concurrent workers
+         %%
+         {concurrent, 3},
+
+         %%
+         %% Driver module for the current test
+         %%
+         {driver, lasp_bench_driver_null},
+
+         %%
+         %% Stats Sink Driver module for the current test
+         %% By default:
+         %%    csv - csv file
+         %%    riemann - riemann server
+         %% {stats, {csv}},
+         %%
+         %% Operations (and associated mix). Note that
+         %% the driver may not implement every operation.
+         %%
+         {operations, [{get, 4},
+                       {put, 4},
+                       {delete, 1}]},
+
+         %%
+         %% Interval on which to report latencies and status (seconds)
+         %%
+         {report_interval, 10},
+
+         %%
+         %% Key generators
+         %%
+         %% {uniform_int, N} - Choose a uniformly distributed integer between 0 and N
+         %%
+         {key_generator, {uniform_int, 100000}},
+
+         %%
+         %% Value generators
+         %%
+         %% {fixed_bin, N} - Fixed size binary blob of N bytes
+         %%
+         {value_generator, {fixed_bin, 100}}
+        ]}
+]}.
