@@ -3,7 +3,7 @@
 -export([new/1,
          run/4]).
 
--include("../include/basho_bench.hrl").
+-include("../include/lasp_bench.hrl").
 
 -define (TIMEOUT, 5000).
 
