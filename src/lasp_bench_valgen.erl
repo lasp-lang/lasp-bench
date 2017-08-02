@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% basho_bench: Benchmarking Suite
+%% lasp_bench: Benchmarking Suite
 %%
 %% Copyright (c) 2009-2010 Basho Techonologies
 %%
@@ -19,12 +19,12 @@
 %% under the License.
 %%
 %% -------------------------------------------------------------------
--module(basho_bench_valgen).
+-module(lasp_bench_valgen).
 
 -export([new/2,
          dimension/2]).
 
--include("basho_bench.hrl").
+-include("lasp_bench.hrl").
 
 %% ====================================================================
 %% API
@@ -44,7 +44,7 @@ new({fixed_char, Size}, _Id)
 new({exponential_bin, MinSize, Mean}, Id)
   when is_integer(MinSize), MinSize >= 0, is_number(Mean), Mean > 0 ->
     Source = init_source(Id),
-    fun() -> data_block(Source, MinSize + trunc(basho_bench_stats:exponential(1 / Mean))) end;
+    fun() -> data_block(Source, MinSize + trunc(lasp_bench_stats:exponential(1 / Mean))) end;
 new({uniform_bin, MinSize, MaxSize}, Id)
   when is_integer(MinSize), is_integer(MaxSize), MinSize < MaxSize ->
     Source = init_source(Id),
@@ -81,10 +81,10 @@ dimension(_Other, _) ->
 -define(TAB, valgen_bin_tab).
 
 init_source(Id) ->
-    init_source(Id, basho_bench_config:get(?VAL_GEN_BLOB_CFG, undefined)).
+    init_source(Id, lasp_bench_config:get(?VAL_GEN_BLOB_CFG, undefined)).
 
 init_source(1, undefined) ->
-    SourceSz = basho_bench_config:get(?VAL_GEN_SRC_SIZE, 96*1048576),
+    SourceSz = lasp_bench_config:get(?VAL_GEN_SRC_SIZE, 96*1048576),
     ?INFO("Random source: calling crypto:rand_bytes(~w) (override with the '~w' config option\n", [SourceSz, ?VAL_GEN_SRC_SIZE]),
     Bytes = crypto:strong_rand_bytes(SourceSz),
     try

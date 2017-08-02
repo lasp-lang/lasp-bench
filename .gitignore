@@ -1,7 +1,5 @@
-ebin/
-deps/
 tests/
-basho_bench
+.rebar
 *~
 #*#
 tags

@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% basho_bench: Benchmarking Suite
+%% lasp_bench: Benchmarking Suite
 %%
 %% Copyright (c) 2009-2010 Basho Techonologies
 %%
@@ -19,7 +19,7 @@
 %% under the License.
 %%
 %% -------------------------------------------------------------------
--module(basho_bench_measurement).
+-module(lasp_bench_measurement).
 
 -behaviour(gen_server).
 
@@ -37,7 +37,7 @@
                  timer_refs = []
                }).
 
--include("basho_bench.hrl").
+-include("lasp_bench.hrl").
 
 %% ====================================================================
 %% API
@@ -58,7 +58,7 @@ take_measurement(Measurement) ->
 
 init([]) ->
     %% Pull all config settings from environment
-    Driver = basho_bench_config:get(measurement_driver),
+    Driver = lasp_bench_config:get(measurement_driver),
     case catch(Driver:new()) of
         {ok, DriverState} ->
             State = #state {
@@ -80,18 +80,18 @@ handle_call({take_measurement, Measurement}, _From, State) ->
     Result = (catch Driver:run(MeasurementTag, DriverState)),
     case Result of
         {ok, Value, NewDriverState} ->
-            basho_bench_stats:op_complete(Measurement, ok, Value),
+            lasp_bench_stats:op_complete(Measurement, ok, Value),
             {reply, ok, State#state { driver_state = NewDriverState}};
 
         {error, Reason, NewDriverState} ->
             %% Driver encountered a recoverable error
-            basho_bench_stats:op_complete(Measurement, {error, Reason}, 0),
+            lasp_bench_stats:op_complete(Measurement, {error, Reason}, 0),
             {reply, ok, State#state { driver_state = NewDriverState}};
 
         {'EXIT', Reason} ->
             %% Driver crashed, generate a crash error and terminate. This will take down
             %% the corresponding measurement which will get restarted by the appropriate supervisor.
-            basho_bench_stats:op_complete(Measurement, {error, crash}, 0),
+            lasp_bench_stats:op_complete(Measurement, {error, crash}, 0),
 
             %% Give the driver a chance to cleanup
             (catch Driver:terminate({'EXIT', Reason}, DriverState)),
@@ -135,5 +135,5 @@ restart_measurements(State) ->
                 {ok, TRef} = timer:apply_interval(IntervalMS, ?MODULE, take_measurement, [{Label, MeasurementTag}]),
                 TRef
         end,
-    TRefs = [F(X) || X <- basho_bench_config:get(measurements, [])],
+    TRefs = [F(X) || X <- lasp_bench_config:get(measurements, [])],
     State#state { timer_refs = TRefs }.

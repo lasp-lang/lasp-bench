@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% basho_bench: Benchmarking Suite
+%% lasp_bench: Benchmarking Suite
 %%
 %% Copyright (c) 2009-2010 Basho Techonologies
 %%
@@ -19,39 +19,37 @@
 %% under the License.
 %%
 %% -------------------------------------------------------------------
--module(basho_bench_driver_nullfile).
+-module(lasp_bench_driver_dets).
 
 -export([new/1,
          run/4]).
 
--include("basho_bench.hrl").
+-include("lasp_bench.hrl").
 
 %% ====================================================================
 %% API
 %% ====================================================================
 
 new(_Id) ->
-    {ok, FH} = file:open("/tmp/null/" ++ integer_to_list(_Id), [write]),
-    {ok, FH}.
+    File = lasp_bench_config:get(dets_file, ?MODULE),
+    {ok, _} = dets:open_file(?MODULE, [{file, File},
+                                       {min_no_slots, 8192},
+                                       {max_no_slots, 16777216}]),
+    {ok, undefined}.
 
 run(get, KeyGen, _ValueGen, State) ->
-    _Key = KeyGen(),
-io:format(State, "~p ", [_Key]),
-    {ok, State};
+    Key = KeyGen(),
+    case dets:lookup(?MODULE, Key) of
+        [] ->
+            {ok, State};
+        [{Key, _}] ->
+            {ok, State};
+        {error, Reason} ->
+            {error, Reason, State}
+    end;
 run(put, KeyGen, ValueGen, State) ->
-    _Key = KeyGen(),
-    ValueGen(),
-io:format(State, "~p ", [_Key]),
+    ok = dets:insert(?MODULE, {KeyGen(), ValueGen()}),
     {ok, State};
 run(delete, KeyGen, _ValueGen, State) ->
-    _Key = KeyGen(),
-io:format(State, "~p ", [_Key]),
-    {ok, State};
-run(an_error, KeyGen, _ValueGen, State) ->
-    _Key = KeyGen(),
-io:format(State, "~p ", [_Key]),
-    {error, went_wrong, State};
-run(another_error, KeyGen, _ValueGen, State) ->
-    _Key = KeyGen(),
-io:format(State, "~p ", [_Key]),
-    {error, {bad, things, happened}, State}.
+    ok = dets:delete(?MODULE, KeyGen()),
+    {ok, State}.

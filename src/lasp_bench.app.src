@@ -1,16 +1,19 @@
-{application, basho_bench,
- [{description, "Riak Benchmarking Suite"},
-  {vsn, "0.1"},
+{application, lasp_bench,
+ [{description, "Lasp Benchmarking Suite"},
+  {vsn, "0.0.1"},
+  {maintainers,["Goncalo Tomas"]},
+  {links,[{"Github","https://github.com/lasp-lang/lasp-bench"}]},
+  {licenses,["Apache 2"]},
   {modules, []},
-  {registered, [ basho_bench_sup ]},
+  {registered, [ lasp_bench_sup ]},
   {applications, [kernel,
                   stdlib,
                   lager,
                   sasl,
                   bear]},
-  {mod, {basho_bench_app, []}},
+  {mod, {lasp_bench_app, []}},
   {env, [
-	 %% Run mode: How should basho_bench started as a separate node, or part of an
+	 %% Run mode: How should lasp_bench started as a separate node, or part of an
 	 %% other node. The default is standalone, other option is included.
 	 {app_run_mode, standalone},
 
@@ -24,7 +27,7 @@
          %%
          %% Default log level
          %%
-         {log_level, debug},
+         {log_level, [{level,debug}]},
 
          %%
          %% Base test output directory
@@ -44,8 +47,14 @@
          %%
          %% Driver module for the current test
          %%
-         {driver, basho_bench_driver_http_raw},
+         {driver, lasp_bench_driver_null},
 
+         %%
+         %% Stats Sink Driver module for the current test
+         %% By default:
+         %%    csv - csv file
+         %%    riemann - riemann server
+         %% {stats, {csv}},
          %%
          %% Operations (and associated mix). Note that
          %% the driver may not implement every operation.

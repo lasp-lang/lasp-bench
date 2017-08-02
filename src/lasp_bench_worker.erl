@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% basho_bench: Benchmarking Suite
+%% lasp_bench: Benchmarking Suite
 %%
 %% Copyright (c) 2009-2010 Basho Techonologies
 %%
@@ -19,7 +19,7 @@
 %% under the License.
 %%
 %% -------------------------------------------------------------------
--module(basho_bench_worker).
+-module(lasp_bench_worker).
 
 -behaviour(gen_server).
 
@@ -46,14 +46,14 @@
                  worker_pid,
                  sup_id}).
 
--include("basho_bench.hrl").
+-include("lasp_bench.hrl").
 
 %% ====================================================================
 %% API
 %% ====================================================================
 
 start_link(SupChild, Id) ->
-    case basho_bench_config:get(distribute_work, false) of
+    case lasp_bench_config:get(distribute_work, false) of
         true ->
             start_link_distributed(SupChild, Id);
         false ->
@@ -90,7 +90,7 @@ init([SupChild, Id]) ->
     %% and value size generation between test runs.
     process_flag(trap_exit, true),
     {A1, A2, A3} =
-        case basho_bench_config:get(rng_seed, {42, 23, 12}) of
+        case lasp_bench_config:get(rng_seed, {42, 23, 12}) of
             {Aa, Ab, Ac} -> {Aa, Ab, Ac};
             now -> erlang:timestamp()
         end,
@@ -98,14 +98,14 @@ init([SupChild, Id]) ->
     RngSeed = {A1+Id, A2+Id, A3+Id},
 
     %% Pull all config settings from environment
-    Driver  = basho_bench_config:get(driver),
+    Driver  = lasp_bench_config:get(driver),
     Ops     = ops_tuple(),
-    ShutdownOnError = basho_bench_config:get(shutdown_on_error, false),
+    ShutdownOnError = lasp_bench_config:get(shutdown_on_error, false),
 
     %% Finally, initialize key and value generation. We pass in our ID to the
     %% initialization to enable (optional) key/value space partitioning
-    KeyGen = basho_bench_keygen:new(basho_bench_config:get(key_generator), Id),
-    ValGen = basho_bench_valgen:new(basho_bench_config:get(value_generator), Id),
+    KeyGen = lasp_bench_keygen:new(lasp_bench_config:get(key_generator), Id),
+    ValGen = lasp_bench_valgen:new(lasp_bench_config:get(value_generator), Id),
 
     State = #state { id = Id, keygen = KeyGen, valgen = ValGen,
                      driver = Driver,
@@ -134,7 +134,7 @@ init([SupChild, Id]) ->
 
     %% If the system is marked as running this is a restart; queue up the run
     %% message for this worker
-    case basho_bench_app:is_running() of
+    case lasp_bench_app:is_running() of
         true ->
             ?WARN("Restarting crashed worker.\n", []),
             gen_server:cast(self(), run);
@@ -186,11 +186,11 @@ code_change(_OldVsn, State, _Extra) ->
 %% WARNING: Must run from a process other than the worker!
 %%
 stop_worker(SupChild) ->
-    ok = basho_bench_sup:stop_child(SupChild),
-    case basho_bench_sup:workers() of
+    ok = lasp_bench_sup:stop_child(SupChild),
+    case lasp_bench_sup:workers() of
         [] ->
             %% No more workers -- stop the system
-            basho_bench_app:stop();
+            lasp_bench_app:stop();
         _ ->
             ok
     end.
@@ -205,7 +205,7 @@ ops_tuple() ->
            ({Label, OpTag, Count}) ->
                 lists:duplicate(Count, {Label, OpTag})
         end,
-    Ops = [F(X) || X <- basho_bench_config:get(operations, [])],
+    Ops = [F(X) || X <- lasp_bench_config:get(operations, [])],
     list_to_tuple(lists:flatten(Ops)).
 
 
@@ -232,7 +232,7 @@ worker_idle_loop(State) ->
             end,
             worker_idle_loop(State#state { driver_state = DriverState });
         run ->
-            case basho_bench_config:get(mode) of
+            case lasp_bench_config:get(mode) of
                 max ->
                     ?INFO("Starting max worker: ~p on ~p~n", [self(), node()]),
                     max_worker_run_loop(State);
@@ -259,7 +259,7 @@ worker_next_op(State) ->
     ElapsedUs = erlang:max(0, timer:now_diff(os:timestamp(), Start)),
     case Result of
         {Res, DriverState} when Res == ok orelse element(1, Res) == ok ->
-            basho_bench_stats:op_complete(Next, Res, ElapsedUs),
+            lasp_bench_stats:op_complete(Next, Res, ElapsedUs),
             {ok, State#state { driver_state = DriverState}};
 
         {Res, DriverState} when Res == silent orelse element(1, Res) == silent ->
@@ -267,21 +267,21 @@ worker_next_op(State) ->
 
         {ok, ElapsedT, DriverState} ->
             %% time is measured by external system
-            basho_bench_stats:op_complete(Next, ok, ElapsedT),
+            lasp_bench_stats:op_complete(Next, ok, ElapsedT),
             {ok, State#state { driver_state = DriverState}};
 
         {error, Reason, DriverState} ->
             %% Driver encountered a recoverable error
-            basho_bench_stats:op_complete(Next, {error, Reason}, ElapsedUs),
+            lasp_bench_stats:op_complete(Next, {error, Reason}, ElapsedUs),
             State#state.shutdown_on_error andalso
-                erlang:send_after(500, basho_bench,
+                erlang:send_after(500, lasp_bench,
                                   {shutdown, "Shutdown on errors requested", 1}),
             {ok, State#state { driver_state = DriverState}};
 
         {'EXIT', Reason} ->
             %% Driver crashed, generate a crash error and terminate. This will take down
             %% the corresponding worker which will get restarted by the appropriate supervisor.
-            basho_bench_stats:op_complete(Next, {error, crash}, ElapsedUs),
+            lasp_bench_stats:op_complete(Next, {error, crash}, ElapsedUs),
 
             %% Give the driver a chance to cleanup
             (catch (State#state.driver):terminate({'EXIT', Reason}, State#state.driver_state)),
@@ -296,7 +296,7 @@ worker_next_op(State) ->
                     %% would check `Reason' and `shutdown_on_error'.
                     %% Then I wouldn't have to return a bullshit "ok"
                     %% here.
-                    erlang:send_after(500, basho_bench,
+                    erlang:send_after(500, lasp_bench,
                                       {shutdown, "Shutdown on errors requested", 2}),
                     {ok, State};
                 false ->
@@ -350,7 +350,7 @@ max_worker_run_loop(State) ->
 rate_worker_run_loop(State, Lambda) ->
     %% Delay between runs using exponentially distributed delays to mimic
     %% queue.
-    timer:sleep(trunc(basho_bench_stats:exponential(Lambda))),
+    timer:sleep(trunc(lasp_bench_stats:exponential(Lambda))),
     case worker_next_op(State) of
         {ok, State2} ->
             case needs_shutdown(State2) of

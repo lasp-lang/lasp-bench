@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% basho_bench: Benchmarking Suite
+%% lasp_bench: Benchmarking Suite
 %%
 %% Copyright (c) 2009-2010 Basho Techonologies
 %%
@@ -16,41 +16,42 @@
 %% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 %% KIND, either express or implied.  See the License for the
 %% specific language governing permissions and limitations
-%% under the License.    
+%% under the License.
 %%
 %% -------------------------------------------------------------------
--module(basho_bench_driver_dets).
+-module(lasp_bench_driver_nullfile).
 
 -export([new/1,
          run/4]).
 
--include("basho_bench.hrl").
+-include("lasp_bench.hrl").
 
 %% ====================================================================
 %% API
 %% ====================================================================
 
 new(_Id) ->
-    File = basho_bench_config:get(dets_file, ?MODULE),
-    {ok, _} = dets:open_file(?MODULE, [{file, File},
-                                       {min_no_slots, 8192},
-                                       {max_no_slots, 16777216}]),
-    {ok, undefined}.
+    {ok, FH} = file:open("/tmp/null/" ++ integer_to_list(_Id), [write]),
+    {ok, FH}.
 
 run(get, KeyGen, _ValueGen, State) ->
-    Key = KeyGen(),
-    case dets:lookup(?MODULE, Key) of
-        [] ->
-            {ok, State};
-        [{Key, _}] ->
-            {ok, State};
-        {error, Reason} ->
-            {error, Reason, State}
-    end;
+    _Key = KeyGen(),
+io:format(State, "~p ", [_Key]),
+    {ok, State};
 run(put, KeyGen, ValueGen, State) ->
-    ok = dets:insert(?MODULE, {KeyGen(), ValueGen()}),
+    _Key = KeyGen(),
+    ValueGen(),
+io:format(State, "~p ", [_Key]),
     {ok, State};
 run(delete, KeyGen, _ValueGen, State) ->
-    ok = dets:delete(?MODULE, KeyGen()),
-    {ok, State}.
-    
+    _Key = KeyGen(),
+io:format(State, "~p ", [_Key]),
+    {ok, State};
+run(an_error, KeyGen, _ValueGen, State) ->
+    _Key = KeyGen(),
+io:format(State, "~p ", [_Key]),
+    {error, went_wrong, State};
+run(another_error, KeyGen, _ValueGen, State) ->
+    _Key = KeyGen(),
+io:format(State, "~p ", [_Key]),
+    {error, {bad, things, happened}, State}.

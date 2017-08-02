@@ -4,14 +4,16 @@ packages.to.install <- c("plyr", "grid", "getopt", "proto", "ggplot2")
 for(p in packages.to.install)
   {
         print(p)
-        if (suppressWarnings(!require(p, character.only = TRUE))) install.packages(p, repos = "http://lib.stat.cmu.edu/R/CRAN")
-        if (p == "ggplot2") suppressWarnings(library(ggplot2))
+        if (suppressWarnings(!require(p, character.only = TRUE))) {
+            install.packages(p, repos = "http://lib.stat.cmu.edu/R/CRAN")
+            library(p, character.only=TRUE)
+        }
   }
 
 # Load a latency file and ensure that it is appropriately tagged
 load_latency_frame <- function(File)
   {
-    op <- strsplit(basename(File), "_")[[1]][1]
+    op <- gsub("_latencies.csv", "", basename(File))
     frame <- read.csv(File)
     frame$op = rep(op, nrow(frame))
     return (frame)
@@ -21,7 +23,8 @@ load_latency_frame <- function(File)
 load_benchmark <- function(Dir, Tstart, Tend)
   {
     ## Load up summary data
-    summary <- read.csv(sprintf("%s/%s", Dir, "summary.csv"))
+    summary <- read.csv(sprintf("%s/%s", Dir, "summary.csv"),
+                        colClasses=rep("numeric", 5))
 
     ## Get a list of latency files
     latencies <- lapply(list.files(path = Dir, pattern = "_latencies.csv",

@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% basho_bench: Benchmarking Suite
+%% lasp_bench: Benchmarking Suite
 %%
 %% Copyright (c) 2009-2014 Basho Techonologies
 %%
@@ -21,7 +21,7 @@
 %% -------------------------------------------------------------------
 %% HOWTO:
 %%
-%% * To run basho_bench with statistics sent to [Riemann][1], in the
+%% * To run lasp_bench with statistics sent to [Riemann][1], in the
 %%   benchmark config file the following needs to be written:
 %%
 %%    {stats, {riemann}}.
@@ -31,7 +31,7 @@
 %%   configure the writer, an app config needs to be written. For
 %%   that, one needs to add "-config app.config" (the filename can be
 %%   anything) to escript_emu_args in rebar.config, recompile
-%%   basho_bench, and add the necessary configuration to app.config,
+%%   lasp_bench, and add the necessary configuration to app.config,
 %%   something along these lines:
 %%
 %%    [
@@ -41,12 +41,12 @@
 %%        {transport, detect},
 %%        {pool, []},
 %%        {defaults, [{host, "myhost.local"},
-%%                    {tags, ["basho_bench"]},
+%%                    {tags, ["lasp_bench"]},
 %%                    {ttl, 5.0}]}
 %%      ]}
 %%    ].
 
--module(basho_bench_stats_writer_riemann).
+-module(lasp_bench_stats_writer_riemann).
 
 -export([new/2,
          terminate/1,
@@ -54,7 +54,7 @@
          report_error/3,
          report_latency/7]).
 
--include("basho_bench.hrl").
+-include("lasp_bench.hrl").
 
 new(_, _) ->
     ?INFO("module=~s event=start stats_sink=riemann\n", [?MODULE]),
@@ -66,13 +66,13 @@ terminate(_) ->
     ok.
 
 process_summary(_, _Elapsed, _Window, Oks, Errors) ->
-    katja:send_entities([{events, [[{service, "basho_bench summary ok"},
+    katja:send_entities([{events, [[{service, "lasp_bench summary ok"},
                                     {metric, Oks}],
-                                   [{service, "basho_bench summary errors"},
+                                   [{service, "lasp_bench summary errors"},
                                     {metric, Errors}]]}]).
 
 report_error(_, Key, Count) ->
-   katja:send_event([{service, io_lib:format("basho_bench error for key ~p", [Key])},
+   katja:send_event([{service, io_lib:format("lasp_bench error for key ~p", [Key])},
                      {metric, Count}]).
 
 report_latency(_, _Elapsed, _Window, Op,
@@ -114,21 +114,21 @@ riemann_op_latencies({Label, _Op}, Stats, Errors, Units) ->
     P = proplists:get_value(percentile, Stats),
     Service = normalize_label(Label),
 
-    [[{service, io_lib:format("basho_bench op ~s latency min", [Service])},
+    [[{service, io_lib:format("lasp_bench op ~s latency min", [Service])},
       {metric, proplists:get_value(min, Stats)}],
-     [{service, io_lib:format("basho_bench op ~s latency max", [Service])},
+     [{service, io_lib:format("lasp_bench op ~s latency max", [Service])},
       {metric, proplists:get_value(max, Stats)}],
-     [{service, io_lib:format("basho_bench op ~s latency mean", [Service])},
+     [{service, io_lib:format("lasp_bench op ~s latency mean", [Service])},
       {metric, proplists:get_value(arithmetic_mean, Stats)}],
-     [{service, io_lib:format("basho_bench op ~s latency median", [Service])},
+     [{service, io_lib:format("lasp_bench op ~s latency median", [Service])},
       {metric, proplists:get_value(median, Stats)}],
-     [{service, io_lib:format("basho_bench op ~s latency 95%", [Service])},
+     [{service, io_lib:format("lasp_bench op ~s latency 95%", [Service])},
       {metric, proplists:get_value(95, P)}],
-     [{service, io_lib:format("basho_bench op ~s latency 99%", [Service])},
+     [{service, io_lib:format("lasp_bench op ~s latency 99%", [Service])},
       {metric, proplists:get_value(99, P)}],
-     [{service, io_lib:format("basho_bench op ~s latency 99.9%", [Service])},
+     [{service, io_lib:format("lasp_bench op ~s latency 99.9%", [Service])},
       {metric, proplists:get_value(999, P)}],
-     [{service, io_lib:format("basho_bench op ~s #", [Service])},
+     [{service, io_lib:format("lasp_bench op ~s #", [Service])},
       {metric, Units}],
-     [{service, io_lib:format("basho_bench op ~s error#", [Service])},
+     [{service, io_lib:format("lasp_bench op ~s error#", [Service])},
       {metric, Errors}]].

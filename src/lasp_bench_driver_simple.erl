@@ -1,10 +1,10 @@
--module(basho_bench_driver_simple).
+-module(lasp_bench_driver_simple).
 -author("Gonçalo Tomás <goncalo@goncalotomas.com>").
 
 -export([new/1,
          run/4]).
 
--include("basho_bench.hrl").
+-include("lasp_bench.hrl").
 -define (MAX, 10000000).
 -define (NUM_BYTES, 64).
 

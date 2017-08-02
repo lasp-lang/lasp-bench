@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% basho_bench: Benchmarking Suite
+%% lasp_bench: Benchmarking Suite
 %%
 %% Copyright (c) 2009-2010 Basho Techonologies
 %%
@@ -19,7 +19,7 @@
 %% under the License.
 %%
 %% -------------------------------------------------------------------
--module(basho_bench_sup).
+-module(lasp_bench_sup).
 
 -behaviour(supervisor).
 
@@ -31,7 +31,7 @@
 %% Supervisor callbacks
 -export([init/1]).
 
--include("basho_bench.hrl").
+-include("lasp_bench.hrl").
 
 %% Helper macro for declaring children of supervisor
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
@@ -44,7 +44,7 @@ start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 workers() ->
-    [Pid || {_Id, Pid, worker, [basho_bench_worker]} <- supervisor:which_children(?MODULE)].
+    [Pid || {_Id, Pid, worker, [lasp_bench_worker]} <- supervisor:which_children(?MODULE)].
 
 stop_child(Id) ->
     ok = supervisor:terminate_child(?MODULE, Id),
@@ -62,15 +62,15 @@ init([]) ->
     %% intentionally left in to show where worker profiling start/stop calls go.
     %% eprof:start(),
     %% eprof:start_profiling([self()]),
-    Workers = worker_specs(basho_bench_config:get(concurrent), []),
+    Workers = worker_specs(lasp_bench_config:get(concurrent), []),
     MeasurementDriver =
-        case basho_bench_config:get(measurement_driver, undefined) of
+        case lasp_bench_config:get(measurement_driver, undefined) of
             undefined -> [];
-            _Driver -> [?CHILD(basho_bench_measurement, worker)]
+            _Driver -> [?CHILD(lasp_bench_measurement, worker)]
         end,
 
     {ok, {{one_for_one, 5, 10},
-        [?CHILD(basho_bench_stats, worker)] ++
+        [?CHILD(lasp_bench_stats, worker)] ++
         Workers ++
         MeasurementDriver
     }}.
@@ -82,7 +82,7 @@ init([]) ->
 worker_specs(0, Acc) ->
     Acc;
 worker_specs(Count, Acc) ->
-    Id = list_to_atom(lists:concat(['basho_bench_worker_', Count])),
-    Spec = {Id, {basho_bench_worker, start_link, [Id, Count]},
-            permanent, 5000, worker, [basho_bench_worker]},
+    Id = list_to_atom(lists:concat(['lasp_bench_worker_', Count])),
+    Spec = {Id, {lasp_bench_worker, start_link, [Id, Count]},
+            permanent, 5000, worker, [lasp_bench_worker]},
     worker_specs(Count-1, [Spec | Acc]).

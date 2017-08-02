@@ -1,16 +1,16 @@
--module(basho_bench_driver_ets).
+-module(lasp_bench_driver_ets).
 
 -export([new/1,
          run/4]).
 
 new(_Id) ->
-    EtsTable = ets:new(basho_bench, [ordered_set]),
+    EtsTable = ets:new(lasp_bench, [ordered_set]),
     {ok, EtsTable}.
 
 run(get, KeyGen, _ValueGen, EtsTable) ->
     Start = KeyGen(),
     case ets:lookup(EtsTable, Start) of
-        [] -> 
+        [] ->
             {ok, EtsTable};
         [{_Key, _Val}] ->
             {ok, EtsTable};
@@ -27,4 +27,3 @@ run(delete, KeyGen, _ValueGen, EtsTable) ->
     Start = KeyGen(),
     ets:delete(EtsTable, Start),
     {ok, EtsTable}.
-    

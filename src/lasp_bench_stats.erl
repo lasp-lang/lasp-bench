@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% basho_bench: Benchmarking Suite
+%% lasp_bench: Benchmarking Suite
 %%
 %% Copyright (c) 2009-2010 Basho Techonologies
 %%
@@ -19,7 +19,7 @@
 %% under the License.
 %%
 %% -------------------------------------------------------------------
--module(basho_bench_stats).
+-module(lasp_bench_stats).
 
 -behaviour(gen_server).
 
@@ -33,7 +33,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--include("basho_bench.hrl").
+-include("lasp_bench.hrl").
 
 -record(state, { ops,
                  start_time = os:timestamp(),
@@ -87,34 +87,34 @@ init([]) ->
 
     %% Initialize an ETS table to track error and crash counters during
     %% reporting interval
-    ets:new(basho_bench_errors, [protected, named_table]),
+    ets:new(lasp_bench_errors, [protected, named_table]),
 
     %% Initialize an ETS table to track error and crash counters since
     %% the start of the run
-    ets:new(basho_bench_total_errors, [protected, named_table]),
+    ets:new(lasp_bench_total_errors, [protected, named_table]),
 
     %% Get the list of operations we'll be using for this test
     F1 =
         fun({OpTag, _Count}) -> {OpTag, OpTag};
            ({Label, OpTag, _Count}) -> {Label, OpTag}
         end,
-    Ops = [F1(X) || X <- basho_bench_config:get(operations, [])],
+    Ops = [F1(X) || X <- lasp_bench_config:get(operations, [])],
 
     %% Get the list of measurements we'll be using for this test
     F2 =
         fun({MeasurementTag, _IntervalMS}) -> {MeasurementTag, MeasurementTag};
            ({Label, MeasurementTag, _IntervalMS}) -> {Label, MeasurementTag}
         end,
-    Measurements = [F2(X) || X <- basho_bench_config:get(measurements, [])],
+    Measurements = [F2(X) || X <- lasp_bench_config:get(measurements, [])],
 
     %% Setup a histogram and counter for each operation -- we only track latencies on
     %% successful operations
     [begin
-         folsom_metrics:new_histogram({latencies, Op}, slide, basho_bench_config:get(report_interval)),
+         folsom_metrics:new_histogram({latencies, Op}, slide, lasp_bench_config:get(report_interval)),
          folsom_metrics:new_counter({units, Op})
      end || Op <- Ops ++ Measurements],
 
-    StatsWriter = basho_bench_config:get(stats, csv),
+    StatsWriter = lasp_bench_config:get(stats, csv),
     {ok, StatsSinkModule} = normalize_name(StatsWriter),
     _ = (catch StatsSinkModule:module_info()),
     case code:is_loaded(StatsSinkModule) of
@@ -125,7 +125,7 @@ init([]) ->
                   [StatsSinkModule, StatsWriter])
     end,
     %% Schedule next write/reset of data
-    ReportInterval = timer:seconds(basho_bench_config:get(report_interval)),
+    ReportInterval = timer:seconds(lasp_bench_config:get(report_interval)),
 
     {ok, #state{ ops = Ops ++ Measurements,
                  report_interval = ReportInterval,
@@ -148,7 +148,7 @@ handle_cast({Op, {ok, Units}, ElapsedUs}, State = #state{last_write_time = LWT, 
     TimeSinceLastWarn = timer:now_diff(Now, State#state.last_warn) / 1000,
     if
         TimeSinceLastReport > (RI * 2) andalso TimeSinceLastWarn > ?WARN_INTERVAL  ->
-            ?WARN("basho_bench_stats has not reported in ~.2f milliseconds\n", [TimeSinceLastReport]),
+            ?WARN("lasp_bench_stats has not reported in ~.2f milliseconds\n", [TimeSinceLastReport]),
             {message_queue_len, QLen} = process_info(self(), message_queue_len),
             ?WARN("stats process mailbox size = ~w\n", [QLen]),
             NewState = State#state{last_warn = Now};
@@ -191,7 +191,7 @@ code_change(_OldVsn, State, _Extra) ->
 get_distributed() ->
     case erlang:get(distribute_work) of
         undefined ->
-            DistributeWork = basho_bench_config:get(distribute_work, false),
+            DistributeWork = lasp_bench_config:get(distribute_work, false),
             erlang:put(distribute_work, DistributeWork),
             DistributeWork;
         DistributeWork ->
@@ -199,7 +199,7 @@ get_distributed() ->
     end.
 
 increment_error_counter(Key) ->
-    ets_increment(basho_bench_errors, Key, 1).
+    ets_increment(lasp_bench_errors, Key, 1).
 
 ets_increment(Tab, Key, Incr) when is_integer(Incr) ->
     %% Increment the counter for this specific key. We have to deal with
@@ -224,7 +224,7 @@ ets_increment(Tab, Key, Incr) when is_float(Incr) ->
     true = ets:insert(Tab, {Key, Old + Incr}).
 
 error_counter(Key) ->
-    lookup_or_zero(basho_bench_errors, Key).
+    lookup_or_zero(lasp_bench_errors, Key).
 
 lookup_or_zero(Tab, Key) ->
     case catch(ets:lookup_element(Tab, Key, 2)) of
@@ -260,10 +260,10 @@ process_stats(Now, #state{stats_writer=Module}=State) ->
     %% Dump current error counts to console
     case (State#state.errors_since_last_report) of
         true ->
-            ErrCounts = ets:tab2list(basho_bench_errors),
-            true = ets:delete_all_objects(basho_bench_errors),
+            ErrCounts = ets:tab2list(lasp_bench_errors),
+            true = ets:delete_all_objects(lasp_bench_errors),
             ?INFO("Errors:~p\n", [lists:sort(ErrCounts)]),
-            [ets_increment(basho_bench_total_errors, Err, Count) ||
+            [ets_increment(lasp_bench_total_errors, Err, Count) ||
                               {Err, Count} <- ErrCounts],
             ok;
         false ->
@@ -286,7 +286,7 @@ report_latency(#state{stats_writer=Module}=State, Elapsed, Window, Op) ->
     {Units, Errors}.
 
 report_total_errors(#state{stats_writer=Module}=State) ->
-    case ets:tab2list(basho_bench_total_errors) of
+    case ets:tab2list(lasp_bench_total_errors) of
         [] ->
             ?INFO("No Errors.\n", []);
         UnsortedErrCounts ->
@@ -314,7 +314,7 @@ consume_report_msgs() ->
             ok
     end.
 
-% Assuming all stats sink modules are prefixed with basho_bench_stats_writer_
+% Assuming all stats sink modules are prefixed with lasp_bench_stats_writer_
 normalize_name(StatsSink) when is_atom(StatsSink) ->
-    {ok, list_to_atom("basho_bench_stats_writer_" ++ atom_to_list(StatsSink))};
+    {ok, list_to_atom("lasp_bench_stats_writer_" ++ atom_to_list(StatsSink))};
 normalize_name(StatsSink) -> {error, {StatsSink, invalid_name}}.

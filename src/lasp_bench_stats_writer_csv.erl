@@ -1,6 +1,6 @@
 %% -------------------------------------------------------------------
 %%
-%% basho_bench: Benchmarking Suite
+%% lasp_bench: Benchmarking Suite
 %%
 %% Copyright (c) 2009-2014 Basho Techonologies
 %%
@@ -21,7 +21,7 @@
 %% -------------------------------------------------------------------
 %% HOWTO:
 %%
-%% * To run basho_bench with the default CSV writer, nothing needs to
+%% * To run lasp_bench with the default CSV writer, nothing needs to
 %%   be done. But if wanting to override a former setting, then
 %%   writing the following in the benchmark config file will switch
 %%   the stats writer to CSV:
@@ -29,7 +29,7 @@
 %%    {stats, {csv}}.
 %%.
 
--module(basho_bench_stats_writer_csv).
+-module(lasp_bench_stats_writer_csv).
 
 -export([new/2,
          terminate/1,
@@ -37,7 +37,7 @@
          report_error/3,
          report_latency/7]).
 
--include("basho_bench.hrl").
+-include("lasp_bench.hrl").
 
 new(Ops, Measurements) ->
     ?INFO("module=~s event=start stats_sink=csv\n", [?MODULE]),

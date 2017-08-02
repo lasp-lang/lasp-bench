@@ -1,3 +1,4 @@
+sudo: false
 language: erlang
 dist: trusty
 sudo: false
@@ -5,5 +6,9 @@ otp_release:
   - 20.0
   - 19.3
   - 18.3
-script:
+install:
   - ./rebar3 escriptize
+script:
+  - ./_build/default/bin/lasp_bench examples/null_test.config
+  - ./_build/default/bin/lasp_bench examples/simple_test.config
+  - ./_build/default/bin/lasp_bench examples/ets.config
