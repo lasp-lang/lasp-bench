@@ -37,16 +37,16 @@
 new(Id) ->
 
     %% read relevant configuration from config file
-    IPs = basho_bench_config:get(fmk_server_ips,["127.0.0.1"]),
-    Ports = basho_bench_config:get(fmk_server_ports,[9090]),
-    NumPatients = basho_bench_config:get(numpatients, 5000),
-    NumPharmacies = basho_bench_config:get(numpharmacies, 300),
-    NumFacilities = basho_bench_config:get(numfacilities, 50),
-    NumPrescriptions = basho_bench_config:get(numprescriptions, 2000),
-    NumStaff = basho_bench_config:get(numstaff,250),
+    IPs = lasp_bench_config:get(fmk_server_ips,["127.0.0.1"]),
+    Ports = lasp_bench_config:get(fmk_server_ports,[9090]),
+    NumPatients = lasp_bench_config:get(numpatients, 5000),
+    NumPharmacies = lasp_bench_config:get(numpharmacies, 300),
+    NumFacilities = lasp_bench_config:get(numfacilities, 50),
+    NumPrescriptions = lasp_bench_config:get(numprescriptions, 2000),
+    NumStaff = lasp_bench_config:get(numstaff,250),
 
-    ZipfSize = basho_bench_config:get(zipf_size, 5000),
-    ZipfSkew = basho_bench_config:get(zipf_skew, 1),
+    ZipfSize = lasp_bench_config:get(zipf_size, 5000),
+    ZipfSkew = lasp_bench_config:get(zipf_skew, 1),
     ZipfBottom = 1/(lists:foldl(
         fun(X,Sum) -> Sum+(1/math:pow(X,ZipfSkew)) end,
         0,lists:seq(1,ZipfSize))
