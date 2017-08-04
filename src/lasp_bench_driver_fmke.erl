@@ -35,6 +35,8 @@
 %% ====================================================================
 
 new(Id) ->
+    %% this application is not being started correctly...
+    application:ensure_all_started(hackney),
 
     %% read relevant configuration from config file
     IPs = lasp_bench_config:get(fmk_server_ips,["127.0.0.1"]),
@@ -52,8 +54,6 @@ new(Id) ->
         0,lists:seq(1,ZipfSize))
     ),
 
-    hackney:start(),
-
     TargetNode = lists:nth((Id rem length(IPs)+1), IPs),
     io:format("Target FMKe IP address for client ~p is ~p\n",[Id,TargetNode]),
     TargetPort = lists:nth((Id rem length(IPs)+1), Ports),
@@ -61,7 +61,7 @@ new(Id) ->
     Transport = hackney_tcp,
     Host = list_to_binary(TargetNode),
     Port = TargetPort,
-    Options = [{pool, default}],
+    Options = [],
     {ok, ConnRef} = hackney:connect(Transport, Host, Port, Options),
 
     %% Seed random number
