@@ -54,7 +54,7 @@ start() ->
           application:set_env(sasl, sasl_error_logger, {file, "log.sasl.txt"}),
           %% Make sure crypto is available
           application:load(unicode_util_compat),
-          ensure_started([sasl, crypto, bear, asn1, public_key, ssl, jsx]),
+          ensure_started([sasl, crypto, bear, asn1, public_key, ssl]),
 
           application:ensure_all_started(hackney),
           %% Start up our application -- mark it as permanent so that the node
