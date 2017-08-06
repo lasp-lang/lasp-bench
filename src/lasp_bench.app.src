@@ -10,8 +10,7 @@
                   stdlib,
                   lager,
                   sasl,
-                  bear,
-                  hackney]},
+                  bear]},
   {mod, {lasp_bench_app, []}},
   {env, [
 	 %% Run mode: How should lasp_bench started as a separate node, or part of an
