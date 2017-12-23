@@ -1,8 +1,10 @@
 tests/
-.rebar
+.rebar/
 *~
 #*#
 tags
 _build/
 rebar.lock
 .DS_Store
+.rebar3/
+ebin/
