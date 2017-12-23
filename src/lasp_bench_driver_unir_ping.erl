@@ -31,6 +31,29 @@ new(_Id) ->
 
     {ok, #state{nodes=ConnectedNodes}}.
 
+run(fsm_get, KeyGen, _ValueGen, State) ->
+    Key = KeyGen(),
+    Node = random_node(State),
+
+    case rpc:call(Node, unir, fsm_get, [Key]) of
+        {ok, _} ->
+            {ok, State};
+        Error ->
+            {error, Error, State}
+    end;
+
+run(fsm_put, KeyGen, ValueGen, State) ->
+    Key = KeyGen(),
+    Value = ValueGen(),
+    Node = random_node(State),
+
+    case rpc:call(Node, unir, fsm_put, [Key, Value]) of
+        {ok, _} ->
+            {ok, State};
+        Error ->
+            {error, Error, State}
+    end;
+
 run(Command, _KeyGen, _ValueGen, State) ->
     Node = random_node(State),
 
