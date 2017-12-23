@@ -6,9 +6,16 @@
 -record(state, {nodes}).
 
 new(_Id) ->
-    lager:info("Attempting to connect to nodes."),
+    Nodes = case os:getenv("NODES") of
+        false ->
+            exit({error, no_nodes});
+        Value ->
+            lists:map(fun(X) ->
+                list_to_atom(X)
+            end, string:tokens(Value, ","))
+    end,
 
-    Nodes = ['node_1@parrhesia.localdomain', 'node_2@parrhesia.localdomain', 'node_3@parrhesia.localdomain'],
+    lager:info("Attempting to connect to nodes: ~p", [Nodes]),
 
     ConnectedNodes = lists:map(fun(Node) ->
         lager:info("Connecting to node: ~p", [Node]),
@@ -28,8 +35,13 @@ run(Command, _KeyGen, _ValueGen, State) ->
     Node = random_node(State),
 
     case rpc:call(Node, unir, Command, []) of
+        %% command
         ok ->
             {ok, State};
+        %% sync_command
+        {pong, _} ->
+            {ok, State};
+        %% error
         Error ->
             {error, Error, State}
     end.
