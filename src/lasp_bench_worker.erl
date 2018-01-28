@@ -320,6 +320,7 @@ needs_shutdown(State) ->
         {'EXIT', Pid, _Reason} ->
             case Pid of
                 Parent ->
+                    ?INFO("Issuing shutdown for worker.", []),
                     %% Give the driver a chance to cleanup
                     (catch (State#state.driver):terminate(normal,
                                                           State#state.driver_state)),
