@@ -78,6 +78,7 @@ run(Command, _KeyGen, _ValueGen, #state{num_ops=NumOps}=State) ->
 
 terminate(_Reason, #state{num_ops=NumOps, runner=_RunnerNode}) ->
     Pid = global:whereis_name(runner),
+    ?INFO("Reporting operations from ~p: ~p", [self(), NumOps]),
     erlang:send(Pid, {bench_operations, NumOps}),
     ok.
 
